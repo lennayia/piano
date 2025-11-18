@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Music, Clock, TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
 import useLessonStore from '../store/useLessonStore';
 import useUserStore from '../store/useUserStore';
+import PianoKeyboard from '../components/lessons/PianoKeyboard';
+import audioEngine from '../utils/audio';
 
 function Lesson() {
   const { id } = useParams();
@@ -35,6 +38,7 @@ function Lesson() {
     if (currentUser && !isCompleted) {
       updateUserProgress(currentUser.id, lesson.id);
       setIsCompleted(true);
+      audioEngine.playSuccess();
     }
   };
 
@@ -100,28 +104,43 @@ function Lesson() {
             display: 'flex',
             gap: '1rem',
             padding: '1.5rem',
-            backgroundColor: 'var(--color-bg-secondary)',
+            background: 'rgba(255, 255, 255, 0.5)',
+            backdropFilter: 'blur(10px)',
             borderRadius: 'var(--radius)',
             marginBottom: '2rem'
           }}>
             {lesson.content.notes.map((note, index) => (
-              <div
+              <motion.div
                 key={index}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: index * 0.1, type: 'spring' }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
                 style={{
                   flex: 1,
                   textAlign: 'center',
                   padding: '1rem',
-                  backgroundColor: 'var(--color-bg)',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+                  backdropFilter: 'blur(10px)',
                   borderRadius: 'var(--radius)',
                   fontSize: '1.5rem',
                   fontWeight: 600,
                   color: 'var(--color-primary)',
-                  border: '2px solid var(--color-border)'
+                  border: '2px solid rgba(37, 99, 235, 0.3)',
+                  boxShadow: '0 4px 15px rgba(37, 99, 235, 0.2)',
+                  cursor: 'pointer'
                 }}
+                onClick={() => audioEngine.playNote(note, 0.5)}
               >
                 {note}
-              </div>
+              </motion.div>
             ))}
+          </div>
+
+          {/* Interactive Piano */}
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>Interaktivní klavír</h3>
+            <PianoKeyboard highlightedNotes={lesson.content.notes} />
           </div>
 
           <h3 style={{ marginBottom: '1rem' }}>Instrukce</h3>

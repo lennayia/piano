@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Piano, BookOpen, Trophy, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 import useUserStore from '../store/useUserStore';
+import audioEngine from '../utils/audio';
 
 function Home() {
   const navigate = useNavigate();
@@ -27,44 +29,104 @@ function Home() {
   return (
     <div className="container">
       {/* Hero Section */}
-      <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-        <div style={{
-          width: '96px',
-          height: '96px',
-          backgroundColor: 'rgba(37, 99, 235, 0.1)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 2rem'
-        }}>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        style={{ textAlign: 'center', padding: '4rem 0' }}
+      >
+        <motion.div
+          className="float"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          style={{
+            width: '96px',
+            height: '96px',
+            background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(96, 165, 250, 0.1) 100%)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 2rem',
+            boxShadow: '0 8px 32px rgba(37, 99, 235, 0.3)'
+          }}
+        >
           <Piano size={48} color="var(--color-primary)" />
-        </div>
+        </motion.div>
 
-        <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+        <motion.h1
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          style={{ fontSize: '3rem', marginBottom: '1rem', color: '#1e293b' }}
+        >
           Naučte se hrát na klavír
-        </h1>
-        <p style={{ fontSize: '1.25rem', color: 'var(--color-text-secondary)', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          style={{
+            fontSize: '1.25rem',
+            color: '#1e293b',
+            marginBottom: '2rem',
+            maxWidth: '600px',
+            margin: '0 auto 2rem',
+            textShadow: '0 2px 4px rgba(255,255,255,0.5)'
+          }}
+        >
           Moderní způsob výuky klavíru pro začátečníky i pokročilé. Začněte svou hudební cestu ještě dnes.
-        </p>
+        </motion.p>
 
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}
+        >
           {currentUser ? (
-            <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                audioEngine.playClick();
+                navigate('/dashboard');
+              }}
+              className="btn btn-primary"
+              style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
+            >
               Pokračovat v učení
-            </button>
+            </motion.button>
           ) : (
             <>
-              <button onClick={() => navigate('/registration')} className="btn btn-primary" style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  audioEngine.playClick();
+                  navigate('/registration');
+                }}
+                className="btn btn-primary"
+                style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
+              >
                 Začít zdarma
-              </button>
-              <button onClick={() => navigate('/admin')} className="btn btn-secondary" style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  audioEngine.playClick();
+                  navigate('/admin');
+                }}
+                className="btn btn-secondary"
+                style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
+              >
                 Admin přístup
-              </button>
+              </motion.button>
             </>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Features Section */}
       <div style={{ padding: '4rem 0' }}>
@@ -76,26 +138,40 @@ function Home() {
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <div key={index} className="card" style={{ textAlign: 'center' }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1rem'
-                }}>
+              <motion.div
+                key={index}
+                className="card"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2, duration: 0.5 }}
+                whileHover={{ y: -10, scale: 1.03 }}
+                style={{ textAlign: 'center' }}
+              >
+                <motion.div
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(96, 165, 250, 0.1) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1rem',
+                    boxShadow: '0 4px 20px rgba(37, 99, 235, 0.2)'
+                  }}
+                >
                   <Icon size={32} color="var(--color-primary)" />
-                </div>
-                <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>
+                </motion.div>
+                <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem', color: '#1e293b' }}>
                   {feature.title}
                 </h3>
-                <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
+                <p style={{ fontSize: '0.875rem', color: '#475569' }}>
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             );
           })}
         </div>

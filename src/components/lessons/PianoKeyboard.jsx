@@ -1,0 +1,216 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import audioEngine from '../../utils/audio';
+
+function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
+  const [activeKeys, setActiveKeys] = useState(new Set());
+  const [particles, setParticles] = useState([]);
+
+  const keys = [
+    { note: 'C', type: 'white', label: 'C' },
+    { note: 'C#', type: 'black', label: 'C#' },
+    { note: 'D', type: 'white', label: 'D' },
+    { note: 'D#', type: 'black', label: 'D#' },
+    { note: 'E', type: 'white', label: 'E' },
+    { note: 'F', type: 'white', label: 'F' },
+    { note: 'F#', type: 'black', label: 'F#' },
+    { note: 'G', type: 'white', label: 'G' },
+    { note: 'G#', type: 'black', label: 'G#' },
+    { note: 'A', type: 'white', label: 'A' },
+    { note: 'A#', type: 'black', label: 'A#' },
+    { note: 'H', type: 'white', label: 'H' },
+  ];
+
+  const handleKeyPress = (note) => {
+    audioEngine.playNote(note, 0.5);
+    setActiveKeys(prev => new Set(prev).add(note));
+
+    // Create smoke particle
+    const id = Date.now() + Math.random();
+    setParticles(prev => [...prev, { id, note }]);
+
+    setTimeout(() => {
+      setActiveKeys(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(note);
+        return newSet;
+      });
+    }, 200);
+
+    // Remove particle after animation
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => p.id !== id));
+    }, 2000);
+  };
+
+  const isHighlighted = (note) => {
+    return highlightedNotes.includes(note);
+  };
+
+  const whiteKeys = keys.filter(k => k.type === 'white');
+  const blackKeys = keys.filter(k => k.type === 'black');
+
+  return (
+    <div style={{
+      position: 'relative',
+      padding: '2rem',
+      background: 'var(--glass-bg)',
+      backdropFilter: 'blur(20px)',
+      borderRadius: 'var(--radius)',
+      boxShadow: 'var(--glass-shadow)',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        position: 'relative',
+        height: '200px',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '2px'
+      }}>
+        {/* White Keys */}
+        {whiteKeys.map((key, index) => (
+          <motion.div
+            key={key.note}
+            className={`piano-key white ${activeKeys.has(key.note) ? 'active' : ''}`}
+            onClick={() => handleKeyPress(key.note)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{
+              width: '60px',
+              height: '200px',
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              paddingBottom: '1rem',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              position: 'relative',
+              border: isHighlighted(key.note) ? '3px solid #2563eb' : '2px solid #ddd',
+              boxShadow: isHighlighted(key.note)
+                ? '0 0 20px rgba(37, 99, 235, 0.5)'
+                : '0 4px 8px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            {key.label}
+            {isHighlighted(key.note) && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  width: '20px',
+                  height: '20px',
+                  background: '#2563eb',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 15px rgba(37, 99, 235, 0.8)'
+                }}
+              />
+            )}
+          </motion.div>
+        ))}
+
+        {/* Black Keys */}
+        {blackKeys.map((key, index) => {
+          const blackKeyPositions = {
+            'C#': 45,
+            'D#': 105,
+            'F#': 225,
+            'G#': 285,
+            'A#': 345
+          };
+
+          return (
+            <motion.div
+              key={key.note}
+              className={`piano-key black ${activeKeys.has(key.note) ? 'active' : ''}`}
+              onClick={() => handleKeyPress(key.note)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                width: '40px',
+                height: '120px',
+                position: 'absolute',
+                left: `${blackKeyPositions[key.note]}px`,
+                top: 0,
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                paddingBottom: '0.5rem',
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: 'white',
+                border: isHighlighted(key.note) ? '3px solid #60a5fa' : '2px solid #000',
+                boxShadow: isHighlighted(key.note)
+                  ? '0 0 20px rgba(96, 165, 250, 0.7)'
+                  : '0 4px 8px rgba(0, 0, 0, 0.3)'
+              }}
+            >
+              {key.label}
+              {isHighlighted(key.note) && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    width: '16px',
+                    height: '16px',
+                    background: '#60a5fa',
+                    borderRadius: '50%',
+                    boxShadow: '0 0 15px rgba(96, 165, 250, 0.8)'
+                  }}
+                />
+              )}
+            </motion.div>
+          );
+        })}
+
+        {/* Smoke Particles */}
+        {particles.map(particle => {
+          const keyIndex = keys.findIndex(k => k.note === particle.note);
+          const key = keys[keyIndex];
+          let left = 30;
+
+          if (key.type === 'white') {
+            const whiteIndex = whiteKeys.findIndex(k => k.note === particle.note);
+            left = whiteIndex * 62 + 30;
+          } else {
+            const blackKeyPositions = {
+              'C#': 45,
+              'D#': 105,
+              'F#': 225,
+              'G#': 285,
+              'A#': 345
+            };
+            left = blackKeyPositions[particle.note] + 20;
+          }
+
+          return (
+            <div
+              key={particle.id}
+              className="smoke-particle"
+              style={{
+                left: `${left}px`,
+                bottom: '50%',
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Instructions */}
+      <div style={{
+        marginTop: '1.5rem',
+        textAlign: 'center',
+        color: 'var(--color-text-secondary)',
+        fontSize: '0.875rem'
+      }}>
+        Klikněte na klávesy pro přehrání tónů
+      </div>
+    </div>
+  );
+}
+
+export default PianoKeyboard;

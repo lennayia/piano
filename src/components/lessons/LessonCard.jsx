@@ -1,5 +1,7 @@
 import { Clock, TrendingUp, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import audioEngine from '../../utils/audio';
 
 function LessonCard({ lesson }) {
   const navigate = useNavigate();
@@ -17,11 +19,24 @@ function LessonCard({ lesson }) {
     }
   };
 
+  const handleClick = () => {
+    audioEngine.playClick();
+    navigate(`/lesson/${lesson.id}`);
+  };
+
   return (
-    <div className="card" style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
-      onClick={() => navigate(`/lesson/${lesson.id}`)}
-      onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-      onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+    <motion.div
+      className="card"
+      style={{ cursor: 'pointer' }}
+      onClick={handleClick}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{
+        y: -8,
+        scale: 1.02,
+        transition: { duration: 0.2 }
+      }}
+      whileTap={{ scale: 0.98 }}
     >
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
@@ -43,7 +58,7 @@ function LessonCard({ lesson }) {
           {lesson.duration}
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
