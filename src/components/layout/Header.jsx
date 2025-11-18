@@ -87,10 +87,10 @@ function Header() {
                 alignItems: 'center',
                 gap: '0.5rem',
                 padding: '0.5rem 1rem',
-                background: 'rgba(37, 99, 235, 0.1)',
+                background: 'rgba(181, 31, 101, 0.1)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: 'var(--radius)',
-                border: '1px solid rgba(37, 99, 235, 0.2)',
+                border: '1px solid rgba(181, 31, 101, 0.2)',
                 color: '#1e293b'
               }}>
                 <User size={18} color="var(--color-primary)" />

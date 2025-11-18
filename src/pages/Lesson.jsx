@@ -126,8 +126,8 @@ function Lesson() {
                   fontSize: '1.5rem',
                   fontWeight: 600,
                   color: 'var(--color-primary)',
-                  border: '2px solid rgba(37, 99, 235, 0.3)',
-                  boxShadow: '0 4px 15px rgba(37, 99, 235, 0.2)',
+                  border: '2px solid rgba(181, 31, 101, 0.3)',
+                  boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)',
                   cursor: 'pointer'
                 }}
                 onClick={() => audioEngine.playNote(note, 0.5)}

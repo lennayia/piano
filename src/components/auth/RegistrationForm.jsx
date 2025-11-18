@@ -68,7 +68,7 @@ function RegistrationForm() {
         <div style={{
           width: '64px',
           height: '64px',
-          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+          backgroundColor: 'rgba(181, 31, 101, 0.1)',
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',

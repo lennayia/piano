@@ -24,8 +24,8 @@ function UserDashboard() {
     <div className="container">
       {/* Welcome Section */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%)',
-        border: '1px solid rgba(37, 99, 235, 0.2)',
+        background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.1) 0%, rgba(181, 31, 101, 0.05) 100%)',
+        border: '1px solid rgba(181, 31, 101, 0.2)',
         marginBottom: '2rem'
       }}>
         <h1 style={{ marginBottom: '0.5rem' }}>
@@ -58,7 +58,7 @@ function UserDashboard() {
             <div style={{
               width: '48px',
               height: '48px',
-              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              backgroundColor: 'rgba(181, 31, 101, 0.1)',
               borderRadius: 'var(--radius)',
               display: 'flex',
               alignItems: 'center',

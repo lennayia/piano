@@ -41,14 +41,14 @@ function Home() {
           style={{
             width: '96px',
             height: '96px',
-            background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(96, 165, 250, 0.1) 100%)',
+            background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(214, 51, 132, 0.1) 100%)',
             backdropFilter: 'blur(10px)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 2rem',
-            boxShadow: '0 8px 32px rgba(37, 99, 235, 0.3)'
+            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)'
           }}
         >
           <Piano size={48} color="var(--color-primary)" />
@@ -153,14 +153,14 @@ function Home() {
                   style={{
                     width: '64px',
                     height: '64px',
-                    background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(96, 165, 250, 0.1) 100%)',
+                    background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(214, 51, 132, 0.1) 100%)',
                     backdropFilter: 'blur(10px)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 1rem',
-                    boxShadow: '0 4px 20px rgba(37, 99, 235, 0.2)'
+                    boxShadow: '0 4px 20px rgba(181, 31, 101, 0.2)'
                   }}
                 >
                   <Icon size={32} color="var(--color-primary)" />
@@ -179,7 +179,7 @@ function Home() {
 
       {/* CTA Section */}
       {!currentUser && (
-        <div className="card" style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'rgba(37, 99, 235, 0.05)', border: '1px solid rgba(37, 99, 235, 0.1)' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'rgba(181, 31, 101, 0.05)', border: '1px solid rgba(181, 31, 101, 0.1)' }}>
           <h2 style={{ marginBottom: '1rem' }}>Připraveni začít?</h2>
           <p className="text-secondary" style={{ marginBottom: '2rem' }}>
             Registrace je rychlá a jednoduchá. Začněte se učit během několika vteřin.

@@ -86,9 +86,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
               fontSize: '0.875rem',
               fontWeight: 500,
               position: 'relative',
-              border: isHighlighted(key.note) ? '3px solid #2563eb' : '2px solid #ddd',
+              border: isHighlighted(key.note) ? '3px solid #b51f65' : '2px solid #ddd',
               boxShadow: isHighlighted(key.note)
-                ? '0 0 20px rgba(37, 99, 235, 0.5)'
+                ? '0 0 20px rgba(181, 31, 101, 0.5)'
                 : '0 4px 8px rgba(0, 0, 0, 0.1)'
             }}
           >
@@ -102,9 +102,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
                   top: '10px',
                   width: '20px',
                   height: '20px',
-                  background: '#2563eb',
+                  background: '#b51f65',
                   borderRadius: '50%',
-                  boxShadow: '0 0 15px rgba(37, 99, 235, 0.8)'
+                  boxShadow: '0 0 15px rgba(181, 31, 101, 0.8)'
                 }}
               />
             )}
@@ -146,9 +146,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
                 fontSize: '0.75rem',
                 fontWeight: 500,
                 color: 'white',
-                border: isHighlighted(key.note) ? '3px solid #60a5fa' : '2px solid #000',
+                border: isHighlighted(key.note) ? '3px solid #d63384' : '2px solid #000',
                 boxShadow: isHighlighted(key.note)
-                  ? '0 0 20px rgba(96, 165, 250, 0.7)'
+                  ? '0 0 20px rgba(214, 51, 132, 0.7)'
                   : '0 4px 8px rgba(0, 0, 0, 0.3)'
               }}
             >
@@ -162,9 +162,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
                     top: '10px',
                     width: '16px',
                     height: '16px',
-                    background: '#60a5fa',
+                    background: '#d63384',
                     borderRadius: '50%',
-                    boxShadow: '0 0 15px rgba(96, 165, 250, 0.8)'
+                    boxShadow: '0 0 15px rgba(214, 51, 132, 0.8)'
                   }}
                 />
               )}

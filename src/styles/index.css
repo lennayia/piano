@@ -1,10 +1,10 @@
 :root {
-  --color-primary: #2563eb;
-  --color-primary-dark: #1e40af;
-  --color-secondary: #64748b;
-  --color-success: #10b981;
-  --color-danger: #ef4444;
-  --color-warning: #f59e0b;
+  --color-primary: #b51f65;
+  --color-primary-dark: #8f1850;
+  --color-secondary: #2d5b78;
+  --color-secondary-dark: #1e3d52;
+  --color-accent: #d63384;
+  --color-blue: #2d5b78;
 
   --color-bg: #ffffff;
   --color-bg-secondary: #f8fafc;
@@ -35,8 +35,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(37, 99, 235, 0.6); }
+  0%, 100% { box-shadow: 0 0 20px rgba(181, 31, 101, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(181, 31, 101, 0.6); }
 }
 
 @keyframes smoke {
@@ -169,12 +169,12 @@ h3 {
 }
 
 .btn-danger {
-  background-color: var(--color-danger);
+  background-color: var(--color-primary);
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: var(--color-primary-dark);
 }
 
 /* Forms */
@@ -204,11 +204,11 @@ h3 {
 .form-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(181, 31, 101, 0.1);
 }
 
 .form-error {
-  color: var(--color-danger);
+  color: var(--color-primary);
   font-size: 0.75rem;
   margin-top: 0.25rem;
 }
@@ -286,18 +286,18 @@ h3 {
 }
 
 .badge-primary {
-  background-color: rgba(37, 99, 235, 0.1);
+  background-color: rgba(181, 31, 101, 0.1);
   color: var(--color-primary);
 }
 
 .badge-success {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: var(--color-success);
+  background-color: rgba(181, 31, 101, 0.1);
+  color: var(--color-primary);
 }
 
 .badge-warning {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: var(--color-warning);
+  background-color: rgba(181, 31, 101, 0.15);
+  color: var(--color-primary-dark);
 }
 
 /* Utilities */
