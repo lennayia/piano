@@ -19,6 +19,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
     { note: 'A', type: 'white', label: 'A' },
     { note: 'A#', type: 'black', label: 'A#' },
     { note: 'H', type: 'white', label: 'H' },
+    { note: 'C', type: 'white', label: 'C', octave: 2 }, // Další C o oktávu výš
   ];
 
   const handleKeyPress = (note) => {
@@ -70,7 +71,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
         {/* White Keys */}
         {whiteKeys.map((key, index) => (
           <motion.div
-            key={key.note}
+            key={`${key.note}-${index}`}
             className={`piano-key white ${activeKeys.has(key.note) ? 'active' : ''}`}
             onClick={() => handleKeyPress(key.note)}
             whileHover={{ scale: 1.02 }}
@@ -112,12 +113,15 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
 
         {/* Black Keys */}
         {blackKeys.map((key, index) => {
+          // Správné pozice černých kláves - uprostřed mezi bílými
+          // Bílé klávesy: C(0), D(62), E(124), F(186), G(248), A(310), H(372)
+          // Černá klávesa 40px široká, takže odečteme 20px pro vycentrování
           const blackKeyPositions = {
-            'C#': 45,
-            'D#': 105,
-            'F#': 225,
-            'G#': 285,
-            'A#': 345
+            'C#': 31,   // mezi C a D: (0 + 62) / 2 - 20
+            'D#': 93,   // mezi D a E: (62 + 124) / 2 - 20
+            'F#': 197,  // mezi F a G: (186 + 248) / 2 - 20
+            'G#': 259,  // mezi G a A: (248 + 310) / 2 - 20
+            'A#': 321   // mezi A a H: (310 + 372) / 2 - 20
           };
 
           return (
@@ -178,11 +182,11 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
             left = whiteIndex * 62 + 30;
           } else {
             const blackKeyPositions = {
-              'C#': 45,
-              'D#': 105,
-              'F#': 225,
-              'G#': 285,
-              'A#': 345
+              'C#': 31,
+              'D#': 93,
+              'F#': 197,
+              'G#': 259,
+              'A#': 321
             };
             left = blackKeyPositions[particle.note] + 20;
           }
