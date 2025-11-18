@@ -113,15 +113,16 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
 
         {/* Black Keys */}
         {blackKeys.map((key, index) => {
-          // Správné pozice černých kláves - uprostřed mezi bílými
-          // Bílé klávesy: C(0), D(62), E(124), F(186), G(248), A(310), H(372)
-          // Černá klávesa 40px široká, takže odečteme 20px pro vycentrování
+          // Správné pozice černých kláves - vycentrované mezi středy bílých kláves
+          // Bílé klávesy (60px široké): C(0-60), D(62-122), E(124-184), F(186-246), G(248-308), A(310-370), H(372-432)
+          // Středy bílých: C(30), D(92), E(154), F(216), G(278), A(340), H(402)
+          // Černá klávesa 40px široká, takže střed mezi bílými minus 20px
           const blackKeyPositions = {
-            'C#': 31,   // mezi C a D: (0 + 62) / 2 - 20
-            'D#': 93,   // mezi D a E: (62 + 124) / 2 - 20
-            'F#': 197,  // mezi F a G: (186 + 248) / 2 - 20
-            'G#': 259,  // mezi G a A: (248 + 310) / 2 - 20
-            'A#': 321   // mezi A a H: (310 + 372) / 2 - 20
+            'C#': 41,   // mezi C a D: (30 + 92) / 2 - 20 = 61 - 20
+            'D#': 103,  // mezi D a E: (92 + 154) / 2 - 20 = 123 - 20
+            'F#': 227,  // mezi F a G: (216 + 278) / 2 - 20 = 247 - 20
+            'G#': 289,  // mezi G a A: (278 + 340) / 2 - 20 = 309 - 20
+            'A#': 351   // mezi A a H: (340 + 402) / 2 - 20 = 371 - 20
           };
 
           return (
@@ -182,11 +183,11 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
             left = whiteIndex * 62 + 30;
           } else {
             const blackKeyPositions = {
-              'C#': 31,
-              'D#': 93,
-              'F#': 197,
-              'G#': 259,
-              'A#': 321
+              'C#': 41,
+              'D#': 103,
+              'F#': 227,
+              'G#': 289,
+              'A#': 351
             };
             left = blackKeyPositions[particle.note] + 20;
           }
