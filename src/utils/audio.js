@@ -21,29 +21,31 @@ class AudioEngine {
     }
   }
 
-  // Note frequencies (A4 = 440Hz)
+  // Note frequencies (C4 = middle C)
+  // Chromatická stupnice vzestupně
   getNoteFrequency(note) {
     const frequencies = {
-      'C': 261.63,
-      'C#': 277.18,
+      'C': 261.63,    // C4
+      'C#': 277.18,   // C#4/Db4
       'Db': 277.18,
-      'D': 293.66,
-      'D#': 311.13,
+      'D': 293.66,    // D4
+      'D#': 311.13,   // D#4/Eb4
       'Eb': 311.13,
-      'E': 329.63,
-      'F': 349.23,
-      'F#': 369.99,
+      'E': 329.63,    // E4
+      'F': 349.23,    // F4
+      'F#': 369.99,   // F#4/Gb4
       'Gb': 369.99,
-      'G': 392.00,
-      'G#': 415.30,
+      'G': 392.00,    // G4
+      'G#': 415.30,   // G#4/Ab4
       'Ab': 415.30,
-      'A': 440.00,
-      'A#': 466.16,
+      'A': 440.00,    // A4 (komorní A)
+      'A#': 466.16,   // A#4/Bb4
       'Bb': 466.16,
-      'H': 493.88,
+      'H': 493.88,    // H4/B4
       'B': 493.88,
     };
 
+    console.log(`Playing note: ${note}, frequency: ${frequencies[note] || 440} Hz`);
     return frequencies[note] || 440;
   }
 
