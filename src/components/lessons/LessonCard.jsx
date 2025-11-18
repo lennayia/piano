@@ -1,0 +1,50 @@
+import { Clock, TrendingUp, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+function LessonCard({ lesson }) {
+  const navigate = useNavigate();
+
+  const getDifficultyColor = (difficulty) => {
+    switch (difficulty) {
+      case 'začátečník':
+        return 'badge-success';
+      case 'mírně pokročilý':
+        return 'badge-warning';
+      case 'pokročilý':
+        return 'badge-primary';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div className="card" style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+      onClick={() => navigate(`/lesson/${lesson.id}`)}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+    >
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{lesson.title}</h3>
+          <ChevronRight size={20} color="var(--color-text-secondary)" />
+        </div>
+        <p className="text-secondary" style={{ fontSize: '0.875rem', lineHeight: 1.5 }}>
+          {lesson.description}
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+        <span className={`badge ${getDifficultyColor(lesson.difficulty)}`}>
+          <TrendingUp size={14} />
+          {lesson.difficulty}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+          <Clock size={14} />
+          {lesson.duration}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default LessonCard;
