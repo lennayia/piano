@@ -64,8 +64,7 @@ function UserDashboard() {
         background: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(30px)',
         WebkitBackdropFilter: 'blur(30px)',
-        border: '2px solid rgba(181, 31, 101, 0.3)',
-        boxShadow: '0 8px 32px rgba(181, 31, 101, 0.2)',
+        boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
         marginBottom: '2rem',
         position: 'relative',
         overflow: 'hidden'
@@ -239,8 +238,7 @@ function UserDashboard() {
             background: 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(30px)',
             WebkitBackdropFilter: 'blur(30px)',
-            border: '2px solid rgba(181, 31, 101, 0.3)',
-            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.2)',
+            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
             marginBottom: '2rem'
           }}
         >
