@@ -12,7 +12,11 @@ const useUserStore = create(
           id: Date.now(),
           ...userData,
           createdAt: new Date().toISOString(),
-          progress: []
+          progress: [],
+          achievements: [],
+          points: 0,
+          streak: 0,
+          lastLessonDate: null
         };
         set((state) => ({
           users: [...state.users, newUser]
@@ -32,12 +36,68 @@ const useUserStore = create(
                 return user; // Nedělat nic, už je dokončená
               }
 
+              const now = new Date();
+              const today = now.toISOString().split('T')[0];
+              const lastDate = user.lastLessonDate ? user.lastLessonDate.split('T')[0] : null;
+
+              // Spočítat streak (série dnů po sobě)
+              let newStreak = user.streak || 0;
+              if (lastDate) {
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                if (lastDate === yesterdayStr) {
+                  newStreak += 1; // Pokračování série
+                } else if (lastDate !== today) {
+                  newStreak = 1; // Nová série
+                }
+              } else {
+                newStreak = 1; // První lekce
+              }
+
+              // Přidat body za dokončení lekce
+              const points = (user.points || 0) + 100;
+
+              // Kontrola nových achievementů
+              const achievements = [...(user.achievements || [])];
+              const newAchievements = [];
+
+              // Achievement: První lekce
+              if (user.progress.length === 0 && !achievements.includes('first-lesson')) {
+                achievements.push('first-lesson');
+                newAchievements.push('first-lesson');
+              }
+
+              // Achievement: 5 lekcí
+              if (user.progress.length + 1 === 5 && !achievements.includes('five-lessons')) {
+                achievements.push('five-lessons');
+                newAchievements.push('five-lessons');
+              }
+
+              // Achievement: Série 3 dny
+              if (newStreak === 3 && !achievements.includes('streak-3')) {
+                achievements.push('streak-3');
+                newAchievements.push('streak-3');
+              }
+
+              // Achievement: Série 7 dní
+              if (newStreak === 7 && !achievements.includes('streak-7')) {
+                achievements.push('streak-7');
+                newAchievements.push('streak-7');
+              }
+
               return {
                 ...user,
                 progress: [...user.progress, {
                   lessonId,
                   completedAt: new Date().toISOString()
-                }]
+                }],
+                points,
+                streak: newStreak,
+                lastLessonDate: now.toISOString(),
+                achievements,
+                newAchievements // Dočasně pro zobrazení
               };
             }
             return user;

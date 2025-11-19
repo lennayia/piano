@@ -199,6 +199,78 @@ class AudioEngine {
     oscillator.stop(now + 0.1);
   }
 
+  playApplause() {
+    if (!this.initialized) this.init();
+    if (!this.audioContext) return;
+
+    const now = this.audioContext.currentTime;
+
+    // Simulace potlesku pomocí white noise
+    for (let i = 0; i < 8; i++) {
+      const bufferSize = 2 * this.audioContext.sampleRate;
+      const noiseBuffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+
+      for (let j = 0; j < bufferSize; j++) {
+        output[j] = Math.random() * 2 - 1;
+      }
+
+      const noise = this.audioContext.createBufferSource();
+      noise.buffer = noiseBuffer;
+
+      const bandpass = this.audioContext.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.value = 1000 + Math.random() * 2000;
+
+      const gain = this.audioContext.createGain();
+      const delay = i * 0.1;
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.05, now + delay + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.4);
+
+      noise.connect(bandpass);
+      bandpass.connect(gain);
+      gain.connect(this.masterGain);
+
+      noise.start(now + delay);
+      noise.stop(now + delay + 0.4);
+    }
+  }
+
+  playFanfare() {
+    if (!this.initialized) this.init();
+    if (!this.audioContext) return;
+
+    const now = this.audioContext.currentTime;
+
+    // Fanfára - slavnostní tóny
+    const melody = [
+      { freq: 523.25, time: 0, duration: 0.2 },      // C5
+      { freq: 659.25, time: 0.15, duration: 0.2 },   // E5
+      { freq: 783.99, time: 0.3, duration: 0.2 },    // G5
+      { freq: 1046.50, time: 0.45, duration: 0.5 }   // C6
+    ];
+
+    melody.forEach(({ freq, time, duration }) => {
+      const oscillator = this.audioContext.createOscillator();
+      const gain = this.audioContext.createGain();
+
+      oscillator.frequency.value = freq;
+      oscillator.type = 'triangle';
+
+      const startTime = now + time;
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+      oscillator.connect(gain);
+      gain.connect(this.masterGain);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    });
+  }
+
   setVolume(volume) {
     if (this.masterGain) {
       this.masterGain.gain.value = Math.max(0, Math.min(1, volume));
