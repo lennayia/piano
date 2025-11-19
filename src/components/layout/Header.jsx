@@ -1,11 +1,19 @@
-import { Link } from 'react-router-dom';
-import { Piano, User, Home, BookOpen, Lightbulb, Shield } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Piano, User, Home, BookOpen, Lightbulb, Shield, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 
 function Header() {
   const currentUser = useUserStore((state) => state.currentUser);
+  const logout = useUserStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    audioEngine.playClick();
+    logout();
+    navigate('/');
+  };
 
   return (
     <header style={{
@@ -124,6 +132,30 @@ function Header() {
                   {currentUser.firstName} {currentUser.lastName}
                 </span>
               </div>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  color: 'var(--color-danger)',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <LogOut size={18} />
+                <span>Odhlásit se</span>
+              </motion.button>
             </nav>
           )}
         </div>

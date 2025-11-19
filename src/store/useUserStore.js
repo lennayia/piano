@@ -167,6 +167,10 @@ const useUserStore = create(
             currentUser: updatedCurrentUser
           };
         });
+      },
+
+      logout: () => {
+        set({ currentUser: null });
       }
     }),
     {

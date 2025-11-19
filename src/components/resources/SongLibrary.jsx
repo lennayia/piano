@@ -18,8 +18,8 @@ function SongLibrary() {
   const updateSong = useSongStore((state) => state.updateSong);
   const currentUser = useUserStore((state) => state.currentUser);
 
-  // Admin je uživatel s "admin" v emailu nebo role === 'admin'
-  const isAdmin = currentUser?.email?.toLowerCase().includes('admin') || currentUser?.role === 'admin';
+  // Admin je uživatel s isAdmin === true
+  const isAdmin = currentUser?.isAdmin === true;
 
   const playMelody = async (song) => {
     if (playingRef.current && playingSong === song.id) {
