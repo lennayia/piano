@@ -1,154 +1,76 @@
 import { useState } from 'react';
-import { Book, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import { Book, Search, ChevronDown, ChevronUp, Plus, Edit3, Save, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useGlossaryStore from '../../store/useGlossaryStore';
+import useUserStore from '../../store/useUserStore';
 
 function Glossary() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedTerm, setExpandedTerm] = useState(null);
+  const [editingTerm, setEditingTerm] = useState(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newTermForm, setNewTermForm] = useState({
+    term: '',
+    definition: '',
+    example: '',
+    category: 'Základy'
+  });
 
-  const terms = [
-    // Základy harmonie
-    {
-      category: 'Harmonie',
-      term: 'Akord',
-      definition: 'Současné znění tří nebo více tónů. Základní stavební kámen harmonizace.',
-      example: 'C dur akord se skládá z tónů C, E a G zahraných současně.'
-    },
-    {
-      category: 'Harmonie',
-      term: 'Kadence',
-      definition: 'Sled akordů, který přináší pocit uzavřenosti nebo závěru hudební fráze. Základní kadence: I - IV - V - I',
-      example: 'V C dur: C dur → F dur → G dur → C dur'
-    },
-    {
-      category: 'Harmonie',
-      term: 'Tónika (I. stupeň)',
-      definition: 'Základní akord tóniny, přináší pocit stability a klidu. V C dur je to akord C dur (C-E-G).',
-      example: 'Písně většinou začínají a končí na tónice.'
-    },
-    {
-      category: 'Harmonie',
-      term: 'Dominanta (V. stupeň)',
-      definition: 'Akord, který vytváří napětí a touží se vrátit k tónice. V C dur je to akord G dur (G-H-D).',
-      example: 'Dominanta → Tónika je nejsilnější harmonický postup.'
-    },
-    {
-      category: 'Harmonie',
-      term: 'Subdominanta (IV. stupeň)',
-      definition: 'Akord mezi tónikou a dominantou. V C dur je to akord F dur (F-A-C).',
-      example: 'Používá se pro přechod k dominantě.'
-    },
-    {
-      category: 'Tóniny',
-      term: 'Dur',
-      definition: 'Durová tónina má veselý, jasný charakter. Durový akord obsahuje velkou tercii.',
-      example: 'C dur: C - E (velká tercie) - G'
-    },
-    {
-      category: 'Tóniny',
-      term: 'Moll',
-      definition: 'Mollová tónina má smutný, melancholický charakter. Mollový akord obsahuje malou tercii.',
-      example: 'A moll: A - C (malá tercie) - E'
-    },
-    {
-      category: 'Tóniny',
-      term: 'Tónina',
-      definition: 'Systém tónů uspořádaných kolem základního tónu (tóniky). Např. C dur, D moll.',
-      example: 'C dur používá pouze bílé klávesy, D dur má 2 křížky.'
-    },
-    {
-      category: 'Základy',
-      term: 'Harmonizace',
-      definition: 'Proces přidávání akordového doprovodu k melodii.',
-      example: 'K melodii "Skákal pes" přidáme akordy C, F, G.'
-    },
-    {
-      category: 'Základy',
-      term: 'Stupeň',
-      definition: 'Pozice tónu nebo akordu ve stupnici. Označuje se římskými číslicemi (I, II, III, IV, V, VI, VII).',
-      example: 'I = tónika, IV = subdominanta, V = dominanta'
-    },
-    {
-      category: 'Základy',
-      term: 'Melodie',
-      definition: 'Posloupnost jednotlivých tónů, které tvoří hlavní hudební linku písně.',
-      example: 'To, co zpíváte nebo si hvízdáte.'
-    },
-    {
-      category: 'Základy',
-      term: 'Doprovod',
-      definition: 'Harmonický základ pod melodií, obvykle tvořený akordy.',
-      example: 'Levá ruka na klavíru často hraje doprovod.'
-    },
-    // Klavírní pojmy
-    {
-      category: 'Klavír',
-      term: 'Bílé klávesy',
-      definition: 'Představují základní tóny C, D, E, F, G, A, H. Opakují se v oktávách.',
-      example: 'C dur stupnice používá pouze bílé klávesy.'
-    },
-    {
-      category: 'Klavír',
-      term: 'Černé klávesy',
-      definition: 'Představují zvýšené (#) nebo snížené (b) tóny. Např. C# (Cis) nebo Db (Des).',
-      example: 'Mezi C a D je černá klávesa C# (Cis).'
-    },
-    {
-      category: 'Klavír',
-      term: 'Oktáva',
-      definition: 'Vzdálenost osmi tónů. Tóny se po oktávě opakují ve vyšší nebo nižší poloze.',
-      example: 'Od C do dalšího C je jedna oktáva.'
-    },
-    {
-      category: 'Klavír',
-      term: 'Tercie',
-      definition: 'Interval mezi prvním a třetím tónem stupnice. Může být velká (dur) nebo malá (moll).',
-      example: 'C → E je velká tercie (4 půltóny)'
-    },
-    {
-      category: 'Klavír',
-      term: 'Kvinta',
-      definition: 'Interval mezi prvním a pátým tónem stupnice. Základní součást akordu.',
-      example: 'C → G je čistá kvinta'
-    },
-    {
-      category: 'Klavír',
-      term: 'Pravá ruka',
-      definition: 'Na klavíru obvykle hraje melodii nebo vyšší tóny akordu.',
-      example: 'Prstoklad: palec = 1, ukazovák = 2, prostředník = 3, prsteník = 4, malík = 5'
-    },
-    {
-      category: 'Klavír',
-      term: 'Levá ruka',
-      definition: 'Na klavíru obvykle hraje basové tóny a doprovod.',
-      example: 'Často hraje základní tón akordu nebo celý akord.'
-    },
-    {
-      category: 'Klavír',
-      term: 'Pedál',
-      definition: 'Pravý pedál (sustain) prodlužuje znění tónů, levý je ztišuje.',
-      example: 'Sustain pedál spojuje tóny a vytváří plnější zvuk.'
-    },
-    // Tempo
-    {
-      category: 'Tempo',
-      term: 'Allegro',
-      definition: 'Rychlé tempo (rychle, živě)',
-      example: 'Veselé, energické písně'
-    },
-    {
-      category: 'Tempo',
-      term: 'Andante',
-      definition: 'Mírné tempo (kráčejícím tempem)',
-      example: 'Klidné, procházkové tempo'
-    },
-    {
-      category: 'Tempo',
-      term: 'Moderato',
-      definition: 'Střední tempo (mírně, umírněně)',
-      example: 'Ani rychle, ani pomalu'
+  const terms = useGlossaryStore((state) => state.terms);
+  const updateTerm = useGlossaryStore((state) => state.updateTerm);
+  const addTerm = useGlossaryStore((state) => state.addTerm);
+  const deleteTerm = useGlossaryStore((state) => state.deleteTerm);
+  const currentUser = useUserStore((state) => state.currentUser);
+
+  const isAdmin = currentUser?.isAdmin === true;
+
+  // Admin funkce
+  const handleNewTermChange = (field, value) => {
+    setNewTermForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const startAddingNew = () => {
+    setIsAddingNew(true);
+    setNewTermForm({
+      term: '',
+      definition: '',
+      example: '',
+      category: 'Základy'
+    });
+  };
+
+  const saveNewTerm = () => {
+    if (!newTermForm.term || !newTermForm.definition) {
+      alert('Vyplňte alespoň název a definici');
+      return;
     }
-  ];
+
+    addTerm(newTermForm);
+    setIsAddingNew(false);
+  };
+
+  const cancelAddingNew = () => {
+    setIsAddingNew(false);
+  };
+
+  const startEditingTerm = (term) => {
+    setEditingTerm(term.id);
+  };
+
+  const saveEditedTerm = (termId, updatedData) => {
+    updateTerm(termId, updatedData);
+    setEditingTerm(null);
+  };
+
+  const cancelEditingTerm = () => {
+    setEditingTerm(null);
+  };
+
+  const handleDeleteTerm = (termId) => {
+    if (confirm('Opravdu chcete smazat tento výraz?')) {
+      deleteTerm(termId);
+    }
+  };
 
   const filteredTerms = terms.filter(item =>
     item.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -190,6 +112,143 @@ function Glossary() {
       <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
         Vysvětlení základních pojmů pro začátečníky - klikněte na výraz pro více informací
       </p>
+
+      {/* Tlačítko pro přidání nového termínu (pouze pro adminy) */}
+      {isAdmin && !isAddingNew && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={startAddingNew}
+          style={{
+            marginBottom: '1.5rem',
+            padding: '0.75rem 1.5rem',
+            background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: 'var(--radius)',
+            color: '#ffffff',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: '0 4px 16px rgba(45, 91, 120, 0.3)'
+          }}
+        >
+          <Plus size={18} />
+          Přidat nový termín
+        </motion.button>
+      )}
+
+      {/* Formulář pro přidání nového termínu */}
+      <AnimatePresence>
+        {isAddingNew && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="card"
+            style={{
+              marginBottom: '1.5rem',
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '2px solid rgba(181, 31, 101, 0.4)',
+              boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
+            }}
+          >
+            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Plus size={20} color="var(--color-primary)" />
+              Nový termín
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Název termínu
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={newTermForm.term}
+                  onChange={(e) => handleNewTermChange('term', e.target.value)}
+                  placeholder="Zadejte název termínu"
+                  style={{ fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Kategorie
+                </label>
+                <select
+                  className="form-input"
+                  value={newTermForm.category}
+                  onChange={(e) => handleNewTermChange('category', e.target.value)}
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="Základy">Základy</option>
+                  <option value="Harmonie">Harmonie</option>
+                  <option value="Tóniny">Tóniny</option>
+                  <option value="Klavír">Klavír</option>
+                  <option value="Tempo">Tempo</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Definice
+              </label>
+              <textarea
+                className="form-input"
+                value={newTermForm.definition}
+                onChange={(e) => handleNewTermChange('definition', e.target.value)}
+                rows={2}
+                placeholder="Zadejte definici termínu"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Příklad
+              </label>
+              <textarea
+                className="form-input"
+                value={newTermForm.example}
+                onChange={(e) => handleNewTermChange('example', e.target.value)}
+                rows={2}
+                placeholder="Zadejte příklad použití"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={saveNewTerm}
+                className="btn btn-primary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                <Save size={16} />
+                Přidat termín
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={cancelAddingNew}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                <X size={16} />
+                Zrušit
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search */}
       <div style={{ marginBottom: '2rem', position: 'relative' }}>
