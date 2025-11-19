@@ -8,6 +8,7 @@ import Glossary from '../components/resources/Glossary';
 
 function Resources() {
   const [activeTab, setActiveTab] = useState('playlist');
+  const [hoveredTab, setHoveredTab] = useState(null);
 
   const tabs = [
     { id: 'quiz', label: 'Poznáš akord?', icon: Target, color: 'var(--color-primary)' },
@@ -47,19 +48,26 @@ function Resources() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.05, y: -4 }}
+              whileHover={{
+                scale: 1.05,
+                y: -4,
+                background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
+                color: '#ffffff'
+              }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab(tab.id)}
+              onMouseEnter={() => setHoveredTab(tab.id)}
+              onMouseLeave={() => setHoveredTab(null)}
               className="card"
               style={{
                 padding: '1rem 2rem',
                 background: activeTab === tab.id
-                  ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(45, 91, 120, 0.2) 100%)'
+                  ? 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)'
                   : 'rgba(255, 255, 255, 0.7)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: activeTab === tab.id
-                  ? '2px solid rgba(181, 31, 101, 0.4)'
+                  ? '2px solid var(--color-secondary)'
                   : '2px solid rgba(255, 255, 255, 0.3)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -68,10 +76,17 @@ function Resources() {
                 transition: 'all 0.3s',
                 fontSize: '1rem',
                 fontWeight: activeTab === tab.id ? 600 : 500,
-                color: activeTab === tab.id ? 'var(--color-primary)' : '#64748b'
+                color: activeTab === tab.id ? '#ffffff' : '#64748b'
               }}
             >
-              <Icon size={20} color={activeTab === tab.id ? tab.color : '#64748b'} />
+              <Icon
+                size={20}
+                color={
+                  activeTab === tab.id || hoveredTab === tab.id
+                    ? '#ffffff'
+                    : '#64748b'
+                }
+              />
               {tab.label}
             </motion.button>
           );
