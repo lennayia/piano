@@ -4,6 +4,7 @@ import { Award, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
+import useLessonStore from '../store/useLessonStore';
 
 // Jednoduchá funkce pro převod jména do vokativu (5. pádu)
 function toVocative(name) {
@@ -28,6 +29,7 @@ function toVocative(name) {
 function UserDashboard() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
+  const lessons = useLessonStore((state) => state.lessons);
 
   useEffect(() => {
     if (!currentUser) {
@@ -40,6 +42,7 @@ function UserDashboard() {
   }
 
   const completedLessons = currentUser.progress?.length || 0;
+  const totalLessons = lessons.length;
 
   return (
     <div className="container">
@@ -128,7 +131,7 @@ function UserDashboard() {
                 transition={{ delay: 0.5, type: 'spring' }}
                 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}
               >
-                4
+                {totalLessons}
               </motion.div>
               <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dostupných lekcí</div>
             </div>
