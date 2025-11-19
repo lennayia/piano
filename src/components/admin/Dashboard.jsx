@@ -43,10 +43,10 @@ function Dashboard() {
           <div key={index} className="card">
             <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
               <div>
-                <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#ffffff', opacity: 0.9 }}>
+                <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#64748b' }}>
                   {stat.title}
                 </p>
-                <p style={{ fontSize: '2rem', fontWeight: 600, lineHeight: 1, color: '#ffffff' }}>
+                <p style={{ fontSize: '2rem', fontWeight: 600, lineHeight: 1, color: '#1e293b' }}>
                   {stat.value}
                 </p>
               </div>

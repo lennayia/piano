@@ -260,18 +260,35 @@ function UserDashboard() {
                   transition={{ delay: 1.1 + index * 0.1, type: 'spring' }}
                   whileHover={{ scale: 1.05, y: -5 }}
                   style={{
-                    padding: '1.5rem',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(10px)',
+                    padding: '2rem 1.5rem',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
                     borderRadius: 'var(--radius)',
                     border: '2px solid rgba(181, 31, 101, 0.3)',
                     textAlign: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
+                    boxShadow: '0 8px 24px rgba(181, 31, 101, 0.2)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem'
                   }}
                 >
-                  <Icon size={40} color="var(--color-primary)" style={{ marginBottom: '0.75rem' }} />
-                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.9375rem' }}>
+                  <div style={{
+                    width: '72px',
+                    height: '72px',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid rgba(181, 31, 101, 0.2)',
+                    boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
+                  }}>
+                    <Icon size={36} color="var(--color-primary)" />
+                  </div>
+                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
                     {achInfo.title}
                   </div>
                 </motion.div>
