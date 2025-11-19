@@ -5,6 +5,8 @@ class AudioEngine {
     this.audioContext = null;
     this.masterGain = null;
     this.initialized = false;
+    this.vltavaAudio = null;
+    this.vltavaAudioPath = '/audio/vltava.mp3'; // Cesta k audio souboru
   }
 
   init() {
@@ -56,74 +58,26 @@ class AudioEngine {
     const frequency = this.getNoteFrequency(note);
     const now = this.audioContext.currentTime;
 
-    // Create oscillators for a richer piano-like sound
-    const oscillator1 = this.audioContext.createOscillator();
-    const oscillator2 = this.audioContext.createOscillator();
-    const oscillator3 = this.audioContext.createOscillator();
+    // Jednoduchý oscilátor bez zdvojení
+    const oscillator = this.audioContext.createOscillator();
+    const gain = this.audioContext.createGain();
 
-    // Create gain nodes for each oscillator
-    const gain1 = this.audioContext.createGain();
-    const gain2 = this.audioContext.createGain();
-    const gain3 = this.audioContext.createGain();
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
 
-    // Set frequencies (slight detuning for richness)
-    oscillator1.frequency.value = frequency;
-    oscillator2.frequency.value = frequency * 2; // One octave higher
-    oscillator3.frequency.value = frequency * 3; // Harmonic
-
-    // Set waveforms
-    oscillator1.type = 'sine';
-    oscillator2.type = 'sine';
-    oscillator3.type = 'triangle';
-
-    // ADSR envelope for piano-like sound
+    // Jednoduchý envelope bez release artefaktů
     const attackTime = 0.01;
-    const decayTime = 0.1;
-    const sustainLevel = 0.7;
-    const releaseTime = 0.3;
+    const totalDuration = duration;
 
-    // Set initial gain values
-    gain1.gain.setValueAtTime(0, now);
-    gain2.gain.setValueAtTime(0, now);
-    gain3.gain.setValueAtTime(0, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.3, now + attackTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
 
-    // Attack
-    gain1.gain.linearRampToValueAtTime(0.6, now + attackTime);
-    gain2.gain.linearRampToValueAtTime(0.3, now + attackTime);
-    gain3.gain.linearRampToValueAtTime(0.1, now + attackTime);
+    oscillator.connect(gain);
+    gain.connect(this.masterGain);
 
-    // Decay
-    gain1.gain.linearRampToValueAtTime(0.6 * sustainLevel, now + attackTime + decayTime);
-    gain2.gain.linearRampToValueAtTime(0.3 * sustainLevel, now + attackTime + decayTime);
-    gain3.gain.linearRampToValueAtTime(0.1 * sustainLevel, now + attackTime + decayTime);
-
-    // Release
-    const releaseStart = now + duration;
-    gain1.gain.setValueAtTime(gain1.gain.value, releaseStart);
-    gain2.gain.setValueAtTime(gain2.gain.value, releaseStart);
-    gain3.gain.setValueAtTime(gain3.gain.value, releaseStart);
-
-    gain1.gain.linearRampToValueAtTime(0, releaseStart + releaseTime);
-    gain2.gain.linearRampToValueAtTime(0, releaseStart + releaseTime);
-    gain3.gain.linearRampToValueAtTime(0, releaseStart + releaseTime);
-
-    // Connect nodes
-    oscillator1.connect(gain1);
-    oscillator2.connect(gain2);
-    oscillator3.connect(gain3);
-
-    gain1.connect(this.masterGain);
-    gain2.connect(this.masterGain);
-    gain3.connect(this.masterGain);
-
-    // Start and stop oscillators
-    oscillator1.start(now);
-    oscillator2.start(now);
-    oscillator3.start(now);
-
-    oscillator1.stop(releaseStart + releaseTime);
-    oscillator2.stop(releaseStart + releaseTime);
-    oscillator3.stop(releaseStart + releaseTime);
+    oscillator.start(now);
+    oscillator.stop(now + totalDuration);
   }
 
   // UI Sound Effects
@@ -316,19 +270,53 @@ class AudioEngine {
     return 6.7; // Délka melodie v sekundách
   }
 
-  startVltavaLoop() {
+  // Pokusí se načíst a přehrát audio soubor, jinak použije syntetizovanou melodii
+  async loadVltavaAudio() {
+    try {
+      const response = await fetch(this.vltavaAudioPath);
+      if (response.ok) {
+        this.vltavaAudio = new Audio(this.vltavaAudioPath);
+        this.vltavaAudio.loop = true;
+        this.vltavaAudio.volume = 0.3;
+        return true;
+      }
+    } catch (error) {
+      console.log('Audio soubor nenalezen, použije se syntetizovaná melodie');
+    }
+    return false;
+  }
+
+  async startVltavaLoop() {
     if (this.vltavaInterval) return; // Už běží
 
-    // Přehrát okamžitě
-    const duration = this.playVltava();
+    // Zkusit načíst a přehrát audio soubor
+    const audioLoaded = await this.loadVltavaAudio();
 
-    // Opakovat ve smyčce
+    if (audioLoaded && this.vltavaAudio) {
+      // Přehrát audio soubor
+      try {
+        await this.vltavaAudio.play();
+        return;
+      } catch (error) {
+        console.log('Nepodařilo se přehrát audio soubor, použije se syntetizovaná melodie');
+      }
+    }
+
+    // Fallback: syntetizovaná melodie
+    const duration = this.playVltava();
     this.vltavaInterval = setInterval(() => {
       this.playVltava();
     }, duration * 1000);
   }
 
   stopVltavaLoop() {
+    // Zastavit audio soubor, pokud hraje
+    if (this.vltavaAudio) {
+      this.vltavaAudio.pause();
+      this.vltavaAudio.currentTime = 0;
+    }
+
+    // Zastavit syntetizovanou melodii
     if (this.vltavaInterval) {
       clearInterval(this.vltavaInterval);
       this.vltavaInterval = null;
@@ -336,6 +324,29 @@ class AudioEngine {
   }
 
   fadeOut(duration = 1.0) {
+    // Fade out pro audio soubor
+    if (this.vltavaAudio && !this.vltavaAudio.paused) {
+      const startVolume = this.vltavaAudio.volume;
+      const steps = 20;
+      const stepDuration = (duration * 1000) / steps;
+      let currentStep = 0;
+
+      const fadeInterval = setInterval(() => {
+        currentStep++;
+        const newVolume = startVolume * (1 - currentStep / steps);
+        this.vltavaAudio.volume = Math.max(0, newVolume);
+
+        if (currentStep >= steps) {
+          clearInterval(fadeInterval);
+          this.stopVltavaLoop();
+          this.vltavaAudio.volume = 0.3; // Reset volume
+        }
+      }, stepDuration);
+
+      return;
+    }
+
+    // Fade out pro syntetizovanou melodii
     if (!this.masterGain) return;
 
     const now = this.audioContext.currentTime;
@@ -351,8 +362,16 @@ class AudioEngine {
   }
 
   setVolume(volume) {
+    const normalizedVolume = Math.max(0, Math.min(1, volume));
+
+    // Nastavit volume pro audio soubor
+    if (this.vltavaAudio) {
+      this.vltavaAudio.volume = normalizedVolume;
+    }
+
+    // Nastavit volume pro syntetizovaný zvuk
     if (this.masterGain) {
-      this.masterGain.gain.value = Math.max(0, Math.min(1, volume));
+      this.masterGain.gain.value = normalizedVolume;
     }
   }
 }
