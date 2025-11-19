@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import PianoKeyboard from '../lessons/PianoKeyboard';
@@ -12,10 +12,20 @@ function SongLibrary() {
   const [showKeyboard, setShowKeyboard] = useState(null);
   const [editingSong, setEditingSong] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newSongForm, setNewSongForm] = useState({
+    title: '',
+    notes: '',
+    difficulty: 'začátečník',
+    tempo: '',
+    key: '',
+    tips: ''
+  });
   const playingRef = useRef(false);
 
   const songs = useSongStore((state) => state.songs);
   const updateSong = useSongStore((state) => state.updateSong);
+  const addSong = useSongStore((state) => state.addSong);
   const currentUser = useUserStore((state) => state.currentUser);
 
   // Admin je uživatel s isAdmin === true
@@ -93,6 +103,52 @@ function SongLibrary() {
     }));
   };
 
+  const handleNewSongChange = (field, value) => {
+    setNewSongForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const startAddingNew = () => {
+    setIsAddingNew(true);
+    setNewSongForm({
+      title: '',
+      notes: '',
+      difficulty: 'začátečník',
+      tempo: '',
+      key: '',
+      tips: ''
+    });
+  };
+
+  const saveNewSong = () => {
+    const notesArray = newSongForm.notes
+      .split(',')
+      .map(note => note.trim())
+      .filter(note => note.length > 0);
+
+    if (!newSongForm.title || notesArray.length === 0) {
+      alert('Vyplňte alespoň název a noty');
+      return;
+    }
+
+    addSong({
+      title: newSongForm.title,
+      notes: notesArray,
+      difficulty: newSongForm.difficulty,
+      tempo: newSongForm.tempo,
+      key: newSongForm.key,
+      tips: newSongForm.tips
+    });
+
+    setIsAddingNew(false);
+  };
+
+  const cancelAddingNew = () => {
+    setIsAddingNew(false);
+  };
+
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'začátečník':
@@ -113,6 +169,172 @@ function SongLibrary() {
       <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
         Procvičte si harmonizaci na těchto oblíbených lidových písních
       </p>
+
+      {/* Tlačítko pro přidání nové písně (pouze pro adminy) */}
+      {isAdmin && !isAddingNew && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={startAddingNew}
+          style={{
+            marginBottom: '1.5rem',
+            padding: '0.75rem 1.5rem',
+            background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: 'var(--radius)',
+            color: '#ffffff',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: '0 4px 16px rgba(181, 31, 101, 0.3)'
+          }}
+        >
+          <Plus size={18} />
+          Přidat novou píseň
+        </motion.button>
+      )}
+
+      {/* Formulář pro přidání nové písně */}
+      <AnimatePresence>
+        {isAddingNew && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="card"
+            style={{
+              marginBottom: '1.5rem',
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '2px solid rgba(181, 31, 101, 0.4)',
+              boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
+            }}
+          >
+            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Plus size={20} color="var(--color-primary)" />
+              Nová píseň
+            </h3>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Název písně
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                value={newSongForm.title}
+                onChange={(e) => handleNewSongChange('title', e.target.value)}
+                placeholder="Zadejte název písně"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Noty (oddělené čárkami, např: C, D, E, F, G)
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                value={newSongForm.notes}
+                onChange={(e) => handleNewSongChange('notes', e.target.value)}
+                placeholder="C, D, E, F, G, A, H"
+                style={{ fontSize: '0.875rem' }}
+              />
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                Použijte notaci: C, C#, D, D#, E, F, F#, G, G#, A, A#, H (nebo Db, Eb, Gb, Ab, Bb)
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Obtížnost
+                </label>
+                <select
+                  className="form-input"
+                  value={newSongForm.difficulty}
+                  onChange={(e) => handleNewSongChange('difficulty', e.target.value)}
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="začátečník">začátečník</option>
+                  <option value="mírně pokročilý">mírně pokročilý</option>
+                  <option value="pokročilý">pokročilý</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Tempo
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={newSongForm.tempo}
+                  onChange={(e) => handleNewSongChange('tempo', e.target.value)}
+                  placeholder="Allegro, Moderato, Andante..."
+                  style={{ fontSize: '0.875rem' }}
+                />
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Tónina
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                value={newSongForm.key}
+                onChange={(e) => handleNewSongChange('key', e.target.value)}
+                placeholder="C dur, G dur..."
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Tip pro harmonizaci
+              </label>
+              <textarea
+                className="form-input"
+                value={newSongForm.tips}
+                onChange={(e) => handleNewSongChange('tips', e.target.value)}
+                rows={2}
+                placeholder="Zadejte užitečné tipy pro harmonizaci této písně"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={saveNewSong}
+                className="btn btn-primary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                <Save size={16} />
+                Přidat píseň
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={cancelAddingNew}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                <X size={16} />
+                Zrušit
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
         {songs.map((song, index) => (

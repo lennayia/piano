@@ -200,66 +200,32 @@ function Registration() {
         </motion.div>
 
         <LoginForm disableBackgroundMusic={useVideoAudio} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          style={{
+            padding: '1rem 2rem',
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: 'var(--radius)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            color: 'white',
+            fontSize: '0.875rem',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            textAlign: 'center'
+          }}
+        >
+          <Piano size={20} />
+          <span>Naučte se hrát na klavír - zábavně a efektivně</span>
+        </motion.div>
       </motion.div>
-
-      {/* Dekorativní glassmorphism card dole (pouze na větších obrazovkách) */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.8 }}
-        className="bottom-card"
-        style={{
-          position: 'absolute',
-          bottom: '2rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1,
-          padding: '1rem 2rem',
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: 'var(--radius)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          color: 'white',
-          fontSize: '0.875rem',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
-        }}
-      >
-        <Piano size={20} />
-        <span>Naučte se hrát na klavír - zábavně a efektivně</span>
-      </motion.div>
-
-      {/* CSS pro responzivitu */}
-      <style>{`
-        @media (max-width: 768px) {
-          /* Na mobilech skrýt spodní card */
-          .bottom-card {
-            display: none !important;
-          }
-        }
-
-        @media (max-width: 480px) {
-          /* Na velmi malých obrazovkách zmenšit padding */
-          body > div {
-            padding: 1rem !important;
-          }
-        }
-
-        @keyframes float {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          33% {
-            transform: translate(30px, -30px) scale(1.05);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.95);
-          }
-        }
-      `}</style>
     </div>
   );
 }
