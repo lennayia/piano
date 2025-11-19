@@ -18,7 +18,7 @@ function Admin() {
     return (
       <div className="container">
         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-          <Shield size={48} color="var(--color-danger)" style={{ margin: '0 auto 1rem' }} />
+          <Shield size={48} color="#64748b" style={{ margin: '0 auto 1rem' }} />
           <h2 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>Přístup odepřen</h2>
           <p style={{ color: '#64748b' }}>
             Pro přístup k admin panelu musíte mít administrátorská oprávnění.
@@ -55,7 +55,7 @@ function Admin() {
           border: '2px solid rgba(181, 31, 101, 0.2)',
           boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
         }}>
-          <Shield size={24} color="var(--color-primary)" />
+          <Shield size={24} color="#64748b" />
         </div>
         <div>
           <h1 style={{ marginBottom: '0.25rem', color: '#1e293b' }}>Admin Panel</h1>

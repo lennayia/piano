@@ -124,7 +124,7 @@ function HarmonizationTemplates() {
           border: '2px solid rgba(181, 31, 101, 0.2)',
           boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
         }}>
-          <FileText size={24} color="var(--color-primary)" />
+          <FileText size={24} color="#64748b" />
         </div>
         Šablony pro harmonizaci
       </h2>
@@ -177,7 +177,7 @@ function HarmonizationTemplates() {
             }}
           >
             <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={20} color="var(--color-primary)" />
+              <Plus size={20} color="#64748b" />
               Nová šablona harmonizace
             </h3>
 
@@ -326,7 +326,7 @@ function HarmonizationTemplates() {
                             alignItems: 'center'
                           }}
                         >
-                          <Edit3 size={14} color="var(--color-secondary)" />
+                          <Edit3 size={14} color="#64748b" />
                         </motion.button>
                         <motion.button
                           whileHover={{ scale: 1.1 }}
@@ -342,7 +342,7 @@ function HarmonizationTemplates() {
                             alignItems: 'center'
                           }}
                         >
-                          <Trash2 size={14} color="var(--color-danger)" />
+                          <Trash2 size={14} color="#64748b" />
                         </motion.button>
                       </div>
                     )}
@@ -364,9 +364,9 @@ function HarmonizationTemplates() {
                   }}
                 >
                   {expandedTemplate === template.id ? (
-                    <EyeOff size={20} color="var(--color-secondary)" />
+                    <EyeOff size={20} color="#64748b" />
                   ) : (
-                    <Eye size={20} color="var(--color-secondary)" />
+                    <Eye size={20} color="#64748b" />
                   )}
                 </motion.button>
               </div>
@@ -379,7 +379,7 @@ function HarmonizationTemplates() {
                 border: '1px solid rgba(45, 91, 120, 0.15)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Sparkles size={16} color="var(--color-secondary)" />
+                  <Sparkles size={16} color="#64748b" />
                   <strong style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                     Postup: {template.progression}
                   </strong>
@@ -405,7 +405,7 @@ function HarmonizationTemplates() {
                     border: '2px solid rgba(45, 91, 120, 0.3)'
                   }}>
                     <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Edit3 size={18} color="var(--color-secondary)" />
+                      <Edit3 size={18} color="#64748b" />
                       Upravit šablonu
                     </h4>
 

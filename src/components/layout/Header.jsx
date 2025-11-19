@@ -57,7 +57,7 @@ function Header() {
             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             <motion.div whileHover={{ rotate: 10 }}>
-              <Piano size={28} color="var(--color-primary)" />
+              <Piano size={28} color="#64748b" />
             </motion.div>
             <span>Piano Learning</span>
           </Link>
@@ -129,7 +129,7 @@ function Header() {
                 border: '1px solid rgba(181, 31, 101, 0.2)',
                 color: '#1e293b'
               }}>
-                <User size={18} color="var(--color-primary)" />
+                <User size={18} color="#64748b" />
                 <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                   {currentUser.firstName} {currentUser.lastName}
                 </span>

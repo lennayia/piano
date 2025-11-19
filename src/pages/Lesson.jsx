@@ -138,7 +138,7 @@ function Lesson() {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3, type: 'spring' }}
               >
-                <Trophy size={80} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
+                <Trophy size={80} color="#64748b" style={{ marginBottom: '1.5rem' }} />
               </motion.div>
 
               <motion.h2
@@ -194,7 +194,7 @@ function Lesson() {
                           border: '2px solid rgba(181, 31, 101, 0.3)'
                         }}
                       >
-                        <Icon size={32} color="var(--color-primary)" />
+                        <Icon size={32} color="#64748b" />
                         <div style={{ textAlign: 'left' }}>
                           <div style={{ fontWeight: 600, color: '#1e293b' }}>{achInfo.title}</div>
                           <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{achInfo.description}</div>

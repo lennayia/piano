@@ -174,7 +174,7 @@ function SongLibrary() {
           border: '2px solid rgba(181, 31, 101, 0.2)',
           boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
         }}>
-          <Music size={24} color="var(--color-primary)" />
+          <Music size={24} color="#64748b" />
         </div>
         Playlist lidových písní
       </h2>
@@ -227,7 +227,7 @@ function SongLibrary() {
             }}
           >
             <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={20} color="var(--color-primary)" />
+              <Plus size={20} color="#64748b" />
               Nová píseň
             </h3>
 
@@ -663,7 +663,7 @@ function SongLibrary() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <BookOpen size={16} color="var(--color-secondary)" />
+                        <BookOpen size={16} color="#64748b" />
                         <strong style={{ fontSize: '0.875rem', color: '#1e293b' }}>Tip pro harmonizaci:</strong>
                       </div>
                       <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>

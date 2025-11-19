@@ -111,7 +111,7 @@ function Modal({ isOpen, onClose, children, title }) {
                     marginLeft: 'auto'
                   }}
                 >
-                  <X size={20} color="#ef4444" />
+                  <X size={20} color="#64748b" />
                 </motion.button>
               </div>
 

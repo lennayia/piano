@@ -61,7 +61,7 @@ function Dashboard() {
                 border: '2px solid rgba(181, 31, 101, 0.2)',
                 boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}>
-                <Icon size={24} color="var(--color-primary)" />
+                <Icon size={24} color="#64748b" />
               </div>
             </div>
           </div>

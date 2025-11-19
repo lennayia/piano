@@ -248,7 +248,7 @@ function LoginForm({ disableBackgroundMusic = false }) {
           }}
           title={isMusicPlaying ? 'Vypnout hudbu' : 'Zapnout hudbu'}
         >
-          {isMusicPlaying ? <Volume2 size={20} color="var(--color-secondary)" /> : <VolumeX size={20} color="var(--color-text-secondary)" />}
+          {isMusicPlaying ? <Volume2 size={20} color="#64748b" /> : <VolumeX size={20} color="var(--color-text-secondary)" />}
         </button>
       )}
 
