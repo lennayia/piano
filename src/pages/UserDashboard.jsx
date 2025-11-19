@@ -99,7 +99,7 @@ function UserDashboard() {
                 boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <Award size={24} color="#64748b" />
+              <Award size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -136,7 +136,7 @@ function UserDashboard() {
                 boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <BookOpen size={24} color="#64748b" />
+              <BookOpen size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -173,7 +173,7 @@ function UserDashboard() {
                 boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <Zap size={24} color="#64748b" />
+              <Zap size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -210,7 +210,7 @@ function UserDashboard() {
                 boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <Flame size={24} color="#64748b" />
+              <Flame size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -243,7 +243,7 @@ function UserDashboard() {
           }}
         >
           <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Trophy size={24} color="#64748b" />
+            <Trophy size={24} color="var(--color-primary)" />
             Vaše odměny
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
@@ -284,7 +284,7 @@ function UserDashboard() {
                     border: '2px solid rgba(181, 31, 101, 0.2)',
                     boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
                   }}>
-                    <Icon size={36} color="#64748b" />
+                    <Icon size={36} color="var(--color-primary)" />
                   </div>
                   <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
                     {achInfo.title}

@@ -102,7 +102,7 @@ function Home() {
             border: '2px solid rgba(181, 31, 101, 0.2)'
           }}
         >
-          <Piano size={48} color="#64748b" />
+          <Piano size={48} color="var(--color-primary)" />
         </motion.div>
 
         <motion.h1
@@ -183,7 +183,7 @@ function Home() {
                     boxShadow: '0 4px 20px rgba(181, 31, 101, 0.2)'
                   }}
                 >
-                  <Icon size={32} color="#64748b" />
+                  <Icon size={32} color="var(--color-primary)" />
                 </motion.div>
                 <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem', color: '#1e293b' }}>
                   {feature.title}
@@ -243,7 +243,7 @@ function Home() {
                     boxShadow: '0 4px 20px rgba(181, 31, 101, 0.2)'
                   }}
                 >
-                  <Icon size={36} color="#64748b" />
+                  <Icon size={36} color="var(--color-primary)" />
                 </motion.div>
                 <h3 style={{ fontSize: '1.125rem', marginBottom: '0.75rem', color: '#1e293b', fontWeight: 600 }}>
                   {audience.title}
@@ -306,9 +306,9 @@ function Home() {
                 }}
               >
                 {module.completed ? (
-                  <CheckCircle2 size={24} color="#64748b" />
+                  <CheckCircle2 size={24} color="var(--color-success)" />
                 ) : (
-                  <Sparkles size={24} color="#64748b" />
+                  <Sparkles size={24} color="var(--color-primary)" />
                 )}
               </motion.div>
               <div style={{ flex: 1 }}>
@@ -356,7 +356,7 @@ function Home() {
                 boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)'
               }}
             >
-              <Star size={60} color="#64748b" />
+              <Star size={60} color="var(--color-primary)" />
             </motion.div>
             <div>
               <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>O lektorce Evě Lorenc</h2>
@@ -369,11 +369,11 @@ function Home() {
               </p>
               <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <GraduationCap size={20} color="#64748b" />
+                  <GraduationCap size={20} color="var(--color-secondary)" />
                   <span style={{ fontSize: '0.9375rem', color: '#64748b' }}>15+ let zkušeností</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Users size={20} color="#64748b" />
+                  <Users size={20} color="var(--color-secondary)" />
                   <span style={{ fontSize: '0.9375rem', color: '#64748b' }}>100+ studentů</span>
                 </div>
               </div>
@@ -417,7 +417,7 @@ function Home() {
             boxShadow: '0 4px 20px rgba(181, 31, 101, 0.3)'
           }}
         >
-          <Music size={40} color="#64748b" />
+          <Music size={40} color="var(--color-primary)" />
         </motion.div>
         <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#ffffff' }}>Připraveni začít?</h2>
         <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#ffffff', maxWidth: '600px', margin: '0 auto 2.5rem' }}>

@@ -66,7 +66,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete }) {
                       alignItems: 'center'
                     }}
                   >
-                    <Edit3 size={14} color="#64748b" />
+                    <Edit3 size={14} color="var(--color-secondary)" />
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -82,7 +82,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete }) {
                       alignItems: 'center'
                     }}
                   >
-                    <Trash2 size={14} color="#64748b" />
+                    <Trash2 size={14} color="var(--color-danger)" />
                   </motion.button>
                 </div>
               )}

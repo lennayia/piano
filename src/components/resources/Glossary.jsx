@@ -123,7 +123,7 @@ function Glossary() {
           border: '2px solid rgba(181, 31, 101, 0.2)',
           boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
         }}>
-          <Book size={24} color="#64748b" />
+          <Book size={24} color="var(--color-primary)" />
         </div>
         Slovníček hudebních výrazů
       </h2>
@@ -176,7 +176,7 @@ function Glossary() {
             }}
           >
             <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={20} color="#64748b" />
+              <Plus size={20} color="var(--color-primary)" />
               Nový termín
             </h3>
 
@@ -370,7 +370,7 @@ function Glossary() {
                                   alignItems: 'center'
                                 }}
                               >
-                                <Edit3 size={14} color="#64748b" />
+                                <Edit3 size={14} color="var(--color-secondary)" />
                               </motion.button>
                               <motion.button
                                 whileHover={{ scale: 1.1 }}
@@ -386,7 +386,7 @@ function Glossary() {
                                   alignItems: 'center'
                                 }}
                               >
-                                <Trash2 size={14} color="#64748b" />
+                                <Trash2 size={14} color="var(--color-danger)" />
                               </motion.button>
                             </div>
                           )}
@@ -409,7 +409,7 @@ function Glossary() {
                         transition={{ duration: 0.3 }}
                         style={{ marginLeft: '1rem', flexShrink: 0 }}
                       >
-                        <ChevronDown size={24} color="#64748b" />
+                        <ChevronDown size={24} color="var(--color-secondary)" />
                       </motion.div>
                     </div>
 
@@ -431,7 +431,7 @@ function Glossary() {
                             border: '2px solid rgba(45, 91, 120, 0.3)'
                           }}>
                             <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <Edit3 size={18} color="#64748b" />
+                              <Edit3 size={18} color="var(--color-secondary)" />
                               Upravit termín
                             </h4>
 

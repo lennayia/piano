@@ -121,7 +121,7 @@ function RegistrationForm() {
             boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)'
           }}
         >
-          <UserPlus size={32} color="#64748b" />
+          <UserPlus size={32} color="var(--color-primary)" />
         </motion.div>
         <h2>{isLoginMode ? 'Přihlásit se' : 'Začněte se učit'}</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>

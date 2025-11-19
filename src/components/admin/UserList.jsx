@@ -99,7 +99,7 @@ function UserList() {
                 </td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Hash size={16} color="#64748b" />
+                    <Hash size={16} color="var(--color-secondary)" />
                     <span style={{ fontWeight: 600, color: 'var(--color-secondary)' }}>
                       {user.loginCount || 1}×
                     </span>
@@ -234,7 +234,7 @@ function UserList() {
                   transition: 'all 0.3s ease'
                 }}
               >
-                <X size={20} color="#64748b" />
+                <X size={20} color="var(--color-danger)" />
               </button>
 
               {/* Hlavička */}
@@ -277,7 +277,7 @@ function UserList() {
                   border: '1px solid rgba(45, 91, 120, 0.2)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Hash size={16} color="#64748b" />
+                    <Hash size={16} color="var(--color-secondary)" />
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Přihlášení</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-secondary)' }}>
@@ -292,7 +292,7 @@ function UserList() {
                   border: '1px solid rgba(181, 31, 101, 0.2)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <CheckCircle size={16} color="#64748b" />
+                    <CheckCircle size={16} color="var(--color-primary)" />
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Dokončeno</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-primary)' }}>
@@ -307,7 +307,7 @@ function UserList() {
                   border: '1px solid rgba(16, 185, 129, 0.2)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Trophy size={16} color="#64748b" />
+                    <Trophy size={16} color="var(--color-success)" />
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Body</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-success)' }}>
@@ -322,7 +322,7 @@ function UserList() {
                   border: '1px solid rgba(251, 146, 60, 0.2)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Calendar size={16} color="#64748b" />
+                    <Calendar size={16} color="#fb923c" />
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Série dnů</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#fb923c' }}>
@@ -349,7 +349,7 @@ function UserList() {
                           gap: '0.75rem'
                         }}
                       >
-                        <CheckCircle size={18} color="#64748b" />
+                        <CheckCircle size={18} color="var(--color-success)" />
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 500, color: '#1e293b', fontSize: '0.875rem' }}>
                             Lekce {lesson.lessonId}

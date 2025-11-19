@@ -187,7 +187,7 @@ function LessonList() {
             }}
           >
             <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={20} color="#64748b" />
+              <Plus size={20} color="var(--color-primary)" />
               Nová lekce
             </h3>
 
@@ -348,7 +348,7 @@ function LessonList() {
             }}
           >
             <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Edit3 size={20} color="#64748b" />
+              <Edit3 size={20} color="var(--color-secondary)" />
               Upravit lekci
             </h3>
 

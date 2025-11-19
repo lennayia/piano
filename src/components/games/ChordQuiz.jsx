@@ -128,7 +128,7 @@ function ChordQuiz() {
           border: '2px solid rgba(181, 31, 101, 0.2)',
           boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
         }}>
-          <Target size={24} color="#64748b" />
+          <Target size={24} color="var(--color-primary)" />
         </div>
         Poznáš akord? 🎵
       </h2>
@@ -164,7 +164,7 @@ function ChordQuiz() {
                 repeatType: 'reverse'
               }}
             >
-              <Sparkles size={64} color="#64748b" style={{ marginBottom: '1.5rem' }} />
+              <Sparkles size={64} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
             </motion.div>
 
             <h3 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#1e293b' }}>
@@ -205,7 +205,7 @@ function ChordQuiz() {
                   borderRadius: 'var(--radius)',
                   border: '1px solid rgba(181, 31, 101, 0.2)'
                 }}>
-                  <Zap size={20} color="#64748b" style={{ marginBottom: '0.25rem' }} />
+                  <Zap size={20} color="var(--color-primary)" style={{ marginBottom: '0.25rem' }} />
                   <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
                     Nejlepší série: <strong>{bestStreak}</strong>
                   </div>
@@ -251,7 +251,7 @@ function ChordQuiz() {
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                <Trophy size={20} color="#64748b" />
+                <Trophy size={20} color="var(--color-secondary)" />
                 <span style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
                   Skóre: {score} / {chords.length}
                 </span>
@@ -271,7 +271,7 @@ function ChordQuiz() {
                     gap: '0.5rem'
                   }}
                 >
-                  <Zap size={20} color="#64748b" />
+                  <Zap size={20} color="var(--color-primary)" />
                   <span style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
                     Série: {streak} 🔥
                   </span>
