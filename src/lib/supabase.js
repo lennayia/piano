@@ -8,11 +8,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  db: {
-    schema: 'piano'
-  }
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Helper functions for common operations
 
