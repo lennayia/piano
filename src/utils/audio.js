@@ -4,6 +4,7 @@ class AudioEngine {
   constructor() {
     this.audioContext = null;
     this.masterGain = null;
+    this.compressor = null;
     this.initialized = false;
     this.vltavaAudio = null;
     this.vltavaAudioPath = '/audio/vltava.mp3'; // Cesta k audio souboru
@@ -14,10 +15,24 @@ class AudioEngine {
 
     try {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Vytvořit kompressor pro hlasitější a plnější zvuk
+      this.compressor = this.audioContext.createDynamicsCompressor();
+      this.compressor.threshold.value = -24;
+      this.compressor.knee.value = 30;
+      this.compressor.ratio.value = 12;
+      this.compressor.attack.value = 0.003;
+      this.compressor.release.value = 0.25;
+
       this.masterGain = this.audioContext.createGain();
+      this.masterGain.gain.value = 1.0; // Maximum hlasitost
+
+      // Připojit compressor -> masterGain -> destination
+      this.compressor.connect(this.masterGain);
       this.masterGain.connect(this.audioContext.destination);
-      this.masterGain.gain.value = 0.9; // Zvýšeno z 0.3 na 0.9 pro výrazně hlasitější zvuk
+
       this.initialized = true;
+      console.log('Audio engine initialized with compressor for louder sound');
     } catch (error) {
       console.error('Web Audio API not supported:', error);
     }
@@ -58,42 +73,47 @@ class AudioEngine {
     const frequency = this.getNoteFrequency(note);
     const now = this.audioContext.currentTime;
 
-    // Použijeme 2 oscilátory pro plnější zvuk (ale bez zdvojení)
+    // Použijeme 3 oscilátory pro plný, bohatý zvuk
     const oscillator1 = this.audioContext.createOscillator();
     const oscillator2 = this.audioContext.createOscillator();
+    const oscillator3 = this.audioContext.createOscillator();
 
-    const gain1 = this.audioContext.createGain();
-    const gain2 = this.audioContext.createGain();
+    const gain = this.audioContext.createGain();
 
-    // Základní tón + oktáva níže pro bohatší zvuk
+    // Základní tón + oktáva níže + třetí harmonická
     oscillator1.frequency.value = frequency;
     oscillator2.frequency.value = frequency * 0.5; // Oktáva níže
+    oscillator3.frequency.value = frequency * 2; // Oktáva výš
 
-    oscillator1.type = 'sine';
-    oscillator2.type = 'sine';
+    // Triangle waveform je hlasitější než sine
+    oscillator1.type = 'triangle';
+    oscillator2.type = 'triangle';
+    oscillator3.type = 'sine'; // Vysoká harmonická zůstává sine
 
-    // Silnější envelope pro slyšitelnější zvuk
-    const attackTime = 0.02;
+    // VELMI silný envelope pro maximální hlasitost
+    const attackTime = 0.005;
     const totalDuration = duration;
 
-    // Nastavení hlasitosti - výrazně hlasitější
-    gain1.gain.setValueAtTime(0, now);
-    gain1.gain.linearRampToValueAtTime(0.7, now + attackTime); // Zvýšeno z 0.3 na 0.7
-    gain1.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
+    // MAXIMUM hlasitost - 1.5 je nad normál, ale kompressor to zvládne
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(1.5, now + attackTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
 
-    gain2.gain.setValueAtTime(0, now);
-    gain2.gain.linearRampToValueAtTime(0.35, now + attackTime); // Oktáva má poloviční hlasitost
-    gain2.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
+    // Připojit všechny oscilátory k jednomu gain nodu
+    oscillator1.connect(gain);
+    oscillator2.connect(gain);
+    oscillator3.connect(gain);
 
-    oscillator1.connect(gain1);
-    oscillator2.connect(gain2);
-    gain1.connect(this.masterGain);
-    gain2.connect(this.masterGain);
+    // Připojit ke kompresoru pro ještě větší hlasitost
+    gain.connect(this.compressor);
 
     oscillator1.start(now);
     oscillator2.start(now);
+    oscillator3.start(now);
+
     oscillator1.stop(now + totalDuration);
     oscillator2.stop(now + totalDuration);
+    oscillator3.stop(now + totalDuration);
   }
 
   // UI Sound Effects

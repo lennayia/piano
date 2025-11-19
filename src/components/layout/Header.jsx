@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Piano, User, Home, BookOpen, Lightbulb } from 'lucide-react';
+import { Piano, User, Home, BookOpen, Lightbulb, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
@@ -48,38 +48,38 @@ function Header() {
             <span>Piano Learning</span>
           </Link>
 
-          <nav style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1.5rem'
-          }}>
-            <Link to="/" style={{
+          {currentUser && (
+            <nav style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.25rem',
-              textDecoration: 'none',
-              color: 'var(--color-text-secondary)',
-              fontSize: '0.875rem',
-              fontWeight: 500
+              gap: '1.5rem'
             }}>
-              <Home size={18} />
-              <span>Domů</span>
-            </Link>
+              <Link to="/" style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                textDecoration: 'none',
+                color: 'var(--color-text-secondary)',
+                fontSize: '0.875rem',
+                fontWeight: 500
+              }}>
+                <Home size={18} />
+                <span>Domů</span>
+              </Link>
 
-            <Link to="/resources" style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              textDecoration: 'none',
-              color: 'var(--color-text-secondary)',
-              fontSize: '0.875rem',
-              fontWeight: 500
-            }}>
-              <Lightbulb size={18} />
-              <span>Materiály</span>
-            </Link>
+              <Link to="/resources" style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                textDecoration: 'none',
+                color: 'var(--color-text-secondary)',
+                fontSize: '0.875rem',
+                fontWeight: 500
+              }}>
+                <Lightbulb size={18} />
+                <span>Materiály</span>
+              </Link>
 
-            {currentUser && (
               <Link to="/dashboard" style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -92,9 +92,22 @@ function Header() {
                 <BookOpen size={18} />
                 <span>Moje lekce</span>
               </Link>
-            )}
 
-            {currentUser ? (
+              {currentUser.isAdmin && (
+                <Link to="/admin" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  textDecoration: 'none',
+                  color: 'var(--color-danger)',
+                  fontSize: '0.875rem',
+                  fontWeight: 500
+                }}>
+                  <Shield size={18} />
+                  <span>Admin</span>
+                </Link>
+              )}
+
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -111,16 +124,8 @@ function Header() {
                   {currentUser.firstName} {currentUser.lastName}
                 </span>
               </div>
-            ) : (
-              <Link
-                to="/registration"
-                className="btn btn-primary"
-                onClick={() => audioEngine.playClick()}
-              >
-                Začít učit
-              </Link>
-            )}
-          </nav>
+            </nav>
+          )}
         </div>
       </div>
     </header>

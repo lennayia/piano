@@ -6,19 +6,24 @@ const migrateUsers = (users) => {
   if (!users || users.length === 0) return users;
 
   let needsMigration = false;
-  const migratedUsers = users.map((user, index) => {
+  const migratedUsers = users.map((user) => {
     if (user.isAdmin === undefined) {
       needsMigration = true;
+      // Nastavit isAdmin podle emailu - Lenka Roubalová je admin
+      const isAdmin = user.email?.toLowerCase() === 'lenkaroubalka@seznam.cz';
       return {
         ...user,
-        isAdmin: index === 0 // První uživatel se stává adminem
+        isAdmin
       };
     }
     return user;
   });
 
   if (needsMigration) {
-    console.log('Migrace uživatelů dokončena - první uživatel je nyní admin');
+    const adminUser = migratedUsers.find(u => u.isAdmin);
+    if (adminUser) {
+      console.log(`Migrace dokončena - ${adminUser.firstName} ${adminUser.lastName} je nyní admin`);
+    }
   }
 
   return migratedUsers;

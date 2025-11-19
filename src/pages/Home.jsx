@@ -128,47 +128,18 @@ function Home() {
           transition={{ delay: 0.6 }}
           style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}
         >
-          {currentUser ? (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                audioEngine.playClick();
-                navigate('/dashboard');
-              }}
-              className="btn btn-primary"
-              style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
-            >
-              Pokračovat v učení
-            </motion.button>
-          ) : (
-            <>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  audioEngine.playClick();
-                  navigate('/registration');
-                }}
-                className="btn btn-primary"
-                style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
-              >
-                Začít zdarma
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  audioEngine.playClick();
-                  navigate('/admin');
-                }}
-                className="btn btn-secondary"
-                style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
-              >
-                Admin přístup
-              </motion.button>
-            </>
-          )}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              audioEngine.playClick();
+              navigate(currentUser ? '/dashboard' : '/registration');
+            }}
+            className="btn btn-primary"
+            style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
+          >
+            {currentUser ? 'Pokračovat v učení' : 'Přihlásit se'}
+          </motion.button>
         </motion.div>
       </motion.div>
 
