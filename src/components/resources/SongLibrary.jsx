@@ -15,7 +15,7 @@ function SongLibrary() {
       id: 1,
       title: 'Skákal pes přes oves',
       difficulty: 'začátečník',
-      notes: ['C', 'C', 'D', 'E', 'E', 'D', 'C'],
+      notes: ['G', 'G', 'A', 'H', 'H', 'A', 'G'],
       tempo: 'Allegro',
       key: 'C dur',
       tips: 'Doprovod: C dur - F dur - G dur - C dur'
@@ -24,7 +24,7 @@ function SongLibrary() {
       id: 2,
       title: 'Holka modrooká',
       difficulty: 'začátečník',
-      notes: ['C', 'D', 'E', 'F', 'G', 'G', 'G'],
+      notes: ['G', 'A', 'H', 'C', 'D', 'C', 'H'],
       tempo: 'Moderato',
       key: 'C dur',
       tips: 'Doprovod: C dur - G dur - C dur'
@@ -33,7 +33,7 @@ function SongLibrary() {
       id: 3,
       title: 'Když jsem já šel okolo vrat',
       difficulty: 'mírně pokročilý',
-      notes: ['D', 'D', 'D', 'D', 'E', 'F#', 'G', 'A', 'A', 'A', 'A', 'H', 'C', 'D'],
+      notes: ['G', 'A', 'H', 'H', 'C', 'H', 'A', 'G', 'A', 'H', 'C', 'D'],
       tempo: 'Andante',
       key: 'G dur',
       tips: 'Doprovod: G dur - D dur - Em - C dur - G dur'
