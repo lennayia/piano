@@ -1,7 +1,7 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useLessonStore = create((set) => ({
-  lessons: [
+const defaultLessons = [
     {
       id: 1,
       title: 'První tóny',
@@ -62,20 +62,53 @@ const useLessonStore = create((set) => ({
         ]
       }
     }
-  ],
+  ];
 
-  currentLesson: null,
+const useLessonStore = create(
+  persist(
+    (set, get) => ({
+      lessons: defaultLessons,
+      currentLesson: null,
 
-  setCurrentLesson: (lessonId) => {
-    set((state) => ({
-      currentLesson: state.lessons.find(l => l.id === lessonId)
-    }));
-  },
+      setCurrentLesson: (lessonId) => {
+        set((state) => ({
+          currentLesson: state.lessons.find(l => l.id === lessonId)
+        }));
+      },
 
-  getLessonById: (lessonId) => {
-    const state = useLessonStore.getState();
-    return state.lessons.find(l => l.id === lessonId);
-  }
-}));
+      getLessonById: (lessonId) => {
+        const state = get();
+        return state.lessons.find(l => l.id === lessonId);
+      },
+
+      addLesson: (newLesson) => {
+        set((state) => ({
+          lessons: [...state.lessons, { ...newLesson, id: Date.now() }]
+        }));
+      },
+
+      updateLesson: (lessonId, updatedData) => {
+        set((state) => ({
+          lessons: state.lessons.map(lesson =>
+            lesson.id === lessonId ? { ...lesson, ...updatedData } : lesson
+          )
+        }));
+      },
+
+      deleteLesson: (lessonId) => {
+        set((state) => ({
+          lessons: state.lessons.filter(lesson => lesson.id !== lessonId)
+        }));
+      },
+
+      resetLessons: () => {
+        set({ lessons: defaultLessons });
+      }
+    }),
+    {
+      name: 'lesson-storage'
+    }
+  )
+);
 
 export default useLessonStore;

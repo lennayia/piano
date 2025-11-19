@@ -1,8 +1,8 @@
-import { Clock, TrendingUp, ChevronRight } from 'lucide-react';
+import { Clock, TrendingUp, ChevronRight, Edit3, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 
-function LessonCard({ lesson, onClick }) {
+function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete }) {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'začátečník':
@@ -47,7 +47,47 @@ function LessonCard({ lesson, onClick }) {
     >
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{lesson.title}</h3>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{lesson.title}</h3>
+              {isAdmin && (
+                <div style={{ display: 'flex', gap: '0.25rem' }} onClick={(e) => e.stopPropagation()}>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => onEdit(lesson)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      background: 'rgba(45, 91, 120, 0.1)',
+                      border: '1px solid rgba(45, 91, 120, 0.3)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Edit3 size={14} color="var(--color-secondary)" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => onDelete(lesson.id)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Trash2 size={14} color="var(--color-danger)" />
+                  </motion.button>
+                </div>
+              )}
+            </div>
+          </div>
           <ChevronRight size={20} color="var(--color-text-secondary)" />
         </div>
         <p className="text-secondary" style={{ fontSize: '0.875rem', lineHeight: 1.5 }}>
