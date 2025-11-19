@@ -6,15 +6,17 @@ function Confetti({ show, onComplete }) {
 
   useEffect(() => {
     if (show) {
-      // Vytvořit 50 konfet
-      const pieces = Array.from({ length: 50 }, (_, i) => ({
+      // Vytvořit 80 konfet - více pro lepší efekt
+      const pieces = Array.from({ length: 80 }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
         delay: Math.random() * 0.5,
         duration: 2 + Math.random() * 2,
         rotation: Math.random() * 360,
-        color: ['#b51f65', '#d63384', '#2d5b78', '#ffd700', '#ff69b4', '#87ceeb'][Math.floor(Math.random() * 6)],
-        size: 8 + Math.random() * 8
+        // Kovové barvy - zlatá, stříbrná, bronzová, růžovo-zlatá
+        color: ['#FFD700', '#C0C0C0', '#CD7F32', '#E5B8F4', '#B9F2FF', '#FFB6D9'][Math.floor(Math.random() * 6)],
+        size: 6 + Math.random() * 10,
+        shape: Math.random() > 0.5 ? 'rect' : 'circle' // Mix obdélníků a kruhů
       }));
       setConfettiPieces(pieces);
 
@@ -64,10 +66,14 @@ function Confetti({ show, onComplete }) {
               style={{
                 position: 'absolute',
                 width: `${piece.size}px`,
-                height: `${piece.size}px`,
-                backgroundColor: piece.color,
-                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-                boxShadow: `0 0 ${piece.size / 2}px ${piece.color}`
+                height: piece.shape === 'rect' ? `${piece.size * 0.6}px` : `${piece.size}px`,
+                background: piece.shape === 'rect'
+                  ? `linear-gradient(135deg, ${piece.color} 0%, ${piece.color}dd 50%, ${piece.color} 100%)`
+                  : `radial-gradient(circle at 30% 30%, ${piece.color}ff, ${piece.color}99)`,
+                borderRadius: piece.shape === 'rect' ? '2px' : '50%',
+                boxShadow: `0 0 ${piece.size}px ${piece.color}, inset 0 0 ${piece.size / 2}px rgba(255, 255, 255, 0.5)`,
+                border: `1px solid rgba(255, 255, 255, 0.3)`,
+                transform: `rotateX(${Math.random() * 360}deg)`
               }}
             />
           ))}

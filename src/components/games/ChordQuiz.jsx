@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Play, RotateCcw, Trophy, Zap, Target, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
+import Confetti from '../common/Confetti';
 
 function ChordQuiz() {
   const [score, setScore] = useState(0);
@@ -11,6 +12,7 @@ function ChordQuiz() {
   const [showResult, setShowResult] = useState(false);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const chords = [
     {
@@ -87,10 +89,16 @@ function ChordQuiz() {
         setSelectedAnswer(null);
         setShowResult(false);
       } else {
-        // Game over
+        // Game over - spustit celebraci!
+        setShowCelebration(true);
+        audioEngine.playFanfare();
+        setTimeout(() => {
+          audioEngine.playApplause();
+        }, 500);
         setTimeout(() => {
           setGameStarted(false);
-        }, 1500);
+          setShowCelebration(false);
+        }, 3000);
       }
     }, 1500);
   };
@@ -99,6 +107,9 @@ function ChordQuiz() {
 
   return (
     <div>
+      {/* Confetti při dokončení kvízu */}
+      <Confetti show={showCelebration} onComplete={() => setShowCelebration(false)} />
+
       <h2 style={{
         marginBottom: '1.5rem',
         color: '#ffffff',
