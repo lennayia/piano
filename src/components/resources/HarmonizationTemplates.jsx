@@ -1,64 +1,99 @@
 import { useState } from 'react';
-import { FileText, Download, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { FileText, Download, Eye, EyeOff, Sparkles, Plus, Edit3, Save, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useHarmonizationTemplatesStore from '../../store/useHarmonizationTemplatesStore';
+import useUserStore from '../../store/useUserStore';
 
 function HarmonizationTemplates() {
   const [expandedTemplate, setExpandedTemplate] = useState(null);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newTemplateForm, setNewTemplateForm] = useState({
+    title: '',
+    description: '',
+    difficulty: 'začátečník',
+    chords: [],
+    progression: '',
+    example: ''
+  });
 
-  const templates = [
-    {
-      id: 1,
-      title: 'Základní kadence v C dur',
-      description: 'Nejjednodušší harmonizace pro začáteční písně',
+  const templates = useHarmonizationTemplatesStore((state) => state.templates);
+  const updateTemplate = useHarmonizationTemplatesStore((state) => state.updateTemplate);
+  const addTemplate = useHarmonizationTemplatesStore((state) => state.addTemplate);
+  const deleteTemplate = useHarmonizationTemplatesStore((state) => state.deleteTemplate);
+  const currentUser = useUserStore((state) => state.currentUser);
+
+  const isAdmin = currentUser?.isAdmin === true;
+
+  // Admin funkce pro šablony
+  const handleNewTemplateChange = (field, value) => {
+    setNewTemplateForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const startAddingNew = () => {
+    setIsAddingNew(true);
+    setNewTemplateForm({
+      title: '',
+      description: '',
       difficulty: 'začátečník',
-      chords: [
-        { name: 'C dur', notes: ['C', 'E', 'G'], function: 'I. stupeň - tónika' },
-        { name: 'F dur', notes: ['F', 'A', 'C'], function: 'IV. stupeň - subdominanta' },
-        { name: 'G dur', notes: ['G', 'H', 'D'], function: 'V. stupeň - dominanta' }
-      ],
-      progression: 'I - IV - V - I',
-      example: 'Použití: Skákal pes, Holka modrooká'
-    },
-    {
-      id: 2,
-      title: 'Kadence v G dur',
-      description: 'Pro písně v tónině G dur',
-      difficulty: 'začátečník',
-      chords: [
-        { name: 'G dur', notes: ['G', 'H', 'D'], function: 'I. stupeň - tónika' },
-        { name: 'C dur', notes: ['C', 'E', 'G'], function: 'IV. stupeň - subdominanta' },
-        { name: 'D dur', notes: ['D', 'F#', 'A'], function: 'V. stupeň - dominanta' }
-      ],
-      progression: 'I - IV - V - I',
-      example: 'Použití: Když jsem já šel okolo vrat'
-    },
-    {
-      id: 3,
-      title: 'Rozšířená kadence s mollovou subdominantou',
-      difficulty: 'mírně pokročilý',
-      chords: [
-        { name: 'C dur', notes: ['C', 'E', 'G'], function: 'I. stupeň - tónika' },
-        { name: 'Am', notes: ['A', 'C', 'E'], function: 'VI. stupeň - mollová paralelá' },
-        { name: 'F dur', notes: ['F', 'A', 'C'], function: 'IV. stupeň - subdominanta' },
-        { name: 'G dur', notes: ['G', 'H', 'D'], function: 'V. stupeň - dominanta' }
-      ],
-      progression: 'I - VI - IV - V - I',
-      example: 'Použití: Složitější lidové písně s melancholickým nádechem'
-    },
-    {
-      id: 4,
-      title: 'Kadence v D dur',
-      description: 'Pro písně v tónině D dur',
-      difficulty: 'začátečník',
-      chords: [
-        { name: 'D dur', notes: ['D', 'F#', 'A'], function: 'I. stupeň - tónika' },
-        { name: 'G dur', notes: ['G', 'H', 'D'], function: 'IV. stupeň - subdominanta' },
-        { name: 'A dur', notes: ['A', 'C#', 'E'], function: 'V. stupeň - dominanta' }
-      ],
-      progression: 'I - IV - V - I',
-      example: 'Použití: Slyšel jsem zvon'
+      chords: [],
+      progression: '',
+      example: ''
+    });
+  };
+
+  const saveNewTemplate = () => {
+    if (!newTemplateForm.title || !newTemplateForm.progression) {
+      alert('Vyplňte alespoň název a postup');
+      return;
     }
-  ];
+
+    addTemplate(newTemplateForm);
+    setIsAddingNew(false);
+  };
+
+  const cancelAddingNew = () => {
+    setIsAddingNew(false);
+  };
+
+  const startEditingTemplate = (template) => {
+    setEditingTemplate(template.id);
+    setEditForm({
+      title: template.title,
+      description: template.description || '',
+      difficulty: template.difficulty,
+      chords: template.chords || [],
+      progression: template.progression,
+      example: template.example || ''
+    });
+    setExpandedTemplate(null);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEditedTemplate = () => {
+    if (!editForm.title || !editForm.progression) {
+      alert('Vyplňte alespoň název a postup');
+      return;
+    }
+    updateTemplate(editingTemplate, editForm);
+    setEditingTemplate(null);
+    setEditForm(null);
+  };
+
+  const cancelEditingTemplate = () => {
+    setEditingTemplate(null);
+    setEditForm(null);
+  };
+
+  const handleDeleteTemplate = (templateId) => {
+    if (confirm('Opravdu chcete smazat tuto šablonu?')) {
+      deleteTemplate(templateId);
+    }
+  };
 
   const toggleTemplate = (id) => {
     setExpandedTemplate(expandedTemplate === id ? null : id);
@@ -97,6 +132,155 @@ function HarmonizationTemplates() {
         Připravené harmonické postupy pro rychlou harmonizaci písní
       </p>
 
+      {/* Tlačítko pro přidání nové šablony (pouze pro adminy) */}
+      {isAdmin && !isAddingNew && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={startAddingNew}
+          style={{
+            marginBottom: '1.5rem',
+            padding: '0.75rem 1.5rem',
+            background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: 'var(--radius)',
+            color: '#ffffff',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: '0 4px 16px rgba(45, 91, 120, 0.3)'
+          }}
+        >
+          <Plus size={18} />
+          Přidat novou šablonu
+        </motion.button>
+      )}
+
+      {/* Formulář pro přidání nové šablony */}
+      <AnimatePresence>
+        {isAddingNew && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="card"
+            style={{
+              marginBottom: '1.5rem',
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '2px solid rgba(181, 31, 101, 0.4)',
+              boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
+            }}
+          >
+            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Plus size={20} color="var(--color-primary)" />
+              Nová šablona harmonizace
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Název šablony
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={newTemplateForm.title}
+                  onChange={(e) => handleNewTemplateChange('title', e.target.value)}
+                  placeholder="Zadejte název šablony"
+                  style={{ fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Obtížnost
+                </label>
+                <select
+                  className="form-input"
+                  value={newTemplateForm.difficulty}
+                  onChange={(e) => handleNewTemplateChange('difficulty', e.target.value)}
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="začátečník">začátečník</option>
+                  <option value="mírně pokročilý">mírně pokročilý</option>
+                  <option value="pokročilý">pokročilý</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Popis
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                value={newTemplateForm.description}
+                onChange={(e) => handleNewTemplateChange('description', e.target.value)}
+                placeholder="Popis šablony"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Harmonický postup
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                value={newTemplateForm.progression}
+                onChange={(e) => handleNewTemplateChange('progression', e.target.value)}
+                placeholder="Např. I - IV - V - I"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1rem' }}>
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Příklad použití
+              </label>
+              <textarea
+                className="form-input"
+                value={newTemplateForm.example}
+                onChange={(e) => handleNewTemplateChange('example', e.target.value)}
+                rows={2}
+                placeholder="Zadejte příklad použití"
+                style={{ fontSize: '0.875rem' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={saveNewTemplate}
+                className="btn btn-primary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                <Save size={16} />
+                Přidat šablonu
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={cancelAddingNew}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                <X size={16} />
+                Zrušit
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div style={{ display: 'grid', gap: '1rem' }}>
         {templates.map((template, index) => (
           <motion.div
@@ -119,13 +303,49 @@ function HarmonizationTemplates() {
             >
               <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                     <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
                       {template.title}
                     </h3>
                     <span className={`badge ${getDifficultyColor(template.difficulty)}`}>
                       {template.difficulty}
                     </span>
+                    {isAdmin && (
+                      <div style={{ display: 'flex', gap: '0.25rem', marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => startEditingTemplate(template)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            background: 'rgba(45, 91, 120, 0.1)',
+                            border: '1px solid rgba(45, 91, 120, 0.3)',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Edit3 size={14} color="var(--color-secondary)" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => handleDeleteTemplate(template.id)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Trash2 size={14} color="var(--color-danger)" />
+                        </motion.button>
+                      </div>
+                    )}
                   </div>
                   <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: 0 }}>
                     {template.description}
@@ -167,8 +387,128 @@ function HarmonizationTemplates() {
               </div>
             </div>
 
+            {/* Edit Form */}
             <AnimatePresence>
-              {expandedTemplate === template.id && (
+              {editingTemplate === template.id && editForm && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(0, 0, 0, 0.1)', paddingTop: '1.5rem' }}
+                >
+                  <div style={{
+                    padding: '1rem',
+                    background: 'rgba(45, 91, 120, 0.05)',
+                    borderRadius: 'var(--radius)',
+                    border: '2px solid rgba(45, 91, 120, 0.3)'
+                  }}>
+                    <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Edit3 size={18} color="var(--color-secondary)" />
+                      Upravit šablonu
+                    </h4>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                          Název šablony
+                        </label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={editForm.title}
+                          onChange={(e) => handleEditFormChange('title', e.target.value)}
+                          style={{ fontSize: '0.875rem' }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                          Obtížnost
+                        </label>
+                        <select
+                          className="form-input"
+                          value={editForm.difficulty}
+                          onChange={(e) => handleEditFormChange('difficulty', e.target.value)}
+                          style={{ fontSize: '0.875rem' }}
+                        >
+                          <option value="začátečník">začátečník</option>
+                          <option value="mírně pokročilý">mírně pokročilý</option>
+                          <option value="pokročilý">pokročilý</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Popis
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editForm.description}
+                        onChange={(e) => handleEditFormChange('description', e.target.value)}
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Harmonický postup
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editForm.progression}
+                        onChange={(e) => handleEditFormChange('progression', e.target.value)}
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Příklad použití
+                      </label>
+                      <textarea
+                        className="form-input"
+                        value={editForm.example}
+                        onChange={(e) => handleEditFormChange('example', e.target.value)}
+                        rows={2}
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={saveEditedTemplate}
+                        className="btn btn-primary"
+                        style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                      >
+                        <Save size={16} />
+                        Uložit změny
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={cancelEditingTemplate}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                      >
+                        <X size={16} />
+                        Zrušit
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Expanded Content */}
+            <AnimatePresence>
+              {expandedTemplate === template.id && editingTemplate !== template.id && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
