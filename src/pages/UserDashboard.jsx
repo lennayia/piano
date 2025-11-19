@@ -90,16 +90,17 @@ function UserDashboard() {
               style={{
                 width: '48px',
                 height: '48px',
-                background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.2) 0%, rgba(45, 91, 120, 0.1) 100%)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: 'var(--radius)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(45, 91, 120, 0.2)'
+                border: '2px solid rgba(181, 31, 101, 0.2)',
+                boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <Award size={24} color="var(--color-secondary)" />
+              <Award size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -126,16 +127,17 @@ function UserDashboard() {
               style={{
                 width: '48px',
                 height: '48px',
-                background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.2) 0%, rgba(45, 91, 120, 0.1) 100%)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: 'var(--radius)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(45, 91, 120, 0.2)'
+                border: '2px solid rgba(181, 31, 101, 0.2)',
+                boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <BookOpen size={24} color="var(--color-secondary)" />
+              <BookOpen size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -162,12 +164,13 @@ function UserDashboard() {
               style={{
                 width: '48px',
                 height: '48px',
-                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(181, 31, 101, 0.1) 100%)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: 'var(--radius)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                border: '2px solid rgba(181, 31, 101, 0.2)',
                 boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
@@ -198,16 +201,17 @@ function UserDashboard() {
               style={{
                 width: '48px',
                 height: '48px',
-                background: 'linear-gradient(135deg, rgba(255, 140, 0, 0.2) 0%, rgba(255, 69, 0, 0.1) 100%)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: 'var(--radius)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(255, 140, 0, 0.2)'
+                border: '2px solid rgba(181, 31, 101, 0.2)',
+                boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}
             >
-              <Flame size={24} color="#ff8c00" />
+              <Flame size={24} color="var(--color-primary)" />
             </motion.div>
             <div>
               <motion.div
@@ -257,13 +261,13 @@ function UserDashboard() {
                   whileHover={{ scale: 1.05, y: -5 }}
                   style={{
                     padding: '1.5rem',
-                    background: achInfo.color,
+                    background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(10px)',
                     borderRadius: 'var(--radius)',
                     border: '2px solid rgba(181, 31, 101, 0.3)',
                     textAlign: 'center',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                    boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
                   }}
                 >
                   <Icon size={40} color="var(--color-primary)" style={{ marginBottom: '0.75rem' }} />

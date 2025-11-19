@@ -45,13 +45,15 @@ function Admin() {
         <div style={{
           width: '48px',
           height: '48px',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          background: 'rgba(255, 255, 255, 0.95)',
           borderRadius: 'var(--radius)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          border: '2px solid rgba(181, 31, 101, 0.2)',
+          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
         }}>
-          <Shield size={24} color="var(--color-danger)" />
+          <Shield size={24} color="var(--color-primary)" />
         </div>
         <div>
           <h1 style={{ marginBottom: '0.25rem', color: '#ffffff' }}>Admin Panel</h1>

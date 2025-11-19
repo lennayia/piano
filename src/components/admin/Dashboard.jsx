@@ -53,13 +53,15 @@ function Dashboard() {
               <div style={{
                 width: '48px',
                 height: '48px',
-                backgroundColor: `${stat.color}15`,
+                background: 'rgba(255, 255, 255, 0.95)',
                 borderRadius: 'var(--radius)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                border: '2px solid rgba(181, 31, 101, 0.2)',
+                boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
               }}>
-                <Icon size={24} color={stat.color} />
+                <Icon size={24} color="var(--color-primary)" />
               </div>
             </div>
           </div>
