@@ -37,7 +37,7 @@ function Resources() {
         display: 'flex',
         gap: '1rem',
         marginBottom: '2rem',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         flexWrap: 'wrap'
       }}>
         {tabs.map((tab, index) => {

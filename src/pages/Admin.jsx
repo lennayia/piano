@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Shield, BarChart3, Users, Music } from 'lucide-react';
 import AdminDashboard from '../components/admin/Dashboard';
 import UserList from '../components/admin/UserList';
@@ -7,6 +8,7 @@ import useUserStore from '../store/useUserStore';
 
 function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [hoveredTab, setHoveredTab] = useState(null);
   const currentUser = useUserStore((state) => state.currentUser);
 
   // Kontrola, zda je uživatel admin
@@ -66,37 +68,63 @@ function Admin() {
       {/* Tabs Navigation */}
       <div style={{
         display: 'flex',
-        gap: '0.5rem',
+        gap: '1rem',
         marginBottom: '2rem',
-        borderBottom: '1px solid var(--color-border)',
-        paddingBottom: '0.5rem'
+        justifyContent: 'flex-start',
+        flexWrap: 'wrap'
       }}>
-        {tabs.map((tab) => {
+        {tabs.map((tab, index) => {
           const Icon = tab.icon;
           return (
-            <button
+            <motion.button
               key={tab.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{
+                scale: 1.05,
+                y: -4,
+                background: activeTab === tab.id
+                  ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
+                  : 'linear-gradient(135deg, rgba(45, 91, 120, 0.2) 0%, rgba(65, 111, 140, 0.2) 100%)',
+                color: activeTab === tab.id ? '#ffffff' : '#1e293b'
+              }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab(tab.id)}
+              onMouseEnter={() => setHoveredTab(tab.id)}
+              onMouseLeave={() => setHoveredTab(null)}
+              className="card"
               style={{
+                padding: '1rem 2rem',
+                background: activeTab === tab.id
+                  ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
+                  : 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: activeTab === tab.id
+                  ? '2px solid rgba(181, 31, 101, 0.3)'
+                  : '2px solid rgba(255, 255, 255, 0.3)',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1.5rem',
-                background: activeTab === tab.id
-                  ? 'var(--gradient-primary)'
-                  : 'transparent',
-                color: activeTab === tab.id ? 'white' : 'var(--color-text)',
-                border: 'none',
-                borderRadius: 'var(--radius)',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                transition: 'all 0.3s ease'
+                gap: '0.75rem',
+                transition: 'all 0.3s',
+                fontSize: '1rem',
+                fontWeight: activeTab === tab.id ? 600 : 500,
+                color: activeTab === tab.id ? '#ffffff' : '#64748b',
+                boxShadow: activeTab === tab.id ? '0 4px 16px rgba(181, 31, 101, 0.3)' : 'none'
               }}
             >
-              <Icon size={18} />
+              <Icon
+                size={20}
+                color={
+                  activeTab === tab.id || hoveredTab === tab.id
+                    ? '#ffffff'
+                    : '#64748b'
+                }
+              />
               {tab.label}
-            </button>
+            </motion.button>
           );
         })}
       </div>
