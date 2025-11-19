@@ -172,13 +172,14 @@ function Home() {
                   style={{
                     width: '64px',
                     height: '64px',
-                    background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(214, 51, 132, 0.1) 100%)',
+                    background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(10px)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 1rem',
+                    border: '2px solid rgba(181, 31, 101, 0.2)',
                     boxShadow: '0 4px 20px rgba(181, 31, 101, 0.2)'
                   }}
                 >
@@ -231,17 +232,18 @@ function Home() {
                   style={{
                     width: '72px',
                     height: '72px',
-                    background: audience.color,
+                    background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(10px)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 1.5rem',
-                    boxShadow: '0 4px 20px rgba(45, 91, 120, 0.2)'
+                    border: '2px solid rgba(181, 31, 101, 0.2)',
+                    boxShadow: '0 4px 20px rgba(181, 31, 101, 0.2)'
                   }}
                 >
-                  <Icon size={36} color="var(--color-secondary)" />
+                  <Icon size={36} color="var(--color-primary)" />
                 </motion.div>
                 <h3 style={{ fontSize: '1.125rem', marginBottom: '0.75rem', color: '#1e293b', fontWeight: 600 }}>
                   {audience.title}
@@ -292,19 +294,21 @@ function Home() {
                 style={{
                   width: '48px',
                   height: '48px',
-                  background: module.completed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(45, 91, 120, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(10px)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  border: '2px solid rgba(181, 31, 101, 0.2)',
+                  boxShadow: '0 4px 20px rgba(181, 31, 101, 0.2)'
                 }}
               >
                 {module.completed ? (
                   <CheckCircle2 size={24} color="var(--color-success)" />
                 ) : (
-                  <Sparkles size={24} color="var(--color-secondary)" />
+                  <Sparkles size={24} color="var(--color-primary)" />
                 )}
               </motion.div>
               <div style={{ flex: 1 }}>
@@ -342,12 +346,13 @@ function Home() {
               style={{
                 width: '120px',
                 height: '120px',
-                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(45, 91, 120, 0.2) 100%)',
+                background: 'rgba(255, 255, 255, 0.95)',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                border: '2px solid rgba(181, 31, 101, 0.2)',
                 boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)'
               }}
             >

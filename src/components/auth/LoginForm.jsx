@@ -44,10 +44,11 @@ function LoginForm({ disableBackgroundMusic = false }) {
   const toggleMusic = () => {
     if (isMusicPlaying) {
       audioEngine.stopVltavaLoop();
+      setIsMusicPlaying(false);
     } else {
       audioEngine.startVltavaLoop();
+      setIsMusicPlaying(true);
     }
-    setIsMusicPlaying(!isMusicPlaying);
   };
 
   // API integrace - připravené pro email marketing služby
