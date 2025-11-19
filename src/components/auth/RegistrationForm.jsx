@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
+import audioEngine from '../../utils/audio';
 
 function RegistrationForm() {
   const navigate = useNavigate();
@@ -18,6 +19,16 @@ function RegistrationForm() {
 
   const [errors, setErrors] = useState({});
   const [isLoginMode, setIsLoginMode] = useState(false);
+
+  useEffect(() => {
+    // Spustit Vltavu na pozadí
+    audioEngine.startVltavaLoop();
+
+    return () => {
+      // Zastavit při opuštění stránky
+      audioEngine.stopVltavaLoop();
+    };
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -53,12 +64,14 @@ function RegistrationForm() {
       if (existingUser) {
         // Přihlásit existujícího uživatele
         setCurrentUser(existingUser);
-        navigate('/dashboard');
+        audioEngine.fadeOut(2.0); // Ztlumit hudbu
+        setTimeout(() => navigate('/dashboard'), 500);
       } else if (!isLoginMode) {
         // Vytvořit nového uživatele
         const newUser = addUser(formData);
         setCurrentUser(newUser);
-        navigate('/dashboard');
+        audioEngine.fadeOut(2.0); // Ztlumit hudbu
+        setTimeout(() => navigate('/dashboard'), 500);
       } else {
         // V login módu a uživatel neexistuje
         setErrors({ email: 'Uživatel s tímto emailem neexistuje' });

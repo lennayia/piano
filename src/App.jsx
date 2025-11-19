@@ -6,6 +6,7 @@ import UserDashboard from './pages/UserDashboard';
 import Admin from './pages/Admin';
 import Lesson from './pages/Lesson';
 import Resources from './pages/Resources';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import './styles/index.css';
 
 function App() {
@@ -13,12 +14,15 @@ function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* Veřejné routes */}
           <Route path="/registration" element={<Registration />} />
-          <Route path="/dashboard" element={<UserDashboard />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/lesson/:id" element={<Lesson />} />
-          <Route path="/resources" element={<Resources />} />
+
+          {/* Chráněné routes - vyžadují přihlášení */}
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          <Route path="/lesson/:id" element={<ProtectedRoute><Lesson /></ProtectedRoute>} />
+          <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
         </Routes>
       </Layout>
     </Router>

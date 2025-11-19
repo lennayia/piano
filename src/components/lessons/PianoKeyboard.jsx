@@ -22,7 +22,10 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
     { note: "C'", type: 'white', label: "c'", octave: 1 }, // c' = C5, jednočárkované
   ];
 
-  const handleKeyPress = (note) => {
+  const handleKeyPress = (e, note) => {
+    e.stopPropagation();
+    e.preventDefault();
+
     audioEngine.playNote(note, 0.5);
     setActiveKeys(prev => new Set(prev).add(note));
 
@@ -75,7 +78,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
           <motion.div
             key={`${key.note}-${index}`}
             className={`piano-key white ${activeKeys.has(key.note) ? 'active' : ''}`}
-            onClick={() => handleKeyPress(key.note)}
+            onClick={(e) => handleKeyPress(e, key.note)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             style={{
@@ -131,7 +134,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
             <motion.div
               key={key.note}
               className={`piano-key black ${activeKeys.has(key.note) ? 'active' : ''}`}
-              onClick={() => handleKeyPress(key.note)}
+              onClick={(e) => handleKeyPress(e, key.note)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{

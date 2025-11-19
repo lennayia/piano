@@ -271,6 +271,85 @@ class AudioEngine {
     });
   }
 
+  playVltava() {
+    if (!this.initialized) this.init();
+    if (!this.audioContext) return;
+
+    const now = this.audioContext.currentTime;
+
+    // Hlavní téma Vltavy (zjednodušená melodie)
+    // E-G-A-H-C-H-A-G-E-E-G-A
+    const vltavaMelody = [
+      { note: 329.63, time: 0, duration: 0.5 },     // E
+      { note: 392.00, time: 0.5, duration: 0.5 },   // G
+      { note: 440.00, time: 1.0, duration: 0.5 },   // A
+      { note: 493.88, time: 1.5, duration: 0.5 },   // H
+      { note: 523.25, time: 2.0, duration: 0.8 },   // C
+      { note: 493.88, time: 2.8, duration: 0.4 },   // H
+      { note: 440.00, time: 3.2, duration: 0.4 },   // A
+      { note: 392.00, time: 3.6, duration: 0.5 },   // G
+      { note: 329.63, time: 4.1, duration: 0.8 },   // E
+      { note: 329.63, time: 4.9, duration: 0.4 },   // E
+      { note: 392.00, time: 5.3, duration: 0.4 },   // G
+      { note: 440.00, time: 5.7, duration: 1.0 }    // A
+    ];
+
+    vltavaMelody.forEach(({ note, time, duration }) => {
+      const oscillator = this.audioContext.createOscillator();
+      const gain = this.audioContext.createGain();
+
+      oscillator.frequency.value = note;
+      oscillator.type = 'sine';
+
+      const startTime = now + time;
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.08, startTime + 0.05); // Potichu
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+      oscillator.connect(gain);
+      gain.connect(this.masterGain);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    });
+
+    return 6.7; // Délka melodie v sekundách
+  }
+
+  startVltavaLoop() {
+    if (this.vltavaInterval) return; // Už běží
+
+    // Přehrát okamžitě
+    const duration = this.playVltava();
+
+    // Opakovat ve smyčce
+    this.vltavaInterval = setInterval(() => {
+      this.playVltava();
+    }, duration * 1000);
+  }
+
+  stopVltavaLoop() {
+    if (this.vltavaInterval) {
+      clearInterval(this.vltavaInterval);
+      this.vltavaInterval = null;
+    }
+  }
+
+  fadeOut(duration = 1.0) {
+    if (!this.masterGain) return;
+
+    const now = this.audioContext.currentTime;
+    const currentVolume = this.masterGain.gain.value;
+
+    this.masterGain.gain.setValueAtTime(currentVolume, now);
+    this.masterGain.gain.linearRampToValueAtTime(0.01, now + duration);
+
+    setTimeout(() => {
+      this.stopVltavaLoop();
+      this.masterGain.gain.value = 0.3; // Reset volume
+    }, duration * 1000);
+  }
+
   setVolume(volume) {
     if (this.masterGain) {
       this.masterGain.gain.value = Math.max(0, Math.min(1, volume));
