@@ -27,7 +27,7 @@ function Resources() {
         <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#1e293b' }}>
           Výukové materiály
         </h1>
-        <p style={{ fontSize: '1.125rem', color: 'rgba(255, 255, 255, 0.8)' }}>
+        <p style={{ fontSize: '1.125rem', color: '#64748b' }}>
           Procvičte si harmonizaci pomocí interaktivního kvízu, playlistu lidových písní a připravených šablon
         </p>
       </motion.div>

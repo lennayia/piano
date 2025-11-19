@@ -67,9 +67,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e8f4f8 35%, #b51f65 45%, #d63384 55%, #e8f4f8 65%, #f8f9fa 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 25%, #e8f4f8 35%, #d8a5bb 42%, #b51f65 47%, #d63384 53%, #d8a5bb 58%, #e8f4f8 65%, #f0f5f9 75%, #f8f9fa 100%);
   background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
+  animation: gradient-shift 45s ease-in-out infinite;
   color: var(--color-text);
   line-height: 1.6;
   min-height: 100vh;
