@@ -327,17 +327,52 @@ function Glossary() {
                       justifyContent: 'space-between'
                     }}>
                       <div style={{ flex: 1 }}>
-                        <h4 style={{
-                          fontSize: '1.125rem',
-                          marginBottom: isExpanded ? '0.5rem' : 0,
-                          color: 'var(--color-primary)',
-                          fontWeight: 600,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
-                        }}>
-                          {item.term}
-                        </h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: isExpanded ? '0.5rem' : 0 }}>
+                          <h4 style={{
+                            fontSize: '1.125rem',
+                            margin: 0,
+                            color: 'var(--color-primary)',
+                            fontWeight: 600
+                          }}>
+                            {item.term}
+                          </h4>
+                          {isAdmin && (
+                            <div style={{ display: 'flex', gap: '0.25rem' }} onClick={(e) => e.stopPropagation()}>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => startEditingTerm(item)}
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  background: 'rgba(45, 91, 120, 0.1)',
+                                  border: '1px solid rgba(45, 91, 120, 0.3)',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <Edit3 size={14} color="var(--color-secondary)" />
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleDeleteTerm(item.id)}
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  background: 'rgba(239, 68, 68, 0.1)',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <Trash2 size={14} color="var(--color-danger)" />
+                              </motion.button>
+                            </div>
+                          )}
+                        </div>
                         {!isExpanded && (
                           <p style={{
                             fontSize: '0.875rem',
