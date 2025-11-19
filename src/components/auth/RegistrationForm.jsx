@@ -147,7 +147,7 @@ function RegistrationForm() {
           )}
         </div>
 
-        <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+        <button type="submit" className="btn btn-primary">
           Začít učit se
         </button>
       </form>

@@ -9,8 +9,8 @@
   --color-bg: #ffffff;
   --color-bg-secondary: #f8fafc;
   --color-border: #e2e8f0;
-  --color-text: #ffffff;
-  --color-text-secondary: rgba(255, 255, 255, 0.8);
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
 
   --radius: 0.5rem;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);

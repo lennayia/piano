@@ -177,7 +177,7 @@ function Lesson() {
               <button
                 onClick={handleComplete}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
+                style={{ padding: '1rem', fontSize: '1rem' }}
               >
                 <CheckCircle size={20} />
                 Označit jako dokončenou
