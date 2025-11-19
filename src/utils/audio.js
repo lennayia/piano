@@ -58,26 +58,42 @@ class AudioEngine {
     const frequency = this.getNoteFrequency(note);
     const now = this.audioContext.currentTime;
 
-    // Jednoduchý oscilátor bez zdvojení
-    const oscillator = this.audioContext.createOscillator();
-    const gain = this.audioContext.createGain();
+    // Použijeme 2 oscilátory pro plnější zvuk (ale bez zdvojení)
+    const oscillator1 = this.audioContext.createOscillator();
+    const oscillator2 = this.audioContext.createOscillator();
 
-    oscillator.frequency.value = frequency;
-    oscillator.type = 'sine';
+    const gain1 = this.audioContext.createGain();
+    const gain2 = this.audioContext.createGain();
 
-    // Jednoduchý envelope bez release artefaktů
-    const attackTime = 0.01;
+    // Základní tón + oktáva níže pro bohatší zvuk
+    oscillator1.frequency.value = frequency;
+    oscillator2.frequency.value = frequency * 0.5; // Oktáva níže
+
+    oscillator1.type = 'sine';
+    oscillator2.type = 'sine';
+
+    // Silnější envelope pro slyšitelnější zvuk
+    const attackTime = 0.02;
     const totalDuration = duration;
 
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.3, now + attackTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
+    // Nastavení hlasitosti - výrazně hlasitější
+    gain1.gain.setValueAtTime(0, now);
+    gain1.gain.linearRampToValueAtTime(0.7, now + attackTime); // Zvýšeno z 0.3 na 0.7
+    gain1.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
 
-    oscillator.connect(gain);
-    gain.connect(this.masterGain);
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.linearRampToValueAtTime(0.35, now + attackTime); // Oktáva má poloviční hlasitost
+    gain2.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
 
-    oscillator.start(now);
-    oscillator.stop(now + totalDuration);
+    oscillator1.connect(gain1);
+    oscillator2.connect(gain2);
+    gain1.connect(this.masterGain);
+    gain2.connect(this.masterGain);
+
+    oscillator1.start(now);
+    oscillator2.start(now);
+    oscillator1.stop(now + totalDuration);
+    oscillator2.stop(now + totalDuration);
   }
 
   // UI Sound Effects
@@ -287,26 +303,34 @@ class AudioEngine {
   }
 
   async startVltavaLoop() {
-    if (this.vltavaInterval) return; // Už běží
+    if (this.vltavaInterval || (this.vltavaAudio && !this.vltavaAudio.paused)) return; // Už běží
 
-    // Zkusit načíst a přehrát audio soubor
-    const audioLoaded = await this.loadVltavaAudio();
-
-    if (audioLoaded && this.vltavaAudio) {
-      // Přehrát audio soubor
-      try {
-        await this.vltavaAudio.play();
-        return;
-      } catch (error) {
-        console.log('Nepodařilo se přehrát audio soubor, použije se syntetizovaná melodie');
-      }
-    }
-
-    // Fallback: syntetizovaná melodie
+    // Spustit OKAMŽITĚ syntetizovanou melodii
     const duration = this.playVltava();
     this.vltavaInterval = setInterval(() => {
       this.playVltava();
     }, duration * 1000);
+
+    // V pozadí zkusit načíst audio soubor (neblokující)
+    this.loadVltavaAudio().then((audioLoaded) => {
+      if (audioLoaded && this.vltavaAudio) {
+        // Zastavit syntetizovanou melodii
+        if (this.vltavaInterval) {
+          clearInterval(this.vltavaInterval);
+          this.vltavaInterval = null;
+        }
+
+        // Přehrát audio soubor místo syntetizované melodie
+        this.vltavaAudio.play().catch(error => {
+          console.log('Nepodařilo se přehrát audio soubor, pokračuje syntetizovaná melodie');
+          // Restart syntetizované melodie pokud audio selže
+          const duration = this.playVltava();
+          this.vltavaInterval = setInterval(() => {
+            this.playVltava();
+          }, duration * 1000);
+        });
+      }
+    });
   }
 
   stopVltavaLoop() {

@@ -10,7 +10,7 @@ function Admin() {
   const currentUser = useUserStore((state) => state.currentUser);
 
   // Kontrola, zda je uživatel admin
-  const isAdmin = currentUser?.email?.toLowerCase().includes('admin');
+  const isAdmin = currentUser?.isAdmin === true;
 
   if (!isAdmin) {
     return (

@@ -3,10 +3,29 @@ import { Piano } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 function Registration() {
-  // Placeholder pro fotku klavíristky
-  // INSTRUKCE: Nahraďte tuto URL vlastní fotkou klavíristky
-  // Umístěte fotku do public/images/pianist.jpg a změňte URL na "/images/pianist.jpg"
-  const pianistPhoto = "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1920&h=1080&fit=crop";
+  // KONFIGURACE POZADÍ
+  // Můžete použít BUĎTO video NEBO fotku
+  const backgroundConfig = {
+    type: 'image', // 'image' nebo 'video'
+
+    // Pro fotku:
+    image: {
+      url: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1920&h=1080&fit=crop",
+      // Pro vlastní fotku: url: "/images/pianist.jpg"
+    },
+
+    // Pro video:
+    video: {
+      url: "/videos/pianist-playing.mp4", // Cesta k videu
+      // Pokud chcete použít video z URL: url: "https://example.com/video.mp4"
+      muted: false, // false = použít zvuk z videa (vypne syntetizovanou Vltavu)
+      loop: true,
+      playbackRate: 1.0 // Rychlost přehrávání (1.0 = normální)
+    }
+  };
+
+  // Zjistit, zda použít zvuk z videa nebo Vltavu
+  const useVideoAudio = backgroundConfig.type === 'video' && !backgroundConfig.video.muted;
 
   return (
     <div style={{
@@ -18,17 +37,55 @@ function Registration() {
       padding: '2rem',
       overflow: 'hidden'
     }}>
-      {/* Fotka klavíristky jako pozadí */}
+      {/* Pozadí - video nebo fotka */}
+      {backgroundConfig.type === 'video' ? (
+        /* Video pozadí */
+        <video
+          autoPlay
+          loop={backgroundConfig.video.loop}
+          muted={backgroundConfig.video.muted}
+          playsInline
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0
+          }}
+          onLoadedMetadata={(e) => {
+            if (backgroundConfig.video.playbackRate) {
+              e.target.playbackRate = backgroundConfig.video.playbackRate;
+            }
+          }}
+        >
+          <source src={backgroundConfig.video.url} type="video/mp4" />
+          Váš prohlížeč nepodporuje video tag.
+        </video>
+      ) : (
+        /* Fotka pozadí */
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: `url(${backgroundConfig.image.url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: 0
+        }} />
+      )}
+
+      {/* Overlay efekty */}
       <div style={{
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundImage: `url(${pianistPhoto})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        zIndex: 0
+        zIndex: 1
       }}>
         {/* Tmavý gradient overlay pro lepší čitelnost */}
         <div style={{
@@ -106,12 +163,12 @@ function Registration() {
         transition={{ duration: 0.8 }}
         style={{
           position: 'relative',
-          zIndex: 1,
+          zIndex: 2,
           width: '100%',
           maxWidth: '500px'
         }}
       >
-        <LoginForm />
+        <LoginForm disableBackgroundMusic={useVideoAudio} />
       </motion.div>
 
       {/* Dekorativní glassmorphism card dole (pouze na větších obrazovkách) */}

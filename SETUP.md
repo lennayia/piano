@@ -73,40 +73,90 @@ VITE_SMARTEMAILING_LIST_ID=your_list_id
 
 Po konfiguraci restartujte vývojový server a zkuste se přihlásit. Nový uživatel by měl být automaticky přidán do nakonfigurovaných email marketingových systémů.
 
-## 🎵 Přidání vlastní fotky klavíristky
+## 🎬 Přidání videa nebo fotky na pozadí
 
-1. Umístěte svou fotku do složky `public/images/`
-2. Pojmenujte ji např. `pianist.jpg`
-3. Otevřete `src/pages/Registration.jsx`
-4. Na řádku 9 změňte URL:
+Přihlašovací stránka podporuje **BUĎTO video NEBO fotku** jako pozadí. Vše se nastavuje v `src/pages/Registration.jsx`.
+
+### Možnost 1: Video s vlastním zvukem (DOPORUČENO)
+
+1. Umístěte video do `public/videos/pianist-playing.mp4`
+2. Otevřete `src/pages/Registration.jsx`
+3. Nastavte konfiguraci (řádky 8-25):
+
 ```javascript
-const pianistPhoto = "/images/pianist.jpg";
+const backgroundConfig = {
+  type: 'video', // Změňte na 'video'
+
+  video: {
+    url: "/videos/pianist-playing.mp4",
+    muted: false, // false = použije se zvuk z videa
+    loop: true,
+    playbackRate: 1.0 // Rychlost přehrávání
+  }
+};
 ```
 
-## 🎼 Přidání vlastní hudby (Vltava)
+**Výhody video varianty:**
+- Video může obsahovat nahrávku Vltavy přímo
+- Vizuální efekt hraní je autentický
+- Nemusíte řešit separátní audio soubor
 
-### Možnost 1: Použití audio souboru
+### Možnost 2: Fotka + audio soubor
 
-1. Získejte audio soubor Vltavy (MP3, OGG, nebo WAV)
-2. Umístěte ho do `public/audio/vltava.mp3`
-3. Audio engine automaticky preferuje skutečné audio soubory před syntetizovanou melodií
+1. Umístěte fotku do `public/images/pianist.jpg`
+2. Umístěte audio soubor do `public/audio/vltava.mp3`
+3. Otevřete `src/pages/Registration.jsx`
+4. Nastavte konfiguraci:
 
-### Možnost 2: Syntetizovaná melodie
+```javascript
+const backgroundConfig = {
+  type: 'image', // Ponechte 'image'
 
-Aktuálně se používá syntetizovaná melodie. Můžete ji upravit v `src/utils/audio.js` v metodě `playVltava()`.
+  image: {
+    url: "/images/pianist.jpg"
+  }
+};
+```
+
+### Možnost 3: Pouze fotka se syntetizovanou melodií
+
+Pokud nemáte audio soubor, použije se automaticky syntetizovaná melodie Vltavy.
+
+```javascript
+const backgroundConfig = {
+  type: 'image',
+  image: {
+    url: "/images/pianist.jpg"
+  }
+};
+```
 
 ### Ovládání hudby
 
-- Tlačítko pro zapnutí/vypnutí hudby je v pravém horním rohu přihlašovací stránky
+- **S videem:** Zvuk je ovládán přímo z videa (muted: false/true)
+- **S fotkou:** Tlačítko pro zapnutí/vypnutí hudby je v pravém horním rohu formuláře
 - Hudba se automaticky ztlumí po 2 sekundách po přihlášení
 
 ## 👤 Admin přístup
 
-Pro přístup k admin panelu musí email uživatele obsahovat slovo "admin" (např. `admin@example.com`).
+### Jak funguje admin systém
 
-Admin panel obsahuje:
-- **Přehled** - Statistiky aplikace
-- **Uživatelé** - Správa registrovaných uživatelů
+- **První uživatel** se automaticky stává adminem
+- **Ostatní uživatelé** mohou získat admin práva od stávajícího admina
+
+### Nastavení admin práv
+
+Admin může přidávat/odebírat admin práva jiným uživatelům:
+
+1. Přihlaste se jako admin
+2. Přejděte do **Admin Panelu** (odkaz v hlavní navigaci)
+3. Klikněte na tab **Uživatelé**
+4. U každého uživatele najdete tlačítko **"Nastavit admin"** nebo **"Odebrat admin"**
+
+### Admin panel obsahuje:
+
+- **Přehled** - Statistiky aplikace (počet uživatelů, lekcí, průměrný pokrok)
+- **Uživatelé** - Správa registrovaných uživatelů a admin práv
 - **Správa písní** - Editace melodií lidových písní
 
 ## 🛠️ Technologie

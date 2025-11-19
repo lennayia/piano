@@ -1,13 +1,21 @@
-import { Trash2, Mail, Calendar } from 'lucide-react';
+import { Trash2, Mail, Calendar, Shield, ShieldOff } from 'lucide-react';
 import useUserStore from '../../store/useUserStore';
 
 function UserList() {
   const users = useUserStore((state) => state.users);
   const deleteUser = useUserStore((state) => state.deleteUser);
+  const toggleAdminRole = useUserStore((state) => state.toggleAdminRole);
 
   const handleDelete = (userId, userName) => {
     if (window.confirm(`Opravdu chcete smazat uživatele ${userName}?`)) {
       deleteUser(userId);
+    }
+  };
+
+  const handleToggleAdmin = (userId, userName, isCurrentlyAdmin) => {
+    const action = isCurrentlyAdmin ? 'odebrat admin práva' : 'přidat admin práva';
+    if (window.confirm(`Opravdu chcete ${action} pro ${userName}?`)) {
+      toggleAdminRole(userId);
     }
   };
 
@@ -39,6 +47,7 @@ function UserList() {
             <tr>
               <th>Jméno</th>
               <th>Email</th>
+              <th>Role</th>
               <th>Datum registrace</th>
               <th>Pokrok</th>
               <th>Akce</th>
@@ -59,6 +68,23 @@ function UserList() {
                   </div>
                 </td>
                 <td>
+                  {user.isAdmin ? (
+                    <span className="badge" style={{
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      color: 'var(--color-danger)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      width: 'fit-content'
+                    }}>
+                      <Shield size={14} />
+                      Admin
+                    </span>
+                  ) : (
+                    <span className="badge badge-secondary">Uživatel</span>
+                  )}
+                </td>
+                <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
                     <Calendar size={16} color="var(--color-text-secondary)" />
                     {formatDate(user.createdAt)}
@@ -70,14 +96,25 @@ function UserList() {
                   </span>
                 </td>
                 <td>
-                  <button
-                    onClick={() => handleDelete(user.id, `${user.firstName} ${user.lastName}`)}
-                    className="btn btn-danger"
-                    style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
-                  >
-                    <Trash2 size={14} />
-                    Smazat
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <button
+                      onClick={() => handleToggleAdmin(user.id, `${user.firstName} ${user.lastName}`, user.isAdmin)}
+                      className={user.isAdmin ? 'btn btn-secondary' : 'btn btn-warning'}
+                      style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
+                      title={user.isAdmin ? 'Odebrat admin práva' : 'Přidat admin práva'}
+                    >
+                      {user.isAdmin ? <ShieldOff size={14} /> : <Shield size={14} />}
+                      {user.isAdmin ? 'Odebrat admin' : 'Nastavit admin'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user.id, `${user.firstName} ${user.lastName}`)}
+                      className="btn btn-danger"
+                      style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
+                    >
+                      <Trash2 size={14} />
+                      Smazat
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

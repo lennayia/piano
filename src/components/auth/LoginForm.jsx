@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 
-function LoginForm() {
+function LoginForm({ disableBackgroundMusic = false }) {
   const navigate = useNavigate();
   const addUser = useUserStore((state) => state.addUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
@@ -18,18 +18,22 @@ function LoginForm() {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(true);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(!disableBackgroundMusic);
 
   useEffect(() => {
-    // Spustit Vltavu na pozadí
-    audioEngine.startVltavaLoop();
-    setIsMusicPlaying(true);
+    // Spustit Vltavu pouze pokud není zakázáno (např. když se používá video se zvukem)
+    if (!disableBackgroundMusic) {
+      audioEngine.startVltavaLoop();
+      setIsMusicPlaying(true);
+    }
 
     return () => {
       // Zastavit při opuštění stránky
-      audioEngine.stopVltavaLoop();
+      if (!disableBackgroundMusic) {
+        audioEngine.stopVltavaLoop();
+      }
     };
-  }, []);
+  }, [disableBackgroundMusic]);
 
   const toggleMusic = () => {
     if (isMusicPlaying) {
@@ -175,8 +179,16 @@ function LoginForm() {
       // Odeslat do email marketingu
       await sendToEmailMarketing(formData);
 
-      // Vytvořit nebo přihlásit uživatele lokálně
-      const newUser = addUser(formData);
+      // Vytvořit uživatele lokálně
+      let newUser = addUser(formData);
+
+      // Pokud je to první uživatel, nastavit jako admin
+      const users = useUserStore.getState().users;
+      if (users.length === 1) {
+        useUserStore.getState().toggleAdminRole(newUser.id);
+        newUser = users[0]; // Aktualizovat referenci
+      }
+
       setCurrentUser(newUser);
 
       // Ztlumit hudbu a přejít do aplikace
@@ -216,29 +228,31 @@ function LoginForm() {
       boxShadow: '0 8px 32px rgba(31, 38, 135, 0.2)',
       position: 'relative'
     }}>
-      {/* Music control button */}
-      <button
-        type="button"
-        onClick={toggleMusic}
-        style={{
-          position: 'absolute',
-          top: '1rem',
-          right: '1rem',
-          background: 'rgba(45, 91, 120, 0.1)',
-          border: '1px solid rgba(45, 91, 120, 0.3)',
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease'
-        }}
-        title={isMusicPlaying ? 'Vypnout hudbu' : 'Zapnout hudbu'}
-      >
-        {isMusicPlaying ? <Volume2 size={20} color="var(--color-secondary)" /> : <VolumeX size={20} color="var(--color-text-secondary)" />}
-      </button>
+      {/* Music control button - zobrazit pouze pokud je povolená background music */}
+      {!disableBackgroundMusic && (
+        <button
+          type="button"
+          onClick={toggleMusic}
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            background: 'rgba(45, 91, 120, 0.1)',
+            border: '1px solid rgba(45, 91, 120, 0.3)',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease'
+          }}
+          title={isMusicPlaying ? 'Vypnout hudbu' : 'Zapnout hudbu'}
+        >
+          {isMusicPlaying ? <Volume2 size={20} color="var(--color-secondary)" /> : <VolumeX size={20} color="var(--color-text-secondary)" />}
+        </button>
+      )}
 
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Vítejte</h2>

@@ -16,7 +16,8 @@ const useUserStore = create(
           achievements: [],
           points: 0,
           streak: 0,
-          lastLessonDate: null
+          lastLessonDate: null,
+          isAdmin: false // Výchozí nastavení - běžný uživatel
         };
         set((state) => ({
           users: [...state.users, newUser]
@@ -121,6 +122,27 @@ const useUserStore = create(
         set((state) => ({
           users: state.users.filter(user => user.id !== userId)
         }));
+      },
+
+      toggleAdminRole: (userId) => {
+        set((state) => {
+          const updatedUsers = state.users.map(user => {
+            if (user.id === userId) {
+              return { ...user, isAdmin: !user.isAdmin };
+            }
+            return user;
+          });
+
+          // Aktualizovat i currentUser pokud je to ten stejný uživatel
+          const updatedCurrentUser = state.currentUser?.id === userId
+            ? updatedUsers.find(u => u.id === userId)
+            : state.currentUser;
+
+          return {
+            users: updatedUsers,
+            currentUser: updatedCurrentUser
+          };
+        });
       }
     }),
     {
