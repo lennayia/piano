@@ -19,7 +19,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
     { note: 'A', type: 'white', label: 'A' },
     { note: 'A#', type: 'black', label: 'A#' },
     { note: 'H', type: 'white', label: 'H' },
-    { note: 'C', type: 'white', label: 'C', octave: 2 }, // Další C o oktávu výš
+    { note: "C''", type: 'white', label: "c''", octave: 2 }, // c'' = C6, dvoučárkované
   ];
 
   const handleKeyPress = (note) => {

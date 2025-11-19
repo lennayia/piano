@@ -25,7 +25,7 @@ class AudioEngine {
   // Chromatická stupnice vzestupně
   getNoteFrequency(note) {
     const frequencies = {
-      'C': 261.63,    // C4
+      'C': 261.63,    // C4 (malé c)
       'C#': 277.18,   // C#4/Db4
       'Db': 277.18,
       'D': 293.66,    // D4
@@ -43,6 +43,7 @@ class AudioEngine {
       'Bb': 466.16,
       'H': 493.88,    // H4/B4
       'B': 493.88,
+      "C''": 1046.50,   // C6 (c'' - dvoučárkované)
     };
 
     console.log(`Playing note: ${note}, frequency: ${frequencies[note] || 440} Hz`);
