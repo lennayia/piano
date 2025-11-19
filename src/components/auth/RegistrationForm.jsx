@@ -8,6 +8,7 @@ function RegistrationForm() {
   const navigate = useNavigate();
   const addUser = useUserStore((state) => state.addUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
+  const users = useUserStore((state) => state.users);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -16,16 +17,20 @@ function RegistrationForm() {
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoginMode, setIsLoginMode] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'Jméno je povinné';
-    }
+    // V login módu nepotřebujeme jméno a příjmení
+    if (!isLoginMode) {
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = 'Jméno je povinné';
+      }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Příjmení je povinné';
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = 'Příjmení je povinné';
+      }
     }
 
     if (!formData.email.trim()) {
@@ -42,9 +47,22 @@ function RegistrationForm() {
     e.preventDefault();
 
     if (validateForm()) {
-      const newUser = addUser(formData);
-      setCurrentUser(newUser);
-      navigate('/dashboard');
+      // Zkontrolovat, jestli uživatel s tímto emailem už existuje
+      const existingUser = users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
+
+      if (existingUser) {
+        // Přihlásit existujícího uživatele
+        setCurrentUser(existingUser);
+        navigate('/dashboard');
+      } else if (!isLoginMode) {
+        // Vytvořit nového uživatele
+        const newUser = addUser(formData);
+        setCurrentUser(newUser);
+        navigate('/dashboard');
+      } else {
+        // V login módu a uživatel neexistuje
+        setErrors({ email: 'Uživatel s tímto emailem neexistuje' });
+      }
     }
   };
 
@@ -92,54 +110,60 @@ function RegistrationForm() {
         >
           <UserPlus size={32} color="var(--color-primary)" />
         </motion.div>
-        <h2>Začněte se učit</h2>
+        <h2>{isLoginMode ? 'Přihlásit se' : 'Začněte se učit'}</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
-          Zadejte své údaje a začněte svou cestu ke hře na klavír
+          {isLoginMode
+            ? 'Zadejte svůj email pro přihlášení'
+            : 'Zadejte své údaje a začněte svou cestu ke hře na klavír'}
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="firstName" className="form-label">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <User size={16} />
-              Jméno
+        {!isLoginMode && (
+          <>
+            <div className="form-group">
+              <label htmlFor="firstName" className="form-label">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <User size={16} />
+                  Jméno
+                </div>
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                className="form-input"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="Jan"
+              />
+              {errors.firstName && (
+                <div className="form-error">{errors.firstName}</div>
+              )}
             </div>
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            className="form-input"
-            value={formData.firstName}
-            onChange={handleChange}
-            placeholder="Jan"
-          />
-          {errors.firstName && (
-            <div className="form-error">{errors.firstName}</div>
-          )}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="lastName" className="form-label">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <User size={16} />
-              Příjmení
+            <div className="form-group">
+              <label htmlFor="lastName" className="form-label">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <User size={16} />
+                  Příjmení
+                </div>
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                className="form-input"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Novák"
+              />
+              {errors.lastName && (
+                <div className="form-error">{errors.lastName}</div>
+              )}
             </div>
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            className="form-input"
-            value={formData.lastName}
-            onChange={handleChange}
-            placeholder="Novák"
-          />
-          {errors.lastName && (
-            <div className="form-error">{errors.lastName}</div>
-          )}
-        </div>
+          </>
+        )}
 
         <div className="form-group">
           <label htmlFor="email" className="form-label">
@@ -163,8 +187,30 @@ function RegistrationForm() {
         </div>
 
         <button type="submit" className="btn btn-primary">
-          Začít učit se
+          {isLoginMode ? 'Přihlásit se' : 'Začít učit se'}
         </button>
+
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsLoginMode(!isLoginMode);
+              setErrors({});
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-secondary)',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              textDecoration: 'underline'
+            }}
+          >
+            {isLoginMode
+              ? 'Ještě nemáte účet? Zaregistrujte se'
+              : 'Už máte účet? Přihlaste se'}
+          </button>
+        </div>
       </form>
     </div>
   );
