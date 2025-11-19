@@ -23,6 +23,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
   ];
 
   const handleKeyPress = (note) => {
+    console.log(`🎹 Clicked key: ${note}`);
     audioEngine.playNote(note, 0.5);
     setActiveKeys(prev => new Set(prev).add(note));
 
@@ -65,8 +66,10 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
         position: 'relative',
         height: '200px',
         display: 'flex',
-        justifyContent: 'center',
-        gap: '2px'
+        justifyContent: 'flex-start',
+        gap: '2px',
+        width: 'fit-content',
+        margin: '0 auto'
       }}>
         {/* White Keys */}
         {whiteKeys.map((key, index) => (
@@ -86,9 +89,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
               fontSize: '0.875rem',
               fontWeight: 500,
               position: 'relative',
-              border: isHighlighted(key.note) ? '3px solid #b51f65' : '2px solid #ddd',
+              border: isHighlighted(key.note) ? '3px solid #2d5b78' : '2px solid #ddd',
               boxShadow: isHighlighted(key.note)
-                ? '0 0 20px rgba(181, 31, 101, 0.5)'
+                ? '0 0 20px rgba(45, 91, 120, 0.5)'
                 : '0 4px 8px rgba(0, 0, 0, 0.1)'
             }}
           >
@@ -102,9 +105,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
                   top: '10px',
                   width: '20px',
                   height: '20px',
-                  background: '#b51f65',
+                  background: '#2d5b78',
                   borderRadius: '50%',
-                  boxShadow: '0 0 15px rgba(181, 31, 101, 0.8)'
+                  boxShadow: '0 0 15px rgba(45, 91, 120, 0.8)'
                 }}
               />
             )}
@@ -146,9 +149,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
                 fontSize: '0.75rem',
                 fontWeight: 500,
                 color: 'white',
-                border: isHighlighted(key.note) ? '3px solid #d63384' : '2px solid #000',
+                border: isHighlighted(key.note) ? '3px solid #4a7a9e' : '2px solid #000',
                 boxShadow: isHighlighted(key.note)
-                  ? '0 0 20px rgba(214, 51, 132, 0.7)'
+                  ? '0 0 20px rgba(74, 122, 158, 0.7)'
                   : '0 4px 8px rgba(0, 0, 0, 0.3)'
               }}
             >
@@ -162,9 +165,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
                     top: '10px',
                     width: '16px',
                     height: '16px',
-                    background: '#d63384',
+                    background: '#4a7a9e',
                     borderRadius: '50%',
-                    boxShadow: '0 0 15px rgba(214, 51, 132, 0.8)'
+                    boxShadow: '0 0 15px rgba(74, 122, 158, 0.8)'
                   }}
                 />
               )}
