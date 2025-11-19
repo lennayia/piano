@@ -284,7 +284,7 @@ function UserDashboard() {
                     border: '2px solid rgba(181, 31, 101, 0.2)',
                     boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
                   }}>
-                    <Icon size={36} color="var(--color-primary)" />
+                    <Icon size={36} color="#64748b" />
                   </div>
                   <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
                     {achInfo.title}
