@@ -25,6 +25,11 @@ function LessonModal({ lesson, isOpen, onClose }) {
       updateUserProgress(currentUser.id, lesson.id);
       setIsCompleted(true);
       audioEngine.playSuccess();
+
+      // Zavřít modal po 2 sekundách
+      setTimeout(() => {
+        onClose();
+      }, 2000);
     }
   };
 
