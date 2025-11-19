@@ -1,11 +1,8 @@
 import { Clock, TrendingUp, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 
-function LessonCard({ lesson }) {
-  const navigate = useNavigate();
-
+function LessonCard({ lesson, onClick }) {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'začátečník':
@@ -21,7 +18,7 @@ function LessonCard({ lesson }) {
 
   const handleClick = () => {
     audioEngine.playClick();
-    navigate(`/lesson/${lesson.id}`);
+    onClick(lesson);
   };
 
   return (

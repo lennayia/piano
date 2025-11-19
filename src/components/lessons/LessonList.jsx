@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import LessonCard from './LessonCard';
+import LessonModal from './LessonModal';
 import useLessonStore from '../../store/useLessonStore';
 
 function LessonList() {
   const lessons = useLessonStore((state) => state.lessons);
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
   const container = {
     hidden: { opacity: 0 },
@@ -13,6 +16,14 @@ function LessonList() {
         staggerChildren: 0.15
       }
     }
+  };
+
+  const handleLessonClick = (lesson) => {
+    setSelectedLesson(lesson);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedLesson(null);
   };
 
   return (
@@ -38,10 +49,16 @@ function LessonList() {
               show: { opacity: 1, y: 0 }
             }}
           >
-            <LessonCard lesson={lesson} />
+            <LessonCard lesson={lesson} onClick={handleLessonClick} />
           </motion.div>
         ))}
       </motion.div>
+
+      <LessonModal
+        lesson={selectedLesson}
+        isOpen={!!selectedLesson}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
