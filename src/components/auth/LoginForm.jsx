@@ -258,8 +258,8 @@ function LoginForm({ disableBackgroundMusic = false }) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
+      <form onSubmit={handleSubmit} style={{ textAlign: 'center' }}>
+        <div className="form-group" style={{ textAlign: 'left' }}>
           <label htmlFor="firstName" className="form-label">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <User size={16} />
@@ -281,7 +281,7 @@ function LoginForm({ disableBackgroundMusic = false }) {
           )}
         </div>
 
-        <div className="form-group">
+        <div className="form-group" style={{ textAlign: 'left' }}>
           <label htmlFor="lastName" className="form-label">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <User size={16} />
@@ -303,7 +303,7 @@ function LoginForm({ disableBackgroundMusic = false }) {
           )}
         </div>
 
-        <div className="form-group">
+        <div className="form-group" style={{ textAlign: 'left' }}>
           <label htmlFor="email" className="form-label">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Mail size={16} />

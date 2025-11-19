@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Piano, BookOpen, Trophy, Users, Music2, Heart, GraduationCap, CheckCircle2, Sparkles, Star } from 'lucide-react';
+import { Piano, BookOpen, Trophy, Users, Music2, Heart, GraduationCap, CheckCircle2, Sparkles, Star, Music } from 'lucide-react';
 import { motion } from 'framer-motion';
 import audioEngine from '../utils/audio';
 
@@ -91,14 +91,15 @@ function Home() {
           style={{
             width: '96px',
             height: '96px',
-            background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(214, 51, 132, 0.1) 100%)',
+            background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 2rem',
-            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)'
+            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)',
+            border: '2px solid rgba(181, 31, 101, 0.2)'
           }}
         >
           <Piano size={48} color="var(--color-primary)" />
@@ -398,8 +399,20 @@ function Home() {
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, type: 'spring' }}
+          style={{
+            width: '80px',
+            height: '80px',
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1.5rem',
+            border: '2px solid rgba(181, 31, 101, 0.2)',
+            boxShadow: '0 4px 20px rgba(181, 31, 101, 0.3)'
+          }}
         >
-          <Sparkles size={48} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
+          <Music size={40} color="var(--color-primary)" />
         </motion.div>
         <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#ffffff' }}>Připraveni začít?</h2>
         <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#ffffff', maxWidth: '600px', margin: '0 auto 2.5rem' }}>

@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Header from './Header';
 import useUserStore from '../../store/useUserStore';
 
 function Layout({ children }) {
   const currentUser = useUserStore((state) => state.currentUser);
+  const location = useLocation();
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -20,7 +21,7 @@ function Layout({ children }) {
         fontSize: '0.875rem'
       }}>
         <div className="container">
-          {!currentUser && (
+          {!currentUser && location.pathname === '/' && (
             <div style={{ marginBottom: '1rem' }}>
               <Link
                 to="/registration"
