@@ -8,6 +8,7 @@ function Glossary() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedTerm, setExpandedTerm] = useState(null);
   const [editingTerm, setEditingTerm] = useState(null);
+  const [editForm, setEditForm] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newTermForm, setNewTermForm] = useState({
     term: '',
@@ -55,15 +56,32 @@ function Glossary() {
 
   const startEditingTerm = (term) => {
     setEditingTerm(term.id);
+    setEditForm({
+      term: term.term,
+      definition: term.definition,
+      example: term.example,
+      category: term.category
+    });
+    setExpandedTerm(null); // Close expanded view when editing
   };
 
-  const saveEditedTerm = (termId, updatedData) => {
-    updateTerm(termId, updatedData);
+  const handleEditFormChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEditedTerm = () => {
+    if (!editForm.term || !editForm.definition) {
+      alert('Vyplňte alespoň název a definici');
+      return;
+    }
+    updateTerm(editingTerm, editForm);
     setEditingTerm(null);
+    setEditForm(null);
   };
 
   const cancelEditingTerm = () => {
     setEditingTerm(null);
+    setEditForm(null);
   };
 
   const handleDeleteTerm = (termId) => {
@@ -395,8 +413,117 @@ function Glossary() {
                       </motion.div>
                     </div>
 
+                    {/* Edit Form */}
                     <AnimatePresence>
-                      {isExpanded && (
+                      {editingTerm === item.id && editForm && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ marginTop: '1rem' }}
+                        >
+                          <div style={{
+                            padding: '1rem',
+                            background: 'rgba(45, 91, 120, 0.05)',
+                            borderRadius: 'var(--radius)',
+                            border: '2px solid rgba(45, 91, 120, 0.3)'
+                          }}>
+                            <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Edit3 size={18} color="var(--color-secondary)" />
+                              Upravit termín
+                            </h4>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Název termínu
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  value={editForm.term}
+                                  onChange={(e) => handleEditFormChange('term', e.target.value)}
+                                  style={{ fontSize: '0.875rem' }}
+                                />
+                              </div>
+
+                              <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Kategorie
+                                </label>
+                                <select
+                                  className="form-input"
+                                  value={editForm.category}
+                                  onChange={(e) => handleEditFormChange('category', e.target.value)}
+                                  style={{ fontSize: '0.875rem' }}
+                                >
+                                  <option value="Základy">Základy</option>
+                                  <option value="Harmonie">Harmonie</option>
+                                  <option value="Tóniny">Tóniny</option>
+                                  <option value="Klavír">Klavír</option>
+                                  <option value="Tempo">Tempo</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                Definice
+                              </label>
+                              <textarea
+                                className="form-input"
+                                value={editForm.definition}
+                                onChange={(e) => handleEditFormChange('definition', e.target.value)}
+                                rows={2}
+                                style={{ fontSize: '0.875rem' }}
+                              />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                Příklad
+                              </label>
+                              <textarea
+                                className="form-input"
+                                value={editForm.example}
+                                onChange={(e) => handleEditFormChange('example', e.target.value)}
+                                rows={2}
+                                style={{ fontSize: '0.875rem' }}
+                              />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={saveEditedTerm}
+                                className="btn btn-primary"
+                                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                              >
+                                <Save size={16} />
+                                Uložit změny
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={cancelEditingTerm}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                              >
+                                <X size={16} />
+                                Zrušit
+                              </motion.button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Expanded Content */}
+                    <AnimatePresence>
+                      {isExpanded && editingTerm !== item.id && (
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
