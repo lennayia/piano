@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Piano, User, Home, BookOpen, Lightbulb, Shield, LogOut } from 'lucide-react';
+import { Piano, User, BookOpen, Lightbulb, Shield, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
@@ -41,7 +41,7 @@ function Header() {
           justifyContent: 'space-between'
         }}>
           <Link
-            to="/"
+            to="/dashboard"
             onClick={() => audioEngine.playClick()}
             style={{
               display: 'flex',
@@ -68,7 +68,7 @@ function Header() {
               alignItems: 'center',
               gap: '1.5rem'
             }}>
-              <Link to="/" style={{
+              <Link to="/dashboard" style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.25rem',
@@ -77,8 +77,8 @@ function Header() {
                 fontSize: '0.875rem',
                 fontWeight: 500
               }}>
-                <Home size={18} />
-                <span>Domů</span>
+                <BookOpen size={18} />
+                <span>Moje lekce</span>
               </Link>
 
               <Link to="/resources" style={{
@@ -92,19 +92,6 @@ function Header() {
               }}>
                 <Lightbulb size={18} />
                 <span>Materiály</span>
-              </Link>
-
-              <Link to="/dashboard" style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                textDecoration: 'none',
-                color: 'var(--color-text-secondary)',
-                fontSize: '0.875rem',
-                fontWeight: 500
-              }}>
-                <BookOpen size={18} />
-                <span>Moje lekce</span>
               </Link>
 
               {currentUser.isAdmin && (

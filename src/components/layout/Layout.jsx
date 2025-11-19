@@ -25,23 +25,23 @@ function Layout({ children }) {
               <Link
                 to="/registration"
                 style={{
-                  color: 'var(--color-primary)',
+                  color: '#ffffff',
                   textDecoration: 'none',
                   fontSize: '1rem',
                   fontWeight: 500,
                   padding: '0.5rem 1.5rem',
                   borderRadius: 'var(--radius)',
-                  background: 'rgba(181, 31, 101, 0.1)',
-                  border: '1px solid rgba(181, 31, 101, 0.3)',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   display: 'inline-block',
                   transition: 'all 0.3s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(181, 31, 101, 0.2)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.2)';
                   e.target.style.transform = 'scale(1.05)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(181, 31, 101, 0.1)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
                   e.target.style.transform = 'scale(1)';
                 }}
               >

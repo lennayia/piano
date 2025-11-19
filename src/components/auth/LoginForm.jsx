@@ -337,8 +337,7 @@ function LoginForm({ disableBackgroundMusic = false }) {
           disabled={isSubmitting}
           style={{
             opacity: isSubmitting ? 0.6 : 1,
-            cursor: isSubmitting ? 'not-allowed' : 'pointer',
-            width: '100%'
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
           }}
         >
           {isSubmitting ? 'Přihlašuji...' : 'Začít se učit'}

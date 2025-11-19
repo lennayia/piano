@@ -17,8 +17,8 @@ function Admin() {
       <div className="container">
         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
           <Shield size={48} color="var(--color-danger)" style={{ margin: '0 auto 1rem' }} />
-          <h2 style={{ marginBottom: '0.5rem' }}>Přístup odepřen</h2>
-          <p className="text-secondary">
+          <h2 style={{ marginBottom: '0.5rem', color: '#ffffff' }}>Přístup odepřen</h2>
+          <p style={{ color: '#ffffff', opacity: 0.9 }}>
             Pro přístup k admin panelu musíte mít administrátorská oprávnění.
           </p>
         </div>
@@ -54,8 +54,8 @@ function Admin() {
           <Shield size={24} color="var(--color-danger)" />
         </div>
         <div>
-          <h1 style={{ marginBottom: '0.25rem' }}>Admin Panel</h1>
-          <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
+          <h1 style={{ marginBottom: '0.25rem', color: '#ffffff' }}>Admin Panel</h1>
+          <p style={{ fontSize: '0.875rem', color: '#ffffff', opacity: 0.9 }}>
             Správa uživatelů, statistik a obsahu aplikace
           </p>
         </div>
@@ -115,8 +115,8 @@ function Admin() {
       {activeTab === 'songs' && (
         <div>
           <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ marginBottom: '0.5rem' }}>Správa písní</h2>
-            <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
+            <h2 style={{ marginBottom: '0.5rem', color: '#ffffff' }}>Správa písní</h2>
+            <p style={{ fontSize: '0.875rem', color: '#ffffff', opacity: 0.9 }}>
               Upravujte melodie lidových písní a přidávejte nové skladby
             </p>
           </div>

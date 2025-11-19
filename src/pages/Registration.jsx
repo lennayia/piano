@@ -165,9 +165,40 @@ function Registration() {
           position: 'relative',
           zIndex: 2,
           width: '100%',
-          maxWidth: '500px'
+          maxWidth: '500px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '2rem'
         }}
       >
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          style={{
+            textAlign: 'center',
+            width: '100%'
+          }}
+        >
+          <h1 style={{
+            fontSize: '2.5rem',
+            color: '#ffffff',
+            marginBottom: '0.5rem',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            Naučte se hrát na klavír
+          </h1>
+          <p style={{
+            fontSize: '1.125rem',
+            color: '#ffffff',
+            opacity: 0.9,
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            Moderní a zábavný způsob výuky klavíru
+          </p>
+        </motion.div>
+
         <LoginForm disableBackgroundMusic={useVideoAudio} />
       </motion.div>
 
