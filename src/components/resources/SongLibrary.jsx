@@ -179,7 +179,7 @@ function SongLibrary() {
           style={{
             marginBottom: '1.5rem',
             padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)',
+            background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
             borderRadius: 'var(--radius)',
             color: '#ffffff',
@@ -189,7 +189,7 @@ function SongLibrary() {
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            boxShadow: '0 4px 16px rgba(181, 31, 101, 0.3)'
+            boxShadow: '0 4px 16px rgba(45, 91, 120, 0.3)'
           }}
         >
           <Plus size={18} />
