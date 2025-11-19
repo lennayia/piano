@@ -27,13 +27,23 @@ function LessonCard({ lesson }) {
   return (
     <motion.div
       className="card"
-      style={{ cursor: 'pointer' }}
+      style={{
+        cursor: 'pointer',
+        background: 'rgba(255, 255, 255, 0.75)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
+        overflow: 'hidden',
+        position: 'relative'
+      }}
       onClick={handleClick}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{
         y: -8,
         scale: 1.02,
+        boxShadow: '0 12px 48px rgba(45, 91, 120, 0.25)',
         transition: { duration: 0.2 }
       }}
       whileTap={{ scale: 0.98 }}

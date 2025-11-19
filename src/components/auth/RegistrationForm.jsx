@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 
 function RegistrationForm() {
@@ -63,20 +64,34 @@ function RegistrationForm() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: '500px', margin: '2rem auto' }}>
+    <div className="card" style={{
+      maxWidth: '500px',
+      margin: '2rem auto',
+      background: 'rgba(255, 255, 255, 0.8)',
+      backdropFilter: 'blur(30px)',
+      WebkitBackdropFilter: 'blur(30px)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      boxShadow: '0 8px 32px rgba(31, 38, 135, 0.2)'
+    }}>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <div style={{
-          width: '64px',
-          height: '64px',
-          backgroundColor: 'rgba(181, 31, 101, 0.1)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 1rem'
-        }}>
+        <motion.div
+          className="pulse-glow"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          style={{
+            width: '64px',
+            height: '64px',
+            background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(214, 51, 132, 0.1) 100%)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem',
+            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.3)'
+          }}
+        >
           <UserPlus size={32} color="var(--color-primary)" />
-        </div>
+        </motion.div>
         <h2>Začněte se učit</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
           Zadejte své údaje a začněte svou cestu ke hře na klavír

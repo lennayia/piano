@@ -66,7 +66,13 @@ function Lesson() {
         Zpět na přehled
       </button>
 
-      <div className="card">
+      <div className="card" style={{
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.2)'
+      }}>
         <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
           <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h1 style={{ marginBottom: '0.5rem' }}>{lesson.title}</h1>

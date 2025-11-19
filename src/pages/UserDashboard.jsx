@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Award, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
 
@@ -44,9 +45,14 @@ function UserDashboard() {
     <div className="container">
       {/* Welcome Section */}
       <div className="card" style={{
-        background: 'rgba(255, 255, 255, 0.9)',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
         border: '2px solid rgba(181, 31, 101, 0.3)',
-        marginBottom: '2rem'
+        boxShadow: '0 8px 32px rgba(181, 31, 101, 0.2)',
+        marginBottom: '2rem',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
         <h1 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>
           Vítejte zpět, {toVocative(currentUser.firstName)}!
@@ -56,41 +62,77 @@ function UserDashboard() {
         </p>
 
         <div style={{ display: 'flex', gap: '2rem', marginTop: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              backgroundColor: 'rgba(45, 91, 120, 0.1)',
-              borderRadius: 'var(--radius)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          >
+            <motion.div
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.2) 0%, rgba(45, 91, 120, 0.1) 100%)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 'var(--radius)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 15px rgba(45, 91, 120, 0.2)'
+              }}
+            >
               <Award size={24} color="var(--color-secondary)" />
-            </div>
+            </motion.div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>{completedLessons}</div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.3, type: 'spring' }}
+                style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}
+              >
+                {completedLessons}
+              </motion.div>
               <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dokončených lekcí</div>
             </div>
-          </div>
+          </motion.div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              backgroundColor: 'rgba(45, 91, 120, 0.1)',
-              borderRadius: 'var(--radius)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          >
+            <motion.div
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.2) 0%, rgba(45, 91, 120, 0.1) 100%)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 'var(--radius)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 15px rgba(45, 91, 120, 0.2)'
+              }}
+            >
               <BookOpen size={24} color="var(--color-secondary)" />
-            </div>
+            </motion.div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>4</div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5, type: 'spring' }}
+                style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}
+              >
+                4
+              </motion.div>
               <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dostupných lekcí</div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
