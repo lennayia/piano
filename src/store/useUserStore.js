@@ -1,6 +1,29 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Migrace starých uživatelů - přidání isAdmin pole
+const migrateUsers = (users) => {
+  if (!users || users.length === 0) return users;
+
+  let needsMigration = false;
+  const migratedUsers = users.map((user, index) => {
+    if (user.isAdmin === undefined) {
+      needsMigration = true;
+      return {
+        ...user,
+        isAdmin: index === 0 // První uživatel se stává adminem
+      };
+    }
+    return user;
+  });
+
+  if (needsMigration) {
+    console.log('Migrace uživatelů dokončena - první uživatel je nyní admin');
+  }
+
+  return migratedUsers;
+};
+
 const useUserStore = create(
   persist(
     (set, get) => ({
@@ -146,7 +169,24 @@ const useUserStore = create(
       }
     }),
     {
-      name: 'piano-users-storage'
+      name: 'piano-users-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          // Spustit migraci při načtení z localStorage
+          const migratedUsers = migrateUsers(state.users);
+          if (migratedUsers !== state.users) {
+            state.users = migratedUsers;
+
+            // Aktualizovat currentUser pokud byl migrován
+            if (state.currentUser) {
+              const updatedCurrentUser = migratedUsers.find(u => u.id === state.currentUser.id);
+              if (updatedCurrentUser) {
+                state.currentUser = updatedCurrentUser;
+              }
+            }
+          }
+        }
+      }
     }
   )
 );

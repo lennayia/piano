@@ -16,7 +16,7 @@ class AudioEngine {
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
       this.masterGain = this.audioContext.createGain();
       this.masterGain.connect(this.audioContext.destination);
-      this.masterGain.gain.value = 0.3;
+      this.masterGain.gain.value = 0.9; // Zvýšeno z 0.3 na 0.9 pro výrazně hlasitější zvuk
       this.initialized = true;
     } catch (error) {
       console.error('Web Audio API not supported:', error);
@@ -293,7 +293,7 @@ class AudioEngine {
       if (response.ok) {
         this.vltavaAudio = new Audio(this.vltavaAudioPath);
         this.vltavaAudio.loop = true;
-        this.vltavaAudio.volume = 0.3;
+        this.vltavaAudio.volume = 0.9;
         return true;
       }
     } catch (error) {
@@ -363,7 +363,7 @@ class AudioEngine {
         if (currentStep >= steps) {
           clearInterval(fadeInterval);
           this.stopVltavaLoop();
-          this.vltavaAudio.volume = 0.3; // Reset volume
+          this.vltavaAudio.volume = 0.9; // Reset volume
         }
       }, stepDuration);
 
@@ -381,7 +381,7 @@ class AudioEngine {
 
     setTimeout(() => {
       this.stopVltavaLoop();
-      this.masterGain.gain.value = 0.3; // Reset volume
+      this.masterGain.gain.value = 0.9; // Reset volume
     }, duration * 1000);
   }
 

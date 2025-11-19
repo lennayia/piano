@@ -41,7 +41,7 @@ function LoginForm({ disableBackgroundMusic = false }) {
       audioEngine.setVolume(0);
     } else {
       audioEngine.startVltavaLoop();
-      audioEngine.setVolume(0.3);
+      audioEngine.setVolume(0.9);
     }
     setIsMusicPlaying(!isMusicPlaying);
   };
