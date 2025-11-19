@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Piano, BookOpen, Trophy, Users, Music2, Heart, GraduationCap, CheckCircle2, Sparkles, Star } from 'lucide-react';
+import { Piano, BookOpen, Trophy, Users, Music2, Heart, GraduationCap, CheckCircle2, Sparkles, Star, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../store/useUserStore';
 import audioEngine from '../utils/audio';
@@ -7,6 +7,13 @@ import audioEngine from '../utils/audio';
 function Home() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
+  const logout = useUserStore((state) => state.logout);
+
+  const handleLogout = () => {
+    audioEngine.playClick();
+    logout();
+    navigate('/');
+  };
 
   const features = [
     {
@@ -126,7 +133,7 @@ function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}
+          style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}
         >
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -140,6 +147,29 @@ function Home() {
           >
             {currentUser ? 'Pokračovat v učení' : 'Přihlásit se'}
           </motion.button>
+
+          {currentUser && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleLogout}
+              className="btn"
+              style={{
+                fontSize: '1rem',
+                padding: '0.875rem 2rem',
+                background: 'rgba(239, 68, 68, 0.15)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: 'var(--color-danger)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <LogOut size={18} />
+              Odhlásit se
+            </motion.button>
+          )}
         </motion.div>
       </motion.div>
 
