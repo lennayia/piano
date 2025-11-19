@@ -107,7 +107,7 @@ function Glossary() {
     <div>
       <h2 style={{
         marginBottom: '1.5rem',
-        color: '#ffffff',
+        color: '#1e293b',
         display: 'flex',
         alignItems: 'center',
         gap: '0.75rem'
@@ -127,7 +127,7 @@ function Glossary() {
         </div>
         Slovníček hudebních výrazů
       </h2>
-      <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
+      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
         Vysvětlení základních pojmů pro začátečníky - klikněte na výraz pro více informací
       </p>
 
@@ -143,7 +143,7 @@ function Glossary() {
             background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
             borderRadius: 'calc(var(--radius) * 2)',
-            color: '#ffffff',
+            color: '#1e293b',
             fontSize: '0.875rem',
             fontWeight: 600,
             cursor: 'pointer',
@@ -302,7 +302,7 @@ function Glossary() {
         return (
           <div key={category} style={{ marginBottom: '2rem' }}>
             <h3 style={{
-              color: '#ffffff',
+              color: '#1e293b',
               fontSize: '1.25rem',
               marginBottom: '1rem',
               paddingBottom: '0.5rem',
@@ -585,7 +585,7 @@ function Glossary() {
         <div style={{
           textAlign: 'center',
           padding: '3rem 2rem',
-          color: 'rgba(255, 255, 255, 0.6)',
+          color: '#64748b',
           fontSize: '1rem'
         }}>
           Žádný výraz nenalezen. Zkuste jiné hledání.

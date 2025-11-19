@@ -112,7 +112,7 @@ function HarmonizationTemplates() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div style={{
           width: '48px',
           height: '48px',
@@ -128,7 +128,7 @@ function HarmonizationTemplates() {
         </div>
         Šablony pro harmonizaci
       </h2>
-      <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
+      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
         Připravené harmonické postupy pro rychlou harmonizaci písní
       </p>
 
@@ -144,7 +144,7 @@ function HarmonizationTemplates() {
             background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
             borderRadius: 'calc(var(--radius) * 2)',
-            color: '#ffffff',
+            color: '#1e293b',
             fontSize: '0.875rem',
             fontWeight: 600,
             cursor: 'pointer',

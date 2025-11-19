@@ -109,7 +109,7 @@ function Home() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          style={{ fontSize: '3rem', marginBottom: '1rem', color: '#ffffff' }}
+          style={{ fontSize: '3rem', marginBottom: '1rem', color: '#1e293b' }}
         >
           Naučte se hrát na klavír
         </motion.h1>
@@ -119,7 +119,7 @@ function Home() {
           transition={{ delay: 0.4 }}
           style={{
             fontSize: '1.25rem',
-            color: '#ffffff',
+            color: '#1e293b',
             marginBottom: '2rem',
             maxWidth: '600px',
             margin: '0 auto 2rem',
@@ -149,7 +149,7 @@ function Home() {
 
       {/* Features Section */}
       <div style={{ padding: '4rem 0' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '3rem', color: '#ffffff' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '3rem', color: '#1e293b' }}>
           Proč si vybrat naši aplikaci
         </h2>
 
@@ -199,10 +199,10 @@ function Home() {
 
       {/* Pro koho je to Section */}
       <div style={{ padding: '4rem 0', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius)', margin: '2rem 0' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#ffffff' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#1e293b' }}>
           Pro koho je tento kurz určený
         </h2>
-        <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '3rem', fontSize: '1.125rem' }}>
+        <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '3rem', fontSize: '1.125rem' }}>
           Pokud se v některé z těchto situací poznáváte, tento kurz je přesně pro vás
         </p>
 
@@ -259,10 +259,10 @@ function Home() {
 
       {/* Co se naučíš Section */}
       <div style={{ padding: '4rem 0' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#ffffff' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#1e293b' }}>
           Co konkrétně se naučíte
         </h2>
-        <p style={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.8)', marginBottom: '3rem', fontSize: '1.125rem' }}>
+        <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '3rem', fontSize: '1.125rem' }}>
           Kurz je rozdělen do modulů, které vás provedou od základů k praktické aplikaci
         </p>
 
@@ -419,8 +419,8 @@ function Home() {
         >
           <Music size={40} color="var(--color-primary)" />
         </motion.div>
-        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#ffffff' }}>Připraveni začít?</h2>
-        <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#ffffff', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#1e293b' }}>Připraveni začít?</h2>
+        <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#1e293b', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
           Registrace je rychlá a jednoduchá. Začněte se učit během několika vteřin a objevte krásu harmonizace.
         </p>
         <motion.button
@@ -439,7 +439,7 @@ function Home() {
         >
           Přihlásit se
         </motion.button>
-        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#ffffff', opacity: 0.9 }}>
+        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#1e293b', opacity: 0.9 }}>
           ✓ Zdarma k vyzkoušení • ✓ Bez kreditní karty • ✓ Začněte ihned
         </p>
       </motion.div>

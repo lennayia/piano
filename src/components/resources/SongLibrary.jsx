@@ -162,7 +162,7 @@ function SongLibrary() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div style={{
           width: '48px',
           height: '48px',
@@ -178,7 +178,7 @@ function SongLibrary() {
         </div>
         Playlist lidových písní
       </h2>
-      <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
+      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
         Procvičte si harmonizaci na těchto oblíbených lidových písních
       </p>
 
