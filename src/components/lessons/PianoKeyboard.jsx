@@ -19,11 +19,10 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
     { note: 'A', type: 'white', label: 'A' },
     { note: 'A#', type: 'black', label: 'A#' },
     { note: 'H', type: 'white', label: 'H' },
-    { note: "C''", type: 'white', label: "c''", octave: 2 }, // c'' = C6, dvoučárkované
+    { note: "C'", type: 'white', label: "c'", octave: 1 }, // c' = C5, jednočárkované
   ];
 
   const handleKeyPress = (note) => {
-    console.log(`🎹 Clicked key: ${note}`);
     audioEngine.playNote(note, 0.5);
     setActiveKeys(prev => new Set(prev).add(note));
 

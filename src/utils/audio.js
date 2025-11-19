@@ -43,10 +43,9 @@ class AudioEngine {
       'Bb': 466.16,
       'H': 493.88,    // H4/B4
       'B': 493.88,
-      "C''": 1046.50,   // C6 (c'' - dvoučárkované)
+      "C'": 523.25,   // C5 (c' - jednočárkované)
     };
 
-    console.log(`Playing note: ${note}, frequency: ${frequencies[note] || 440} Hz`);
     return frequencies[note] || 440;
   }
 
