@@ -8,8 +8,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY');
 }
 
-// Používáme public schéma (default)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Používáme custom schéma 'piano'
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  db: {
+    schema: 'piano'
+  }
+});
 
 // Helper functions for common operations
 
