@@ -125,7 +125,7 @@ function Header() {
                 padding: '0.5rem 1rem',
                 background: 'rgba(181, 31, 101, 0.1)',
                 backdropFilter: 'blur(10px)',
-                borderRadius: 'var(--radius)',
+                borderRadius: 'calc(var(--radius) * 2)',
                 border: '1px solid rgba(181, 31, 101, 0.2)',
                 color: '#1e293b'
               }}>
@@ -146,7 +146,7 @@ function Header() {
                   padding: '0.5rem 1rem',
                   background: 'rgba(239, 68, 68, 0.1)',
                   backdropFilter: 'blur(10px)',
-                  borderRadius: 'var(--radius)',
+                  borderRadius: 'calc(var(--radius) * 2)',
                   border: '1px solid rgba(239, 68, 68, 0.2)',
                   color: 'var(--color-danger)',
                   fontSize: '0.875rem',

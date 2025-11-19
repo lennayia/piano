@@ -142,7 +142,7 @@ function Glossary() {
             padding: '0.75rem 1.5rem',
             background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: 'var(--radius)',
+            borderRadius: 'calc(var(--radius) * 2)',
             color: '#ffffff',
             fontSize: '0.875rem',
             fontWeight: 600,
