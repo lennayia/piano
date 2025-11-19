@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Piano, User, Home, BookOpen, Lightbulb, Shield, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
@@ -8,12 +8,18 @@ function Header() {
   const currentUser = useUserStore((state) => state.currentUser);
   const logout = useUserStore((state) => state.logout);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     audioEngine.playClick();
     logout();
     navigate('/');
   };
+
+  // Skrýt header na veřejné landing page a registraci
+  if (location.pathname === '/' || location.pathname === '/registration') {
+    return null;
+  }
 
   return (
     <header style={{

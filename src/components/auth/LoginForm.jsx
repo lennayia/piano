@@ -7,7 +7,7 @@ import audioEngine from '../../utils/audio';
 
 function LoginForm({ disableBackgroundMusic = false }) {
   const navigate = useNavigate();
-  const addUser = useUserStore((state) => state.addUser);
+  const loginUser = useUserStore((state) => state.loginUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
 
   const [formData, setFormData] = useState({
@@ -21,10 +21,16 @@ function LoginForm({ disableBackgroundMusic = false }) {
   const [isMusicPlaying, setIsMusicPlaying] = useState(!disableBackgroundMusic);
 
   useEffect(() => {
+    // Inicializovat audio engine
+    audioEngine.init();
+
     // Spustit Vltavu pouze pokud není zakázáno (např. když se používá video se zvukem)
     if (!disableBackgroundMusic) {
-      audioEngine.startVltavaLoop();
-      setIsMusicPlaying(true);
+      // Malá pauza pro inicializaci
+      setTimeout(() => {
+        audioEngine.startVltavaLoop();
+        setIsMusicPlaying(true);
+      }, 100);
     }
 
     return () => {
@@ -177,17 +183,10 @@ function LoginForm({ disableBackgroundMusic = false }) {
       // Odeslat do email marketingu
       await sendToEmailMarketing(formData);
 
-      // Vytvořit uživatele lokálně
-      let newUser = addUser(formData);
+      // Přihlásit uživatele (najde existujícího nebo vytvoří nového)
+      const user = loginUser(formData);
 
-      // Pokud je to první uživatel, nastavit jako admin
-      const users = useUserStore.getState().users;
-      if (users.length === 1) {
-        useUserStore.getState().toggleAdminRole(newUser.id);
-        newUser = users[0]; // Aktualizovat referenci
-      }
-
-      setCurrentUser(newUser);
+      setCurrentUser(user);
 
       // Ztlumit hudbu a přejít do aplikace
       audioEngine.fadeOut(2.0);
@@ -338,7 +337,8 @@ function LoginForm({ disableBackgroundMusic = false }) {
           disabled={isSubmitting}
           style={{
             opacity: isSubmitting ? 0.6 : 1,
-            cursor: isSubmitting ? 'not-allowed' : 'pointer'
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            width: '100%'
           }}
         >
           {isSubmitting ? 'Přihlašuji...' : 'Začít se učit'}

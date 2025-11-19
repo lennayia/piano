@@ -401,8 +401,8 @@ function Home() {
         >
           <Sparkles size={48} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
         </motion.div>
-        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#1e293b' }}>Připraveni začít?</h2>
-        <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#64748b', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#ffffff' }}>Připraveni začít?</h2>
+        <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#ffffff', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
           Registrace je rychlá a jednoduchá. Začněte se učit během několika vteřin a objevte krásu harmonizace.
         </p>
         <motion.button
@@ -421,7 +421,7 @@ function Home() {
         >
           Přihlásit se
         </motion.button>
-        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
+        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#ffffff', opacity: 0.9 }}>
           ✓ Zdarma k vyzkoušení • ✓ Bez kreditní karty • ✓ Začněte ihned
         </p>
       </motion.div>

@@ -17,6 +17,8 @@ const useUserStore = create(
           points: 0,
           streak: 0,
           lastLessonDate: null,
+          loginCount: 1,
+          lastLogin: new Date().toISOString(),
           // Automaticky nastavit admin pro Lenku Roubalovou
           isAdmin: userData.email?.toLowerCase() === 'lenkaroubalka@seznam.cz'
         };
@@ -24,6 +26,37 @@ const useUserStore = create(
           users: [...state.users, newUser]
         }));
         return newUser;
+      },
+
+      // Přihlášení uživatele - najde existujícího nebo vytvoří nového
+      loginUser: (userData) => {
+        const state = get();
+        const existingUser = state.users.find(
+          user => user.email?.toLowerCase() === userData.email?.toLowerCase()
+        );
+
+        if (existingUser) {
+          // Aktualizovat existujícího uživatele
+          const updatedUser = {
+            ...existingUser,
+            loginCount: (existingUser.loginCount || 1) + 1,
+            lastLogin: new Date().toISOString(),
+            // Aktualizovat jméno pokud se změnilo
+            firstName: userData.firstName,
+            lastName: userData.lastName
+          };
+
+          set((state) => ({
+            users: state.users.map(user =>
+              user.id === existingUser.id ? updatedUser : user
+            )
+          }));
+
+          return updatedUser;
+        } else {
+          // Vytvořit nového uživatele
+          return get().addUser(userData);
+        }
       },
 
       setCurrentUser: (user) => set({ currentUser: user }),

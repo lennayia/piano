@@ -15,10 +15,10 @@ function App() {
       <Layout>
         <Routes>
           {/* Veřejné routes */}
+          <Route path="/" element={<Home />} />
           <Route path="/registration" element={<Registration />} />
 
           {/* Chráněné routes - vyžadují přihlášení */}
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/lesson/:id" element={<ProtectedRoute><Lesson /></ProtectedRoute>} />

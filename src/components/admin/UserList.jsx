@@ -1,4 +1,4 @@
-import { Trash2, Mail, Calendar, Shield, ShieldOff } from 'lucide-react';
+import { Trash2, Mail, Calendar, Shield, ShieldOff, LogIn, Hash } from 'lucide-react';
 import useUserStore from '../../store/useUserStore';
 
 function UserList() {
@@ -20,10 +20,13 @@ function UserList() {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('cs-CZ', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -48,8 +51,9 @@ function UserList() {
               <th>Jméno</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Datum registrace</th>
-              <th>Pokrok</th>
+              <th>Registrace</th>
+              <th>Počet přihlášení</th>
+              <th>Poslední přihlášení</th>
               <th>Akce</th>
             </tr>
           </thead>
@@ -91,9 +95,18 @@ function UserList() {
                   </div>
                 </td>
                 <td>
-                  <span className="badge badge-primary">
-                    {user.progress?.length || 0} lekcí
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Hash size={16} color="var(--color-secondary)" />
+                    <span style={{ fontWeight: 600, color: 'var(--color-secondary)' }}>
+                      {user.loginCount || 1}×
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <LogIn size={16} color="var(--color-text-secondary)" />
+                    {formatDate(user.lastLogin)}
+                  </div>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
