@@ -1,71 +1,25 @@
 import { useState, useRef } from 'react';
-import { Music, Play, Pause, BookOpen, Piano } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import PianoKeyboard from '../lessons/PianoKeyboard';
+import useSongStore from '../../store/useSongStore';
+import useUserStore from '../../store/useUserStore';
 
 function SongLibrary() {
   const [playingSong, setPlayingSong] = useState(null);
   const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
   const [showKeyboard, setShowKeyboard] = useState(null);
+  const [editingSong, setEditingSong] = useState(null);
+  const [editForm, setEditForm] = useState({});
   const playingRef = useRef(false);
 
-  const songs = [
-    {
-      id: 1,
-      title: 'Skákal pes přes oves',
-      difficulty: 'začátečník',
-      notes: ['G', 'G', 'A', 'H', 'H', 'A', 'G'],
-      tempo: 'Allegro',
-      key: 'C dur',
-      tips: 'Doprovod: C dur - F dur - G dur - C dur'
-    },
-    {
-      id: 2,
-      title: 'Holka modrooká',
-      difficulty: 'začátečník',
-      notes: ['G', 'A', 'H', 'C', 'D', 'C', 'H'],
-      tempo: 'Moderato',
-      key: 'C dur',
-      tips: 'Doprovod: C dur - G dur - C dur'
-    },
-    {
-      id: 3,
-      title: 'Když jsem já šel okolo vrat',
-      difficulty: 'mírně pokročilý',
-      notes: ['G', 'A', 'H', 'H', 'C', 'H', 'A', 'G', 'A', 'H', 'C', 'D'],
-      tempo: 'Andante',
-      key: 'G dur',
-      tips: 'Doprovod: G dur - D dur - Em - C dur - G dur'
-    },
-    {
-      id: 4,
-      title: 'Ach synku, synku',
-      difficulty: 'začátečník',
-      notes: ['C', 'C', 'C', 'C', 'D', 'E', 'F', 'E', 'E', 'E', 'E', 'F', 'G'],
-      tempo: 'Moderato',
-      key: 'C dur',
-      tips: 'Doprovod: C dur - F dur - G dur - C dur'
-    },
-    {
-      id: 5,
-      title: 'Slyšel jsem zvon',
-      difficulty: 'mírně pokročilý',
-      notes: ['D', 'F#', 'A', 'A', 'G', 'F#', 'E', 'D'],
-      tempo: 'Andante',
-      key: 'D dur',
-      tips: 'Doprovod: D dur - A dur - Hm - G dur - D dur'
-    },
-    {
-      id: 6,
-      title: 'Twinkle Twinkle Little Star',
-      difficulty: 'začátečník',
-      notes: ['C', 'C', 'G', 'G', 'A', 'A', 'G', 'F', 'F', 'E', 'E', 'D', 'D', 'C'],
-      tempo: 'Andante',
-      key: 'C dur',
-      tips: 'Doprovod: C dur - F dur - C dur - G dur - C dur'
-    }
-  ];
+  const songs = useSongStore((state) => state.songs);
+  const updateSong = useSongStore((state) => state.updateSong);
+  const currentUser = useUserStore((state) => state.currentUser);
+
+  // Admin je uživatel s "admin" v emailu nebo role === 'admin'
+  const isAdmin = currentUser?.email?.toLowerCase().includes('admin') || currentUser?.role === 'admin';
 
   const playMelody = async (song) => {
     if (playingRef.current && playingSong === song.id) {
@@ -94,6 +48,49 @@ function SongLibrary() {
 
   const toggleKeyboard = (songId) => {
     setShowKeyboard(showKeyboard === songId ? null : songId);
+  };
+
+  const startEditing = (song) => {
+    setEditingSong(song.id);
+    setEditForm({
+      title: song.title,
+      notes: song.notes.join(', '),
+      difficulty: song.difficulty,
+      tempo: song.tempo,
+      key: song.key,
+      tips: song.tips
+    });
+  };
+
+  const saveEdit = () => {
+    const notesArray = editForm.notes
+      .split(',')
+      .map(note => note.trim())
+      .filter(note => note.length > 0);
+
+    updateSong(editingSong, {
+      title: editForm.title,
+      notes: notesArray,
+      difficulty: editForm.difficulty,
+      tempo: editForm.tempo,
+      key: editForm.key,
+      tips: editForm.tips
+    });
+
+    setEditingSong(null);
+    setEditForm({});
+  };
+
+  const cancelEdit = () => {
+    setEditingSong(null);
+    setEditForm({});
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -181,19 +178,158 @@ function SongLibrary() {
                   <span className={`badge ${getDifficultyColor(song.difficulty)}`}>
                     {song.difficulty}
                   </span>
+                  {isAdmin && editingSong !== song.id && (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => startEditing(song)}
+                      style={{
+                        background: 'rgba(45, 91, 120, 0.2)',
+                        border: '1px solid rgba(45, 91, 120, 0.3)',
+                        borderRadius: 'var(--radius)',
+                        padding: '0.25rem 0.5rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.75rem',
+                        color: 'var(--color-secondary)'
+                      }}
+                    >
+                      <Edit3 size={14} />
+                      Upravit
+                    </motion.button>
+                  )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                    <strong>Tónina:</strong> {song.key}
-                  </span>
-                  <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                    <strong>Tempo:</strong> {song.tempo}
-                  </span>
-                </div>
+                {editingSong === song.id ? (
+                  /* Editační formulář pro admina */
+                  <div style={{ marginTop: '1rem' }}>
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Název písně
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editForm.title}
+                        onChange={(e) => handleEditChange('title', e.target.value)}
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
 
-                {/* Noty s vizualizací */}
-                <div style={{ marginTop: '1rem' }}>
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Noty (oddělené čárkami, např: C, D, E, F, G)
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editForm.notes}
+                        onChange={(e) => handleEditChange('notes', e.target.value)}
+                        placeholder="C, D, E, F, G, A, H"
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                        Použijte notaci: C, C#, D, D#, E, F, F#, G, G#, A, A#, H (nebo Db, Eb, Gb, Ab, Bb)
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                          Obtížnost
+                        </label>
+                        <select
+                          className="form-input"
+                          value={editForm.difficulty}
+                          onChange={(e) => handleEditChange('difficulty', e.target.value)}
+                          style={{ fontSize: '0.875rem' }}
+                        >
+                          <option value="začátečník">začátečník</option>
+                          <option value="mírně pokročilý">mírně pokročilý</option>
+                          <option value="pokročilý">pokročilý</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                          Tempo
+                        </label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={editForm.tempo}
+                          onChange={(e) => handleEditChange('tempo', e.target.value)}
+                          placeholder="Allegro, Moderato, Andante..."
+                          style={{ fontSize: '0.875rem' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Tónina
+                      </label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editForm.key}
+                        onChange={(e) => handleEditChange('key', e.target.value)}
+                        placeholder="C dur, G dur..."
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '1rem' }}>
+                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                        Tip pro harmonizaci
+                      </label>
+                      <textarea
+                        className="form-input"
+                        value={editForm.tips}
+                        onChange={(e) => handleEditChange('tips', e.target.value)}
+                        rows={2}
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={saveEdit}
+                        className="btn btn-primary"
+                        style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                      >
+                        <Save size={16} />
+                        Uložit
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={cancelEdit}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                      >
+                        <X size={16} />
+                        Zrušit
+                      </motion.button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                        <strong>Tónina:</strong> {song.key}
+                      </span>
+                      <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                        <strong>Tempo:</strong> {song.tempo}
+                      </span>
+                    </div>
+
+                    {/* Noty s vizualizací */}
+                    <div style={{ marginTop: '1rem' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                     {song.notes.map((note, noteIndex) => {
                       const isCurrent = playingSong === song.id && currentNoteIndex === noteIndex;
@@ -302,6 +438,8 @@ function SongLibrary() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
