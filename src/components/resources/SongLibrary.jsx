@@ -163,7 +163,19 @@ function SongLibrary() {
   return (
     <div>
       <h2 style={{ marginBottom: '1.5rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <Music size={28} color="var(--color-primary)" />
+        <div style={{
+          width: '48px',
+          height: '48px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '2px solid rgba(181, 31, 101, 0.2)',
+          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
+        }}>
+          <Music size={24} color="var(--color-primary)" />
+        </div>
         Playlist lidových písní
       </h2>
       <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>

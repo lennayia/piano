@@ -73,9 +73,12 @@ function Header() {
                 alignItems: 'center',
                 gap: '0.25rem',
                 textDecoration: 'none',
-                color: 'var(--color-text-secondary)',
+                color: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
+                  ? 'var(--color-primary)'
+                  : 'var(--color-text-secondary)',
                 fontSize: '0.875rem',
-                fontWeight: 500
+                fontWeight: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson') ? 600 : 500,
+                transition: 'all 0.3s ease'
               }}>
                 <BookOpen size={18} />
                 <span>Moje lekce</span>
@@ -86,9 +89,12 @@ function Header() {
                 alignItems: 'center',
                 gap: '0.25rem',
                 textDecoration: 'none',
-                color: 'var(--color-text-secondary)',
+                color: location.pathname === '/resources'
+                  ? 'var(--color-primary)'
+                  : 'var(--color-text-secondary)',
                 fontSize: '0.875rem',
-                fontWeight: 500
+                fontWeight: location.pathname === '/resources' ? 600 : 500,
+                transition: 'all 0.3s ease'
               }}>
                 <Lightbulb size={18} />
                 <span>Materiály</span>
@@ -100,9 +106,12 @@ function Header() {
                   alignItems: 'center',
                   gap: '0.25rem',
                   textDecoration: 'none',
-                  color: 'var(--color-danger)',
+                  color: location.pathname === '/admin'
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-secondary)',
                   fontSize: '0.875rem',
-                  fontWeight: 500
+                  fontWeight: location.pathname === '/admin' ? 600 : 500,
+                  transition: 'all 0.3s ease'
                 }}>
                   <Shield size={18} />
                   <span>Admin</span>

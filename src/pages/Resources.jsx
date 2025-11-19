@@ -51,8 +51,10 @@ function Resources() {
               whileHover={{
                 scale: 1.05,
                 y: -4,
-                background: 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
-                color: '#ffffff'
+                background: activeTab === tab.id
+                  ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
+                  : 'linear-gradient(135deg, rgba(45, 91, 120, 0.2) 0%, rgba(65, 111, 140, 0.2) 100%)',
+                color: activeTab === tab.id ? '#ffffff' : '#1e293b'
               }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab(tab.id)}
@@ -62,12 +64,12 @@ function Resources() {
               style={{
                 padding: '1rem 2rem',
                 background: activeTab === tab.id
-                  ? 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)'
+                  ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
                   : 'rgba(255, 255, 255, 0.7)',
                 backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 border: activeTab === tab.id
-                  ? '2px solid var(--color-secondary)'
+                  ? '2px solid rgba(181, 31, 101, 0.3)'
                   : '2px solid rgba(255, 255, 255, 0.3)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -76,7 +78,8 @@ function Resources() {
                 transition: 'all 0.3s',
                 fontSize: '1rem',
                 fontWeight: activeTab === tab.id ? 600 : 500,
-                color: activeTab === tab.id ? '#ffffff' : '#64748b'
+                color: activeTab === tab.id ? '#ffffff' : '#64748b',
+                boxShadow: activeTab === tab.id ? '0 4px 16px rgba(181, 31, 101, 0.3)' : 'none'
               }}
             >
               <Icon
