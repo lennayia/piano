@@ -1,10 +1,14 @@
-import { useState } from 'react';
-import { Music, Play, Pause, BookOpen } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Music, Play, Pause, BookOpen, Piano } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
+import PianoKeyboard from '../lessons/PianoKeyboard';
 
 function SongLibrary() {
   const [playingSong, setPlayingSong] = useState(null);
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
+  const [showKeyboard, setShowKeyboard] = useState(null);
+  const playingRef = useRef(false);
 
   const songs = [
     {
@@ -45,30 +49,51 @@ function SongLibrary() {
     },
     {
       id: 5,
-      title: 'Sly jsem zvon',
+      title: 'Slyšel jsem zvon',
       difficulty: 'mírně pokročilý',
       notes: ['D', 'F#', 'A', 'A', 'G', 'F#', 'E'],
       tempo: 'Andante',
       key: 'D dur',
       tips: 'Doprovod: D dur - A dur - Hm - G dur - D dur'
+    },
+    {
+      id: 6,
+      title: 'Twinkle Twinkle Little Star',
+      difficulty: 'začátečník',
+      notes: ['C', 'C', 'G', 'G', 'A', 'A', 'G', 'F', 'F', 'E', 'E', 'D', 'D', 'C'],
+      tempo: 'Andante',
+      key: 'C dur',
+      tips: 'Doprovod: C dur - F dur - C dur - G dur - C dur'
     }
   ];
 
   const playMelody = async (song) => {
-    if (playingSong === song.id) {
+    if (playingRef.current && playingSong === song.id) {
+      playingRef.current = false;
       setPlayingSong(null);
+      setCurrentNoteIndex(-1);
       return;
     }
 
+    playingRef.current = true;
     setPlayingSong(song.id);
+    setCurrentNoteIndex(-1);
 
     for (let i = 0; i < song.notes.length; i++) {
-      if (playingSong !== song.id) break;
-      await audioEngine.playNote(song.notes[i], 0.5);
-      await new Promise(resolve => setTimeout(resolve, 400));
+      if (!playingRef.current) break;
+
+      setCurrentNoteIndex(i);
+      audioEngine.playNote(song.notes[i], 0.6);
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
+    playingRef.current = false;
     setPlayingSong(null);
+    setCurrentNoteIndex(-1);
+  };
+
+  const toggleKeyboard = (songId) => {
+    setShowKeyboard(showKeyboard === songId ? null : songId);
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -84,11 +109,11 @@ function SongLibrary() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <h2 style={{ marginBottom: '1.5rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <Music size={28} color="var(--color-primary)" />
         Playlist lidových písní
       </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
+      <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
         Procvičte si harmonizaci na těchto oblíbených lidových písních
       </p>
 
@@ -157,6 +182,89 @@ function SongLibrary() {
                     <strong>Tempo:</strong> {song.tempo}
                   </span>
                 </div>
+
+                {/* Noty s vizualizací */}
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                    {song.notes.map((note, noteIndex) => {
+                      const isCurrent = playingSong === song.id && currentNoteIndex === noteIndex;
+                      const isNext = playingSong === song.id && currentNoteIndex + 1 === noteIndex;
+
+                      return (
+                        <motion.div
+                          key={noteIndex}
+                          animate={{
+                            scale: isCurrent ? 1.3 : isNext ? 1.1 : 1,
+                            backgroundColor: isCurrent
+                              ? 'rgba(181, 31, 101, 0.4)'
+                              : isNext
+                              ? 'rgba(181, 31, 101, 0.15)'
+                              : 'rgba(45, 91, 120, 0.1)'
+                          }}
+                          style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: 'var(--radius)',
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            color: isCurrent || isNext ? 'var(--color-primary)' : 'var(--color-secondary)',
+                            border: isCurrent
+                              ? '2px solid var(--color-primary)'
+                              : isNext
+                              ? '2px dashed var(--color-primary)'
+                              : '1px solid rgba(45, 91, 120, 0.2)',
+                            transition: 'all 0.2s',
+                            position: 'relative'
+                          }}
+                        >
+                          {note}
+                          {isNext && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: [0.5, 1, 0.5] }}
+                              transition={{ duration: 0.8, repeat: Infinity }}
+                              style={{
+                                position: 'absolute',
+                                top: '-8px',
+                                right: '-8px',
+                                fontSize: '0.75rem'
+                              }}
+                            >
+                              ▶
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => toggleKeyboard(song.id)}
+                    className="btn btn-secondary"
+                    style={{
+                      fontSize: '0.875rem',
+                      padding: '0.5rem 1rem',
+                      marginBottom: '0.75rem'
+                    }}
+                  >
+                    <Piano size={16} />
+                    {showKeyboard === song.id ? 'Skrýt klavír' : 'Zkusit na klavíru'}
+                  </motion.button>
+                </div>
+
+                <AnimatePresence>
+                  {showKeyboard === song.id && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      style={{ marginTop: '1rem', marginBottom: '1rem' }}
+                    >
+                      <PianoKeyboard highlightedNotes={song.notes} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                   {playingSong === song.id && (

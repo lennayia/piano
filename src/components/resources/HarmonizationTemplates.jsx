@@ -77,11 +77,11 @@ function HarmonizationTemplates() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <h2 style={{ marginBottom: '1.5rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <FileText size={28} color="var(--color-primary)" />
         Šablony pro harmonizaci
       </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
+      <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
         Připravené harmonické postupy pro rychlou harmonizaci písní
       </p>
 

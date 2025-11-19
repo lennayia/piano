@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Music, Target } from 'lucide-react';
+import { BookOpen, Music, Target, Book } from 'lucide-react';
 import SongLibrary from '../components/resources/SongLibrary';
 import HarmonizationTemplates from '../components/resources/HarmonizationTemplates';
 import ChordQuiz from '../components/games/ChordQuiz';
+import Glossary from '../components/resources/Glossary';
 
 function Resources() {
   const [activeTab, setActiveTab] = useState('playlist');
@@ -11,7 +12,8 @@ function Resources() {
   const tabs = [
     { id: 'quiz', label: 'Poznáš akord?', icon: Target, color: 'var(--color-primary)' },
     { id: 'playlist', label: 'Lidové písně', icon: Music, color: 'var(--color-secondary)' },
-    { id: 'templates', label: 'Šablony harmonizace', icon: BookOpen, color: 'var(--color-secondary)' }
+    { id: 'templates', label: 'Šablony harmonizace', icon: BookOpen, color: 'var(--color-secondary)' },
+    { id: 'glossary', label: 'Slovníček', icon: Book, color: 'var(--color-secondary)' }
   ];
 
   return (
@@ -87,6 +89,7 @@ function Resources() {
         {activeTab === 'quiz' && <ChordQuiz />}
         {activeTab === 'playlist' && <SongLibrary />}
         {activeTab === 'templates' && <HarmonizationTemplates />}
+        {activeTab === 'glossary' && <Glossary />}
       </motion.div>
     </div>
   );
