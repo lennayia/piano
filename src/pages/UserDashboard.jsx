@@ -44,8 +44,8 @@ function UserDashboard() {
     <div className="container">
       {/* Welcome Section */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.1) 0%, rgba(181, 31, 101, 0.05) 100%)',
-        border: '1px solid rgba(181, 31, 101, 0.2)',
+        background: 'rgba(255, 255, 255, 0.9)',
+        border: '2px solid rgba(181, 31, 101, 0.3)',
         marginBottom: '2rem'
       }}>
         <h1 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>
@@ -60,13 +60,13 @@ function UserDashboard() {
             <div style={{
               width: '48px',
               height: '48px',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              backgroundColor: 'rgba(45, 91, 120, 0.1)',
               borderRadius: 'var(--radius)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <Award size={24} color="var(--color-success)" />
+              <Award size={24} color="var(--color-secondary)" />
             </div>
             <div>
               <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>{completedLessons}</div>
@@ -78,13 +78,13 @@ function UserDashboard() {
             <div style={{
               width: '48px',
               height: '48px',
-              backgroundColor: 'rgba(181, 31, 101, 0.1)',
+              backgroundColor: 'rgba(45, 91, 120, 0.1)',
               borderRadius: 'var(--radius)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <BookOpen size={24} color="var(--color-primary)" />
+              <BookOpen size={24} color="var(--color-secondary)" />
             </div>
             <div>
               <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>4</div>

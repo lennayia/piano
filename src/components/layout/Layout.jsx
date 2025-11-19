@@ -8,11 +8,11 @@ function Layout({ children }) {
         {children}
       </main>
       <footer style={{
-        borderTop: '1px solid var(--color-border)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
         padding: '2rem 0',
         marginTop: '4rem',
         textAlign: 'center',
-        color: 'var(--color-text-secondary)',
+        color: '#ffffff',
         fontSize: '0.875rem'
       }}>
         <div className="container">
