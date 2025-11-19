@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
@@ -7,9 +8,17 @@ import Admin from './pages/Admin';
 import Lesson from './pages/Lesson';
 import Resources from './pages/Resources';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import useUserStore from './store/useUserStore';
 import './styles/index.css';
 
 function App() {
+  const initAuth = useUserStore((state) => state.initAuth);
+
+  useEffect(() => {
+    // Initialize authentication state on app load
+    initAuth();
+  }, [initAuth]);
+
   return (
     <Router>
       <Layout>

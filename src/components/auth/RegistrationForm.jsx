@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, User } from 'lucide-react';
+import { UserPlus, Mail, User, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 
 function RegistrationForm() {
   const navigate = useNavigate();
-  const addUser = useUserStore((state) => state.addUser);
-  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
-  const users = useUserStore((state) => state.users);
+  const registerUser = useUserStore((state) => state.registerUser);
+  const loginUser = useUserStore((state) => state.loginUser);
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: ''
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
 
   const [errors, setErrors] = useState({});
   const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Spustit Vltavu na pozadí
@@ -42,6 +44,21 @@ function RegistrationForm() {
       if (!formData.lastName.trim()) {
         newErrors.lastName = 'Příjmení je povinné';
       }
+
+      if (!formData.password) {
+        newErrors.password = 'Heslo je povinné';
+      } else if (formData.password.length < 6) {
+        newErrors.password = 'Heslo musí mít alespoň 6 znaků';
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Hesla se neshodují';
+      }
+    } else {
+      // V login módu stačí heslo
+      if (!formData.password) {
+        newErrors.password = 'Heslo je povinné';
+      }
     }
 
     if (!formData.email.trim()) {
@@ -54,28 +71,30 @@ function RegistrationForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      // Zkontrolovat, jestli uživatel s tímto emailem už existuje
-      const existingUser = users.find(u => u.email.toLowerCase() === formData.email.toLowerCase());
+    if (!validateForm()) return;
 
-      if (existingUser) {
+    setIsSubmitting(true);
+
+    try {
+      if (isLoginMode) {
         // Přihlásit existujícího uživatele
-        setCurrentUser(existingUser);
-        audioEngine.fadeOut(2.0); // Ztlumit hudbu
-        setTimeout(() => navigate('/dashboard'), 500);
-      } else if (!isLoginMode) {
-        // Vytvořit nového uživatele
-        const newUser = addUser(formData);
-        setCurrentUser(newUser);
-        audioEngine.fadeOut(2.0); // Ztlumit hudbu
-        setTimeout(() => navigate('/dashboard'), 500);
+        await loginUser(formData.email, formData.password);
       } else {
-        // V login módu a uživatel neexistuje
-        setErrors({ email: 'Uživatel s tímto emailem neexistuje' });
+        // Zaregistrovat nového uživatele
+        await registerUser(formData);
       }
+
+      // Ztlumit hudbu a přejít do aplikace
+      audioEngine.fadeOut(2.0);
+      setTimeout(() => navigate('/dashboard'), 500);
+    } catch (error) {
+      console.error('Chyba při registraci/přihlášení:', error);
+      setErrors({ general: error.message || 'Nastala chyba. Zkuste to prosím znovu.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -193,14 +212,80 @@ function RegistrationForm() {
             value={formData.email}
             onChange={handleChange}
             placeholder="jan.novak@email.cz"
+            disabled={isSubmitting}
+            autoComplete="email"
           />
           {errors.email && (
             <div className="form-error">{errors.email}</div>
           )}
         </div>
 
-        <button type="submit" className="btn btn-primary">
-          {isLoginMode ? 'Přihlásit se' : 'Začít učit se'}
+        <div className="form-group">
+          <label htmlFor="password" className="form-label">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Lock size={16} />
+              Heslo
+            </div>
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            className="form-input"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="••••••"
+            disabled={isSubmitting}
+            autoComplete={isLoginMode ? "current-password" : "new-password"}
+          />
+          {errors.password && (
+            <div className="form-error">{errors.password}</div>
+          )}
+        </div>
+
+        {!isLoginMode && (
+          <div className="form-group">
+            <label htmlFor="confirmPassword" className="form-label">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Lock size={16} />
+                Potvrdit heslo
+              </div>
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              className="form-input"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••"
+              disabled={isSubmitting}
+              autoComplete="new-password"
+            />
+            {errors.confirmPassword && (
+              <div className="form-error">{errors.confirmPassword}</div>
+            )}
+          </div>
+        )}
+
+        {errors.general && (
+          <div className="form-error" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+            {errors.general}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isSubmitting}
+          style={{
+            opacity: isSubmitting ? 0.6 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isSubmitting
+            ? (isLoginMode ? 'Přihlašuji...' : 'Registruji...')
+            : (isLoginMode ? 'Přihlásit se' : 'Začít učit se')}
         </button>
 
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
