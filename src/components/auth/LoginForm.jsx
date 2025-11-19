@@ -38,10 +38,8 @@ function LoginForm({ disableBackgroundMusic = false }) {
   const toggleMusic = () => {
     if (isMusicPlaying) {
       audioEngine.stopVltavaLoop();
-      audioEngine.setVolume(0);
     } else {
       audioEngine.startVltavaLoop();
-      audioEngine.setVolume(0.9);
     }
     setIsMusicPlaying(!isMusicPlaying);
   };

@@ -1,18 +1,17 @@
 import { useNavigate } from 'react-router-dom';
-import { Piano, BookOpen, Trophy, Users, Music2, Heart, GraduationCap, CheckCircle2, Sparkles, Star, LogOut } from 'lucide-react';
+import { Piano, BookOpen, Trophy, Users, Music2, Heart, GraduationCap, CheckCircle2, Sparkles, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
-import useUserStore from '../store/useUserStore';
 import audioEngine from '../utils/audio';
 
 function Home() {
   const navigate = useNavigate();
-  const currentUser = useUserStore((state) => state.currentUser);
-  const logout = useUserStore((state) => state.logout);
 
-  const handleLogout = () => {
+  const scrollToLogin = () => {
     audioEngine.playClick();
-    logout();
-    navigate('/');
+    const loginSection = document.getElementById('login-cta');
+    if (loginSection) {
+      loginSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   };
 
   const features = [
@@ -138,38 +137,12 @@ function Home() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              audioEngine.playClick();
-              navigate(currentUser ? '/dashboard' : '/registration');
-            }}
+            onClick={scrollToLogin}
             className="btn btn-primary"
             style={{ fontSize: '1rem', padding: '0.875rem 2rem' }}
           >
-            {currentUser ? 'Pokračovat v učení' : 'Přihlásit se'}
+            Přihlásit se
           </motion.button>
-
-          {currentUser && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLogout}
-              className="btn"
-              style={{
-                fontSize: '1rem',
-                padding: '0.875rem 2rem',
-                background: 'rgba(239, 68, 68, 0.15)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: 'var(--color-danger)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <LogOut size={18} />
-              Odhlásit se
-            </motion.button>
-          )}
         </motion.div>
       </motion.div>
 
@@ -404,55 +377,54 @@ function Home() {
       </div>
 
       {/* CTA Section */}
-      {!currentUser && (
+      <motion.div
+        id="login-cta"
+        className="card"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        style={{
+          textAlign: 'center',
+          padding: '4rem 2rem',
+          background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(45, 91, 120, 0.1) 100%)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          border: '2px solid rgba(181, 31, 101, 0.3)',
+          boxShadow: '0 12px 48px rgba(181, 31, 101, 0.2)'
+        }}
+      >
         <motion.div
-          className="card"
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ scale: 0 }}
+          whileInView={{ scale: 1 }}
           viewport={{ once: true }}
+          transition={{ delay: 0.2, type: 'spring' }}
+        >
+          <Sparkles size={48} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
+        </motion.div>
+        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#1e293b' }}>Připraveni začít?</h2>
+        <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#64748b', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+          Registrace je rychlá a jednoduchá. Začněte se učit během několika vteřin a objevte krásu harmonizace.
+        </p>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            audioEngine.playClick();
+            navigate('/registration');
+          }}
+          className="btn btn-primary"
           style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(45, 91, 120, 0.1) 100%)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            border: '2px solid rgba(181, 31, 101, 0.3)',
-            boxShadow: '0 12px 48px rgba(181, 31, 101, 0.2)'
+            fontSize: '1.125rem',
+            padding: '1rem 3rem',
+            boxShadow: '0 8px 24px rgba(45, 91, 120, 0.4)'
           }}
         >
-          <motion.div
-            initial={{ scale: 0 }}
-            whileInView={{ scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2, type: 'spring' }}
-          >
-            <Sparkles size={48} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
-          </motion.div>
-          <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#1e293b' }}>Připraveni začít?</h2>
-          <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#64748b', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
-            Registrace je rychlá a jednoduchá. Začněte se učit během několika vteřin a objevte krásu harmonizace.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              audioEngine.playClick();
-              navigate('/registration');
-            }}
-            className="btn btn-primary"
-            style={{
-              fontSize: '1.125rem',
-              padding: '1rem 3rem',
-              boxShadow: '0 8px 24px rgba(45, 91, 120, 0.4)'
-            }}
-          >
-            Chci umět doprovázet
-          </motion.button>
-          <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
-            ✓ Zdarma k vyzkoušení • ✓ Bez kreditní karty • ✓ Začněte ihned
-          </p>
-        </motion.div>
-      )}
+          Přihlásit se
+        </motion.button>
+        <p style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#64748b' }}>
+          ✓ Zdarma k vyzkoušení • ✓ Bez kreditní karty • ✓ Začněte ihned
+        </p>
+      </motion.div>
     </div>
   );
 }
