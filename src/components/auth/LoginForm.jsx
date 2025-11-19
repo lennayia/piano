@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Volume2, VolumeX } from 'lucide-react';
+import { Mail, User, Volume2, VolumeX } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
@@ -10,8 +10,9 @@ function LoginForm({ disableBackgroundMusic = false }) {
   const loginUser = useUserStore((state) => state.loginUser);
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    firstName: '',
+    lastName: '',
+    email: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -153,16 +154,18 @@ function LoginForm({ disableBackgroundMusic = false }) {
   const validateForm = () => {
     const newErrors = {};
 
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Jméno je povinné';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Příjmení je povinné';
+    }
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email je povinný';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Zadejte platný email';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Heslo je povinné';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Heslo musí mít alespoň 6 znaků';
     }
 
     setErrors(newErrors);
@@ -177,8 +180,8 @@ function LoginForm({ disableBackgroundMusic = false }) {
     setIsSubmitting(true);
 
     try {
-      // Přihlásit uživatele přes Supabase
-      await loginUser(formData.email, formData.password);
+      // Přihlásit uživatele přes Supabase (bez hesla)
+      await loginUser(formData);
 
       // Ztlumit hudbu a přejít do aplikace
       audioEngine.fadeOut(2.0);
@@ -252,6 +255,52 @@ function LoginForm({ disableBackgroundMusic = false }) {
 
       <form onSubmit={handleSubmit} style={{ textAlign: 'center' }}>
         <div className="form-group" style={{ textAlign: 'left' }}>
+          <label htmlFor="firstName" className="form-label">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <User size={16} />
+              Jméno
+            </div>
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            className="form-input"
+            value={formData.firstName}
+            onChange={handleChange}
+            placeholder="Jan"
+            disabled={isSubmitting}
+            autoComplete="given-name"
+          />
+          {errors.firstName && (
+            <div className="form-error">{errors.firstName}</div>
+          )}
+        </div>
+
+        <div className="form-group" style={{ textAlign: 'left' }}>
+          <label htmlFor="lastName" className="form-label">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <User size={16} />
+              Příjmení
+            </div>
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            className="form-input"
+            value={formData.lastName}
+            onChange={handleChange}
+            placeholder="Novák"
+            disabled={isSubmitting}
+            autoComplete="family-name"
+          />
+          {errors.lastName && (
+            <div className="form-error">{errors.lastName}</div>
+          )}
+        </div>
+
+        <div className="form-group" style={{ textAlign: 'left' }}>
           <label htmlFor="email" className="form-label">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Mail size={16} />
@@ -271,29 +320,6 @@ function LoginForm({ disableBackgroundMusic = false }) {
           />
           {errors.email && (
             <div className="form-error">{errors.email}</div>
-          )}
-        </div>
-
-        <div className="form-group" style={{ textAlign: 'left' }}>
-          <label htmlFor="password" className="form-label">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Lock size={16} />
-              Heslo
-            </div>
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className="form-input"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••"
-            disabled={isSubmitting}
-            autoComplete="current-password"
-          />
-          {errors.password && (
-            <div className="form-error">{errors.password}</div>
           )}
         </div>
 

@@ -1,25 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, User, Lock } from 'lucide-react';
+import { UserPlus, Mail, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 
 function RegistrationForm() {
   const navigate = useNavigate();
-  const registerUser = useUserStore((state) => state.registerUser);
   const loginUser = useUserStore((state) => state.loginUser);
 
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    email: ''
   });
 
   const [errors, setErrors] = useState({});
-  const [isLoginMode, setIsLoginMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -35,30 +31,12 @@ function RegistrationForm() {
   const validateForm = () => {
     const newErrors = {};
 
-    // V login módu nepotřebujeme jméno a příjmení
-    if (!isLoginMode) {
-      if (!formData.firstName.trim()) {
-        newErrors.firstName = 'Jméno je povinné';
-      }
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Jméno je povinné';
+    }
 
-      if (!formData.lastName.trim()) {
-        newErrors.lastName = 'Příjmení je povinné';
-      }
-
-      if (!formData.password) {
-        newErrors.password = 'Heslo je povinné';
-      } else if (formData.password.length < 6) {
-        newErrors.password = 'Heslo musí mít alespoň 6 znaků';
-      }
-
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Hesla se neshodují';
-      }
-    } else {
-      // V login módu stačí heslo
-      if (!formData.password) {
-        newErrors.password = 'Heslo je povinné';
-      }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Příjmení je povinné';
     }
 
     if (!formData.email.trim()) {
@@ -79,19 +57,14 @@ function RegistrationForm() {
     setIsSubmitting(true);
 
     try {
-      if (isLoginMode) {
-        // Přihlásit existujícího uživatele
-        await loginUser(formData.email, formData.password);
-      } else {
-        // Zaregistrovat nového uživatele
-        await registerUser(formData);
-      }
+      // Přihlásit nebo zaregistrovat uživatele (bez hesla)
+      await loginUser(formData);
 
       // Ztlumit hudbu a přejít do aplikace
       audioEngine.fadeOut(2.0);
       setTimeout(() => navigate('/dashboard'), 500);
     } catch (error) {
-      console.error('Chyba při registraci/přihlášení:', error);
+      console.error('Chyba při přihlášení:', error);
       setErrors({ general: error.message || 'Nastala chyba. Zkuste to prosím znovu.' });
     } finally {
       setIsSubmitting(false);
@@ -142,60 +115,58 @@ function RegistrationForm() {
         >
           <UserPlus size={32} color="var(--color-primary)" />
         </motion.div>
-        <h2>{isLoginMode ? 'Přihlásit se' : 'Začněte se učit'}</h2>
+        <h2>Začněte se učit</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
-          {isLoginMode
-            ? 'Zadejte svůj email pro přihlášení'
-            : 'Zadejte své údaje a začněte svou cestu ke hře na klavír'}
+          Zadejte své údaje a začněte svou cestu ke hře na klavír
         </p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {!isLoginMode && (
-          <>
-            <div className="form-group">
-              <label htmlFor="firstName" className="form-label">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <User size={16} />
-                  Jméno
-                </div>
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                className="form-input"
-                value={formData.firstName}
-                onChange={handleChange}
-                placeholder="Jan"
-              />
-              {errors.firstName && (
-                <div className="form-error">{errors.firstName}</div>
-              )}
+        <div className="form-group">
+          <label htmlFor="firstName" className="form-label">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <User size={16} />
+              Jméno
             </div>
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            className="form-input"
+            value={formData.firstName}
+            onChange={handleChange}
+            placeholder="Jan"
+            disabled={isSubmitting}
+            autoComplete="given-name"
+          />
+          {errors.firstName && (
+            <div className="form-error">{errors.firstName}</div>
+          )}
+        </div>
 
-            <div className="form-group">
-              <label htmlFor="lastName" className="form-label">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <User size={16} />
-                  Příjmení
-                </div>
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                className="form-input"
-                value={formData.lastName}
-                onChange={handleChange}
-                placeholder="Novák"
-              />
-              {errors.lastName && (
-                <div className="form-error">{errors.lastName}</div>
-              )}
+        <div className="form-group">
+          <label htmlFor="lastName" className="form-label">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <User size={16} />
+              Příjmení
             </div>
-          </>
-        )}
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            className="form-input"
+            value={formData.lastName}
+            onChange={handleChange}
+            placeholder="Novák"
+            disabled={isSubmitting}
+            autoComplete="family-name"
+          />
+          {errors.lastName && (
+            <div className="form-error">{errors.lastName}</div>
+          )}
+        </div>
 
         <div className="form-group">
           <label htmlFor="email" className="form-label">
@@ -220,54 +191,6 @@ function RegistrationForm() {
           )}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="password" className="form-label">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Lock size={16} />
-              Heslo
-            </div>
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className="form-input"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••"
-            disabled={isSubmitting}
-            autoComplete={isLoginMode ? "current-password" : "new-password"}
-          />
-          {errors.password && (
-            <div className="form-error">{errors.password}</div>
-          )}
-        </div>
-
-        {!isLoginMode && (
-          <div className="form-group">
-            <label htmlFor="confirmPassword" className="form-label">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Lock size={16} />
-                Potvrdit heslo
-              </div>
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              className="form-input"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="••••••"
-              disabled={isSubmitting}
-              autoComplete="new-password"
-            />
-            {errors.confirmPassword && (
-              <div className="form-error">{errors.confirmPassword}</div>
-            )}
-          </div>
-        )}
-
         {errors.general && (
           <div className="form-error" style={{ marginBottom: '1rem', textAlign: 'center' }}>
             {errors.general}
@@ -283,32 +206,8 @@ function RegistrationForm() {
             cursor: isSubmitting ? 'not-allowed' : 'pointer'
           }}
         >
-          {isSubmitting
-            ? (isLoginMode ? 'Přihlašuji...' : 'Registruji...')
-            : (isLoginMode ? 'Přihlásit se' : 'Začít učit se')}
+          {isSubmitting ? 'Přihlašuji...' : 'Začít se učit'}
         </button>
-
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <button
-            type="button"
-            onClick={() => {
-              setIsLoginMode(!isLoginMode);
-              setErrors({});
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-secondary)',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              textDecoration: 'underline'
-            }}
-          >
-            {isLoginMode
-              ? 'Ještě nemáte účet? Zaregistrujte se'
-              : 'Už máte účet? Přihlaste se'}
-          </button>
-        </div>
       </form>
     </div>
   );

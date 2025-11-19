@@ -1,81 +1,101 @@
 import { create } from 'zustand';
-import { supabase, signIn, signUp, signOut, getUserProfile } from '../lib/supabase';
+import { persist } from 'zustand/middleware';
+import supabase from '../lib/supabase';
 
-const useUserStore = create((set, get) => ({
-  users: [],
-  currentUser: null,
-  loading: false,
-  error: null,
+const useUserStore = create(
+  persist(
+    (set, get) => ({
+      users: [],
+      currentUser: null,
+      loading: false,
+      error: null,
 
-  // Initialize authentication state from Supabase
-  initAuth: async () => {
-    set({ loading: true, error: null });
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Initialize - just set loading to false
+      initAuth: async () => {
+        set({ loading: false });
+      },
 
-      if (session?.user) {
-        const profile = await getUserProfile(session.user.id);
-        if (profile) {
-          set({ currentUser: profile, loading: false });
-        } else {
-          set({ currentUser: null, loading: false });
+      // Login or create user (no password needed)
+      loginUser: async (userData) => {
+        set({ loading: true, error: null });
+        try {
+          // Check if user exists by email
+          const { data: existingUser, error: findError } = await supabase
+            .from('piano_users')
+            .select('*')
+            .eq('email', userData.email.toLowerCase())
+            .single();
+
+          if (existingUser) {
+            // User exists - update name if changed
+            const { data: updatedUser, error: updateError } = await supabase
+              .from('piano_users')
+              .update({
+                first_name: userData.firstName,
+                last_name: userData.lastName
+              })
+              .eq('id', existingUser.id)
+              .select()
+              .single();
+
+            if (updateError) throw updateError;
+
+            // Get user stats
+            const { data: stats } = await supabase
+              .from('piano_user_stats')
+              .select('*')
+              .eq('user_id', existingUser.id)
+              .single();
+
+            const userWithStats = { ...updatedUser, stats };
+            set({ currentUser: userWithStats, loading: false });
+            return userWithStats;
+          } else {
+            // Create new user
+            const { data: newUser, error: createError } = await supabase
+              .from('piano_users')
+              .insert({
+                email: userData.email.toLowerCase(),
+                first_name: userData.firstName,
+                last_name: userData.lastName,
+                is_admin: userData.email.toLowerCase() === 'lenkaroubalka@seznam.cz'
+              })
+              .select()
+              .single();
+
+            if (createError) throw createError;
+
+            // Create user stats
+            await supabase
+              .from('piano_user_stats')
+              .insert({
+                user_id: newUser.id,
+                total_xp: 0,
+                level: 1,
+                lessons_completed: 0,
+                current_streak: 0,
+                best_streak: 0,
+                total_practice_time: 0
+              });
+
+            const { data: stats } = await supabase
+              .from('piano_user_stats')
+              .select('*')
+              .eq('user_id', newUser.id)
+              .single();
+
+            const userWithStats = { ...newUser, stats };
+            set({ currentUser: userWithStats, loading: false });
+            return userWithStats;
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          set({ error: error.message, loading: false });
+          throw error;
         }
-      } else {
-        set({ currentUser: null, loading: false });
-      }
-    } catch (error) {
-      console.error('Error initializing auth:', error);
-      set({ error: error.message, loading: false, currentUser: null });
-    }
-  },
+      },
 
-      // Register new user with Supabase
-  registerUser: async (userData) => {
-    set({ loading: true, error: null });
-    try {
-      const result = await signUp(
-        userData.email,
-        userData.password,
-        userData.firstName,
-        userData.lastName
-      );
-
-      // Check if email is admin email
-      if (userData.email?.toLowerCase() === 'lenkaroubalka@seznam.cz') {
-        await supabase
-          .from('piano_users')
-          .update({ is_admin: true })
-          .eq('id', result.auth.user.id);
-
-        result.profile.is_admin = true;
-      }
-
-      set({ currentUser: result.profile, loading: false });
-      return result.profile;
-    } catch (error) {
-      console.error('Registration error:', error);
-      set({ error: error.message, loading: false });
-      throw error;
-    }
-  },
-
-  // Login user with Supabase
-  loginUser: async (email, password) => {
-    set({ loading: true, error: null });
-    try {
-      const { user } = await signIn(email, password);
-      const profile = await getUserProfile(user.id);
-
-      set({ currentUser: profile, loading: false });
-      return profile;
-    } catch (error) {
-      console.error('Login error:', error);
-      set({ error: error.message, loading: false });
-      throw error;
-    }
-  },
-
-  setCurrentUser: (user) => set({ currentUser: user }),
+      setCurrentUser: (user) => set({ currentUser: user }),
 
   // Set admin rights for an email
   setAdminByEmail: async (email) => {
@@ -347,25 +367,14 @@ const useUserStore = create((set, get) => ({
   },
 
   // Logout
-  logout: async () => {
-    try {
-      await signOut();
-      set({ currentUser: null, users: [], error: null });
-    } catch (error) {
-      console.error('Error logging out:', error);
-      set({ currentUser: null, users: [], error: null }); // Clear anyway
+  logout: () => {
+    set({ currentUser: null });
+  }
+    }),
+    {
+      name: 'piano-users-storage'
     }
-  }
-}));
-
-// Subscribe to auth changes
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' && session?.user) {
-    const profile = await getUserProfile(session.user.id);
-    useUserStore.setState({ currentUser: profile });
-  } else if (event === 'SIGNED_OUT') {
-    useUserStore.setState({ currentUser: null, users: [] });
-  }
-});
+  )
+);
 
 export default useUserStore;
