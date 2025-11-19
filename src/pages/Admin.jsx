@@ -56,7 +56,7 @@ function Admin() {
           <Shield size={24} color="var(--color-primary)" />
         </div>
         <div>
-          <h1 style={{ marginBottom: '0.25rem', color: '#ffffff' }}>Admin Panel</h1>
+          <h1 style={{ marginBottom: '0.25rem', color: '#1e293b' }}>Admin Panel</h1>
           <p style={{ fontSize: '0.875rem', color: '#ffffff', opacity: 0.9 }}>
             Správa uživatelů, statistik a obsahu aplikace
           </p>

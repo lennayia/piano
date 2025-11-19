@@ -22,12 +22,12 @@ function Resources() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: '3rem', textAlign: 'center' }}
+        style={{ marginBottom: '3rem', textAlign: 'left' }}
       >
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#ffffff' }}>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#1e293b' }}>
           Výukové materiály
         </h1>
-        <p style={{ fontSize: '1.125rem', color: 'rgba(255, 255, 255, 0.8)', maxWidth: '700px', margin: '0 auto' }}>
+        <p style={{ fontSize: '1.125rem', color: 'rgba(255, 255, 255, 0.8)' }}>
           Procvičte si harmonizaci pomocí interaktivního kvízu, playlistu lidových písní a připravených šablon
         </p>
       </motion.div>
