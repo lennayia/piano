@@ -58,7 +58,7 @@ function Home() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          style={{ fontSize: '3rem', marginBottom: '1rem', color: '#1e293b' }}
+          style={{ fontSize: '3rem', marginBottom: '1rem', color: '#ffffff' }}
         >
           Naučte se hrát na klavír
         </motion.h1>
@@ -68,11 +68,11 @@ function Home() {
           transition={{ delay: 0.4 }}
           style={{
             fontSize: '1.25rem',
-            color: '#1e293b',
+            color: '#ffffff',
             marginBottom: '2rem',
             maxWidth: '600px',
             margin: '0 auto 2rem',
-            textShadow: '0 2px 4px rgba(255,255,255,0.5)'
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}
         >
           Moderní způsob výuky klavíru pro začátečníky i pokročilé. Začněte svou hudební cestu ještě dnes.
@@ -130,7 +130,7 @@ function Home() {
 
       {/* Features Section */}
       <div style={{ padding: '4rem 0' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '3rem', color: '#ffffff' }}>
           Proč si vybrat naši aplikaci
         </h2>
 
@@ -168,7 +168,7 @@ function Home() {
                 <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem', color: '#1e293b' }}>
                   {feature.title}
                 </h3>
-                <p style={{ fontSize: '0.875rem', color: '#475569' }}>
+                <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
                   {feature.description}
                 </p>
               </motion.div>

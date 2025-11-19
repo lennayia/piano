@@ -20,7 +20,7 @@ function LessonList() {
       <motion.h2
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        style={{ marginBottom: '1.5rem', color: '#1e293b' }}
+        style={{ marginBottom: '1.5rem', color: '#ffffff' }}
       >
         Dostupné lekce
       </motion.h2>

@@ -4,6 +4,26 @@ import { Award, BookOpen } from 'lucide-react';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
 
+// Jednoduchá funkce pro převod jména do vokativu (5. pádu)
+function toVocative(name) {
+  if (!name) return name;
+
+  // Mužská jména končící na -r, -l, -n přidávají -e
+  if (name.match(/^(Petr|Pavel|Karel|Jan|Martin|Milan|Roman|Tomáš|Lukáš)$/i)) {
+    return name + 'e';
+  }
+  // Mužská jména končící na -a mění -a na -o
+  if (name.match(/^(Jarda|Honza|Míša)$/i)) {
+    return name.slice(0, -1) + 'o';
+  }
+  // Ženská jména končící na -a mění -a na -o
+  if (name.match(/a$/)) {
+    return name.slice(0, -1) + 'o';
+  }
+  // Ostatní jména zůstávají beze změny
+  return name;
+}
+
 function UserDashboard() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
@@ -28,10 +48,10 @@ function UserDashboard() {
         border: '1px solid rgba(181, 31, 101, 0.2)',
         marginBottom: '2rem'
       }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>
-          Vítejte zpět, {currentUser.firstName}!
+        <h1 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>
+          Vítejte zpět, {toVocative(currentUser.firstName)}!
         </h1>
-        <p className="text-secondary">
+        <p style={{ color: '#64748b' }}>
           Pokračujte ve svém učení a objevujte nové lekce
         </p>
 
@@ -49,8 +69,8 @@ function UserDashboard() {
               <Award size={24} color="var(--color-success)" />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{completedLessons}</div>
-              <div className="text-secondary" style={{ fontSize: '0.875rem' }}>Dokončených lekcí</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>{completedLessons}</div>
+              <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dokončených lekcí</div>
             </div>
           </div>
 
@@ -67,8 +87,8 @@ function UserDashboard() {
               <BookOpen size={24} color="var(--color-primary)" />
             </div>
             <div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>4</div>
-              <div className="text-secondary" style={{ fontSize: '0.875rem' }}>Dostupných lekcí</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}>4</div>
+              <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dostupných lekcí</div>
             </div>
           </div>
         </div>
