@@ -15,7 +15,7 @@ function SongLibrary() {
       id: 1,
       title: 'Skákal pes přes oves',
       difficulty: 'začátečník',
-      notes: ['C', 'C', 'D', 'E', 'E', 'D'],
+      notes: ['C', 'C', 'D', 'E', 'E', 'D', 'C'],
       tempo: 'Allegro',
       key: 'C dur',
       tips: 'Doprovod: C dur - F dur - G dur - C dur'
@@ -24,7 +24,7 @@ function SongLibrary() {
       id: 2,
       title: 'Holka modrooká',
       difficulty: 'začátečník',
-      notes: ['C', 'D', 'E', 'F', 'G', 'G'],
+      notes: ['C', 'D', 'E', 'F', 'G', 'G', 'G'],
       tempo: 'Moderato',
       key: 'C dur',
       tips: 'Doprovod: C dur - G dur - C dur'
@@ -33,7 +33,7 @@ function SongLibrary() {
       id: 3,
       title: 'Když jsem já šel okolo vrat',
       difficulty: 'mírně pokročilý',
-      notes: ['G', 'G', 'A', 'H', 'C', 'H', 'A'],
+      notes: ['D', 'D', 'D', 'D', 'E', 'F#', 'G', 'A', 'A', 'A', 'A', 'H', 'C', 'D'],
       tempo: 'Andante',
       key: 'G dur',
       tips: 'Doprovod: G dur - D dur - Em - C dur - G dur'
@@ -42,7 +42,7 @@ function SongLibrary() {
       id: 4,
       title: 'Ach synku, synku',
       difficulty: 'začátečník',
-      notes: ['C', 'E', 'G', 'G', 'F', 'E', 'D'],
+      notes: ['C', 'C', 'C', 'C', 'D', 'E', 'F', 'E', 'E', 'E', 'E', 'F', 'G'],
       tempo: 'Moderato',
       key: 'C dur',
       tips: 'Doprovod: C dur - F dur - G dur - C dur'
@@ -51,7 +51,7 @@ function SongLibrary() {
       id: 5,
       title: 'Slyšel jsem zvon',
       difficulty: 'mírně pokročilý',
-      notes: ['D', 'F#', 'A', 'A', 'G', 'F#', 'E'],
+      notes: ['D', 'F#', 'A', 'A', 'G', 'F#', 'E', 'D'],
       tempo: 'Andante',
       key: 'D dur',
       tips: 'Doprovod: D dur - A dur - Hm - G dur - D dur'
@@ -125,33 +125,42 @@ function SongLibrary() {
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
+            whileHover={{
+              y: -4,
+              boxShadow: '0 12px 40px rgba(181, 31, 101, 0.25)'
+            }}
             style={{
-              background: 'rgba(255, 255, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              cursor: 'pointer'
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '2px solid rgba(255, 255, 255, 0.4)',
+              cursor: 'pointer',
+              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'start', gap: '1.5rem' }}>
               {/* Play Button */}
               <motion.button
-                whileHover={{ scale: 1.1 }}
+                whileHover={{ scale: 1.15, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => playMelody(song)}
                 style={{
-                  width: '56px',
-                  height: '56px',
+                  width: '64px',
+                  height: '64px',
                   background: playingSong === song.id
-                    ? 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)'
-                    : 'linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%)',
-                  border: 'none',
+                    ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
+                    : 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(45, 91, 120, 0.3)',
+                  boxShadow: playingSong === song.id
+                    ? '0 8px 32px rgba(181, 31, 101, 0.5)'
+                    : '0 8px 32px rgba(45, 91, 120, 0.4)',
                   flexShrink: 0,
                   transition: 'all 0.3s'
                 }}
@@ -273,11 +282,14 @@ function SongLibrary() {
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       style={{
-                        padding: '0.75rem',
-                        background: 'rgba(45, 91, 120, 0.05)',
+                        padding: '1rem',
+                        background: 'rgba(45, 91, 120, 0.15)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
                         borderRadius: 'var(--radius)',
                         marginTop: '0.75rem',
-                        border: '1px solid rgba(45, 91, 120, 0.1)'
+                        border: '2px solid rgba(45, 91, 120, 0.3)',
+                        boxShadow: '0 4px 16px rgba(45, 91, 120, 0.2)'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
