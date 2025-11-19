@@ -1,34 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Migrace starých uživatelů - přidání isAdmin pole
-const migrateUsers = (users) => {
-  if (!users || users.length === 0) return users;
-
-  let needsMigration = false;
-  const migratedUsers = users.map((user) => {
-    if (user.isAdmin === undefined) {
-      needsMigration = true;
-      // Nastavit isAdmin podle emailu - Lenka Roubalová je admin
-      const isAdmin = user.email?.toLowerCase() === 'lenkaroubalka@seznam.cz';
-      return {
-        ...user,
-        isAdmin
-      };
-    }
-    return user;
-  });
-
-  if (needsMigration) {
-    const adminUser = migratedUsers.find(u => u.isAdmin);
-    if (adminUser) {
-      console.log(`Migrace dokončena - ${adminUser.firstName} ${adminUser.lastName} je nyní admin`);
-    }
-  }
-
-  return migratedUsers;
-};
-
 const useUserStore = create(
   persist(
     (set, get) => ({
@@ -45,7 +17,8 @@ const useUserStore = create(
           points: 0,
           streak: 0,
           lastLessonDate: null,
-          isAdmin: false // Výchozí nastavení - běžný uživatel
+          // Automaticky nastavit admin pro Lenku Roubalovou
+          isAdmin: userData.email?.toLowerCase() === 'lenkaroubalka@seznam.cz'
         };
         set((state) => ({
           users: [...state.users, newUser]
@@ -54,6 +27,29 @@ const useUserStore = create(
       },
 
       setCurrentUser: (user) => set({ currentUser: user }),
+
+      // Manuální nastavení admin práv pro konkrétní email
+      setAdminByEmail: (email) => {
+        set((state) => {
+          const updatedUsers = state.users.map(user => {
+            if (user.email?.toLowerCase() === email.toLowerCase()) {
+              return { ...user, isAdmin: true };
+            }
+            return user;
+          });
+
+          const updatedCurrentUser = state.currentUser?.email?.toLowerCase() === email.toLowerCase()
+            ? { ...state.currentUser, isAdmin: true }
+            : state.currentUser;
+
+          console.log(`✅ ${email} je nyní admin!`);
+
+          return {
+            users: updatedUsers,
+            currentUser: updatedCurrentUser
+          };
+        });
+      },
 
       updateUserProgress: (userId, lessonId) => {
         set((state) => {
@@ -174,24 +170,7 @@ const useUserStore = create(
       }
     }),
     {
-      name: 'piano-users-storage',
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Spustit migraci při načtení z localStorage
-          const migratedUsers = migrateUsers(state.users);
-          if (migratedUsers !== state.users) {
-            state.users = migratedUsers;
-
-            // Aktualizovat currentUser pokud byl migrován
-            if (state.currentUser) {
-              const updatedCurrentUser = migratedUsers.find(u => u.id === state.currentUser.id);
-              if (updatedCurrentUser) {
-                state.currentUser = updatedCurrentUser;
-              }
-            }
-          }
-        }
-      }
+      name: 'piano-users-storage'
     }
   )
 );
