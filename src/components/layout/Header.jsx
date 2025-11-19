@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Piano, User, Home, BookOpen } from 'lucide-react';
+import { Piano, User, Home, BookOpen, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
@@ -64,6 +64,19 @@ function Header() {
             }}>
               <Home size={18} />
               <span>Domů</span>
+            </Link>
+
+            <Link to="/resources" style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              textDecoration: 'none',
+              color: 'var(--color-text-secondary)',
+              fontSize: '0.875rem',
+              fontWeight: 500
+            }}>
+              <Lightbulb size={18} />
+              <span>Materiály</span>
             </Link>
 
             {currentUser && (

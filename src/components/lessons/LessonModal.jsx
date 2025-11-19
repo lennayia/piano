@@ -151,7 +151,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
 
         {/* Complete Button */}
         {currentUser && (
-          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.1)', paddingTop: '1.5rem' }}>
+          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.1)', paddingTop: '1.5rem', textAlign: 'center' }}>
             {isCompleted ? (
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -165,7 +165,8 @@ function LessonModal({ lesson, isOpen, onClose }) {
                   textAlign: 'center',
                   color: 'var(--color-success)',
                   fontWeight: 500,
-                  border: '1px solid rgba(16, 185, 129, 0.3)'
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  display: 'inline-block'
                 }}
               >
                 <CheckCircle size={24} style={{ marginBottom: '0.5rem' }} />
@@ -177,7 +178,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleComplete}
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
+                style={{ padding: '1rem 2rem', fontSize: '1rem' }}
               >
                 <CheckCircle size={20} />
                 Označit jako dokončenou

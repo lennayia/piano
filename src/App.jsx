@@ -5,6 +5,7 @@ import Registration from './pages/Registration';
 import UserDashboard from './pages/UserDashboard';
 import Admin from './pages/Admin';
 import Lesson from './pages/Lesson';
+import Resources from './pages/Resources';
 import './styles/index.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/lesson/:id" element={<Lesson />} />
+          <Route path="/resources" element={<Resources />} />
         </Routes>
       </Layout>
     </Router>
