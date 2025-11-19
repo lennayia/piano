@@ -112,7 +112,7 @@ function ChordQuiz() {
 
       <h2 style={{
         marginBottom: '1.5rem',
-        color: '#ffffff',
+        color: '#1e293b',
         display: 'flex',
         alignItems: 'center',
         gap: '0.75rem'
@@ -132,7 +132,7 @@ function ChordQuiz() {
         </div>
         Poznáš akord? 🎵
       </h2>
-      <p style={{ marginBottom: '2rem', color: 'rgba(255, 255, 255, 0.8)', fontSize: '1rem' }}>
+      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
         Zahrajte akord a zkuste uhodnout, který to je. Zábavný způsob, jak se naučit rozpoznávat akordy!
       </p>
 
@@ -177,13 +177,13 @@ function ChordQuiz() {
                 animate={{ scale: 1 }}
                 style={{
                   padding: '1rem',
-                  background: 'rgba(16, 185, 129, 0.1)',
+                  background: 'rgba(45, 91, 120, 0.1)',
                   borderRadius: 'var(--radius)',
                   marginBottom: '1.5rem',
-                  border: '1px solid rgba(16, 185, 129, 0.2)'
+                  border: '1px solid rgba(45, 91, 120, 0.2)'
                 }}
               >
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-success)', marginBottom: '0.5rem' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-secondary)', marginBottom: '0.5rem' }}>
                   {score} / {chords.length}
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
@@ -201,11 +201,11 @@ function ChordQuiz() {
               }}>
                 <div style={{
                   padding: '0.75rem 1.25rem',
-                  background: 'rgba(255, 193, 7, 0.1)',
+                  background: 'rgba(181, 31, 101, 0.1)',
                   borderRadius: 'var(--radius)',
-                  border: '1px solid rgba(255, 193, 7, 0.2)'
+                  border: '1px solid rgba(181, 31, 101, 0.2)'
                 }}>
-                  <Zap size={20} color="#ffc107" style={{ marginBottom: '0.25rem' }} />
+                  <Zap size={20} color="var(--color-primary)" style={{ marginBottom: '0.25rem' }} />
                   <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
                     Nejlepší série: <strong>{bestStreak}</strong>
                   </div>
@@ -264,14 +264,14 @@ function ChordQuiz() {
                   className="card"
                   style={{
                     padding: '0.75rem 1.25rem',
-                    background: 'rgba(255, 193, 7, 0.1)',
-                    border: '1px solid rgba(255, 193, 7, 0.2)',
+                    background: 'rgba(181, 31, 101, 0.1)',
+                    border: '1px solid rgba(181, 31, 101, 0.2)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem'
                   }}
                 >
-                  <Zap size={20} color="#ffc107" />
+                  <Zap size={20} color="var(--color-primary)" />
                   <span style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
                     Série: {streak} 🔥
                   </span>
@@ -350,13 +350,13 @@ function ChordQuiz() {
                         padding: '1.25rem',
                         background: showFeedback
                           ? isCorrect
-                            ? 'rgba(16, 185, 129, 0.2)'
-                            : 'rgba(239, 68, 68, 0.2)'
+                            ? 'rgba(45, 91, 120, 0.15)'
+                            : 'rgba(181, 31, 101, 0.1)'
                           : 'rgba(255, 255, 255, 0.9)',
                         border: showFeedback
                           ? isCorrect
-                            ? '2px solid var(--color-success)'
-                            : '2px solid var(--color-danger)'
+                            ? '2px solid var(--color-secondary)'
+                            : '2px solid rgba(181, 31, 101, 0.3)'
                           : '2px solid rgba(255, 255, 255, 0.4)',
                         cursor: showResult ? 'default' : 'pointer',
                         fontSize: '1.125rem',
