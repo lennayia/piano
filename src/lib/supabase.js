@@ -6,6 +6,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase credentials are missing. Please check your .env file.');
   console.error('Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY');
+  console.error('Current values:', { supabaseUrl, supabaseAnonKey });
+  throw new Error('Supabase credentials are required. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
 // Používáme custom schéma 'piano'
