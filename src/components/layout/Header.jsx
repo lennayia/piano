@@ -86,6 +86,16 @@ function Header() {
                 objectFit: 'contain'
               }}
             />
+            <span style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              PianoPro
+            </span>
           </Link>
 
           {currentUser && (
@@ -96,16 +106,16 @@ function Header() {
                 alignItems: 'center',
                 gap: '1.5rem'
               }}>
-                <Link to="/dashboard" onClick={handleNavClick} style={{
+                <Link to="/lekce" onClick={handleNavClick} style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.25rem',
                   textDecoration: 'none',
-                  color: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
+                  color: location.pathname === '/lekce' || location.pathname.startsWith('/lesson')
                     ? 'var(--color-primary)'
                     : 'var(--color-text-secondary)',
                   fontSize: '0.875rem',
-                  fontWeight: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson') ? 600 : 500,
+                  fontWeight: location.pathname === '/lekce' || location.pathname.startsWith('/lesson') ? 600 : 500,
                   transition: 'all 0.3s ease'
                 }}>
                   <BookOpen size={18} />
@@ -308,19 +318,19 @@ function Header() {
                       overflow: 'hidden'
                     }}
                   >
-                    <Link to="/dashboard" onClick={handleNavClick} style={{
+                    <Link to="/lekce" onClick={handleNavClick} style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
                       textDecoration: 'none',
-                      color: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
+                      color: location.pathname === '/lekce' || location.pathname.startsWith('/lesson')
                         ? 'var(--color-primary)'
                         : 'var(--color-text-secondary)',
                       fontSize: '1rem',
-                      fontWeight: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson') ? 600 : 500,
+                      fontWeight: location.pathname === '/lekce' || location.pathname.startsWith('/lesson') ? 600 : 500,
                       padding: '0.75rem',
                       borderRadius: 'var(--radius)',
-                      background: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
+                      background: location.pathname === '/lekce' || location.pathname.startsWith('/lesson')
                         ? 'rgba(181, 31, 101, 0.1)'
                         : 'transparent'
                     }}>

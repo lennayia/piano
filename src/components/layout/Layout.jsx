@@ -28,17 +28,17 @@ function Layout({ children }) {
             gap: '1rem',
             marginBottom: '1rem'
           }}>
-            <img
-              src="/piano.webp"
-              alt="PianoPro Logo"
-              style={{
-                height: '50px',
-                width: 'auto',
-                objectFit: 'contain',
-                opacity: 0.8
-              }}
-            />
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <img
+                src="/piano.webp"
+                alt="PianoPro Logo"
+                style={{
+                  height: '25px',
+                  width: 'auto',
+                  objectFit: 'contain',
+                  opacity: 0.8
+                }}
+              />
               PianoPro App © 2025 {' '}
               <a
                 href="https://online-byznys.cz"

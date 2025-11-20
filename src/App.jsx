@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Registration from './pages/Registration';
 import PianoLogin from './pages/PianoLogin';
 import UserDashboard from './pages/UserDashboard';
+import Lekce from './pages/Lekce';
 import Admin from './pages/Admin';
 import Lesson from './pages/Lesson';
 import Resources from './pages/Resources';
@@ -32,6 +33,7 @@ function App() {
 
           {/* Chráněné routes - vyžadují přihlášení */}
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+          <Route path="/lekce" element={<ProtectedRoute><Lekce /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/lesson/:id" element={<ProtectedRoute><Lesson /></ProtectedRoute>} />

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Award, BookOpen, Trophy, Flame, Zap, Piano, Star, Target, GraduationCap, History, Music, Gamepad2, Clock, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
-import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
 import useLessonStore from '../store/useLessonStore';
 import { supabase } from '../lib/supabase';
@@ -537,9 +536,6 @@ function UserDashboard() {
           </div>
         </motion.div>
       )}
-
-      {/* Lessons */}
-      <LessonList />
     </div>
   );
 }
