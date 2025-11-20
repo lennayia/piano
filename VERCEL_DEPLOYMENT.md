@@ -1,6 +1,6 @@
 # Vercel Deployment Guide
 
-Návod k nasazení Piano Learning App na Vercel.
+Návod k nasazení PianoPro App na Vercel.
 
 ## Předpoklady
 

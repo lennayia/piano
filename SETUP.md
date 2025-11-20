@@ -1,4 +1,4 @@
-# Piano Learning App - Průvodce nastavením
+# PianoPro App - Průvodce nastavením
 
 ## 🎹 Přehled
 Tato aplikace slouží k výuce hry na klavír s interaktivními lekcemi a gamifikací.

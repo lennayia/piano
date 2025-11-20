@@ -20,7 +20,7 @@ Interaktivní webová aplikace pro výuku hry na klavír s gamifikací, lekcemi,
 
 ## O projektu
 
-Piano Learning App je komplexní vzdělávací platforma zaměřená na výuku hry na klavír. Aplikace kombinuje:
+PianoPro App je komplexní vzdělávací platforma zaměřená na výuku hry na klavír. Aplikace kombinuje:
 - **Strukturované lekce** s interaktivní klaviaturou
 - **Knihovnu písní** s možností procvičování a detekcí chyb
 - **Kvízy** pro testování znalostí akordů

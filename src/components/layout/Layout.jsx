@@ -21,21 +21,39 @@ function Layout({ children }) {
         fontSize: '0.875rem'
       }}>
         <div className="container">
-          <p style={{ marginBottom: '0.5rem' }}>
-            © 2025 {' '}
-            <a
-              href="https://online-byznys.cz"
-              target="_blank"
-              rel="noopener noreferrer"
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1rem'
+          }}>
+            <img
+              src="/piano.webp"
+              alt="PianoPro Logo"
               style={{
-                color: 'var(--color-primary)',
-                textDecoration: 'none',
-                fontWeight: 500
+                height: '50px',
+                width: 'auto',
+                objectFit: 'contain',
+                opacity: 0.8
               }}
-            >
-              online-byznys.cz
-            </a>
-          </p>
+            />
+            <p style={{ margin: 0 }}>
+              PianoPro App © 2025 {' '}
+              <a
+                href="https://online-byznys.cz"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: 'var(--color-primary)',
+                  textDecoration: 'none',
+                  fontWeight: 500
+                }}
+              >
+                online-byznys.cz
+              </a>
+            </p>
+          </div>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', fontSize: '0.875rem' }}>
             <a
               href="/gdpr"

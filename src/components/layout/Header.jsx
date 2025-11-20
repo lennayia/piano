@@ -69,20 +69,23 @@ function Header() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              gap: '0.75rem',
               textDecoration: 'none',
-              color: '#1e293b',
-              fontWeight: 600,
-              fontSize: '1.25rem',
               transition: 'transform 0.2s'
             }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <motion.div whileHover={{ rotate: 10 }}>
-              <Piano size={28} color="var(--color-primary)" />
-            </motion.div>
-            <span>Piano learning</span>
+            <motion.img
+              src="/piano.webp"
+              alt="PianoPro Logo"
+              whileHover={{ scale: 1.1 }}
+              style={{
+                height: '40px',
+                width: 'auto',
+                objectFit: 'contain'
+              }}
+            />
           </Link>
 
           {currentUser && (

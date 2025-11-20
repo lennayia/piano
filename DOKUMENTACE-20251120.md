@@ -1,4 +1,4 @@
-# 📚 Dokumentace - Piano Learning App
+# 📚 Dokumentace - PianoPro App
 
 ## Obsah
 1. [Úvod](#úvod)
@@ -12,7 +12,7 @@
 
 ## Úvod
 
-Piano Learning App je webová aplikace pro výuku hry na klavír. Umožňuje:
+PianoPro App je webová aplikace pro výuku hry na klavír. Umožňuje:
 - Učit se základy hry na klavír
 - Procvičovat lidové písně
 - Studovat hudební teorii

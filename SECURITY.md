@@ -16,7 +16,7 @@ If you discover a security vulnerability in this application, please report it r
 
 1. **DO NOT** create a public GitHub issue
 2. **DO NOT** disclose the vulnerability publicly
-3. **DO** email security details to: lenkaroubalova@gmail.com
+3. **DO** email security details to: lenna@online-byznys.cz
 
 ### What to Include
 
@@ -118,7 +118,7 @@ Unauthorized use of this software may result in:
 - Immediate termination of access
 - Legal action for damages
 
-For licensing inquiries: lenkaroubalova@gmail.com
+For licensing inquiries: lenna@online-byznys.cz
 
 ---
 

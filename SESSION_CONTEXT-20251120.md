@@ -1,4 +1,4 @@
-# Piano Learning App - Session Context
+# PianoPro App - Session Context
 
 **Datum aktualizace**: 20. listopadu 2025
 **Branch**: `main`
