@@ -83,6 +83,7 @@ const useSongStore = create((set, get) => ({
           tips: newSong.tips,
           audio_url: newSong.audioUrl,
           category: newSong.category || 'lidovky',
+          is_active: true,
           order_index: maxOrder + 1
         })
         .select()
