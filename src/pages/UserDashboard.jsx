@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Award, BookOpen, Trophy, Flame, Zap, Piano, Star, Target, GraduationCap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Award, BookOpen, Trophy, Flame, Zap, Piano, Star, Target, GraduationCap, History, Music, Gamepad2, Clock, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
 import useLessonStore from '../store/useLessonStore';
+import { supabase } from '../lib/supabase';
 import * as LucideIcons from 'lucide-react';
 
 // Dynamické renderování ikony odměny podle dat z databáze
@@ -57,12 +58,95 @@ function UserDashboard() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
   const lessons = useLessonStore((state) => state.lessons);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
 
   useEffect(() => {
     if (!currentUser) {
       navigate('/registration');
+    } else {
+      fetchRecentActivities();
     }
   }, [currentUser, navigate]);
+
+  const fetchRecentActivities = async () => {
+    if (!currentUser) return;
+
+    try {
+      const allActivities = [];
+
+      // Fetch recent song completions
+      const { data: songs } = await supabase
+        .from('piano_song_completions')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('completed_at', { ascending: false })
+        .limit(3);
+
+      if (songs) {
+        songs.forEach(song => {
+          allActivities.push({
+            id: `song-${song.id}`,
+            type: 'song',
+            title: song.song_title,
+            date: new Date(song.completed_at),
+            xp: 100,
+            icon: Music
+          });
+        });
+      }
+
+      // Fetch recent quiz completions
+      const { data: quizzes } = await supabase
+        .from('piano_quiz_completions')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('completed_at', { ascending: false })
+        .limit(3);
+
+      if (quizzes) {
+        quizzes.forEach(quiz => {
+          allActivities.push({
+            id: `quiz-${quiz.id}`,
+            type: 'quiz',
+            title: 'Poznáš akord?',
+            date: new Date(quiz.completed_at),
+            xp: quiz.xp_earned || 50,
+            icon: Gamepad2
+          });
+        });
+      }
+
+      // Fetch recent lesson completions
+      const { data: lessonCompletions } = await supabase
+        .from('piano_lesson_completions')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('completed_at', { ascending: false })
+        .limit(3);
+
+      if (lessonCompletions) {
+        lessonCompletions.forEach(lesson => {
+          allActivities.push({
+            id: `lesson-${lesson.id}`,
+            type: 'lesson',
+            title: lesson.lesson_title || 'Lekce',
+            date: new Date(lesson.completed_at),
+            xp: lesson.xp_earned || 50,
+            icon: BookOpen
+          });
+        });
+      }
+
+      // Sort by date and take only 5 most recent
+      allActivities.sort((a, b) => b.date - a.date);
+      setRecentActivities(allActivities.slice(0, 5));
+    } catch (error) {
+      console.error('Chyba při načítání nedávné aktivity:', error);
+    } finally {
+      setLoadingActivities(false);
+    }
+  };
 
   if (!currentUser) {
     return null;
@@ -307,6 +391,145 @@ function UserDashboard() {
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
                     +{achievement.xp_reward} XP
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Recent Activity */}
+      {!loadingActivities && recentActivities.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+          style={{ marginBottom: '2rem' }}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem'
+          }}>
+            <h2 style={{
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: 0
+            }}>
+              <History size={24} color="var(--color-primary)" />
+              Nedávná aktivita
+            </h2>
+            <Link
+              to="/history"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                textDecoration: 'none',
+                color: 'var(--color-primary)',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                transition: 'opacity 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+            >
+              Zobrazit vše →
+            </Link>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {recentActivities.map((activity, index) => {
+              const Icon = activity.icon;
+              const formatDate = (date) => {
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                return `${day}.${month}.`;
+              };
+              const formatTime = (date) => {
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+              };
+
+              return (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 + index * 0.05 }}
+                  whileHover={{ scale: 1.01, x: 4 }}
+                  className="card"
+                  style={{
+                    padding: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    background: 'rgba(255, 255, 255, 0.7)',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    cursor: 'default'
+                  }}
+                >
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: 'var(--radius)',
+                    background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(221, 51, 121, 0.15) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid rgba(181, 31, 101, 0.2)',
+                    flexShrink: 0
+                  }}>
+                    <Icon size={20} color="var(--color-primary)" />
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {activity.title}
+                    </div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      fontSize: '0.75rem',
+                      color: '#64748b',
+                      marginTop: '0.25rem'
+                    }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Calendar size={12} />
+                        {formatDate(activity.date)}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Clock size={12} />
+                        {formatTime(activity.date)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    padding: '0.375rem 0.75rem',
+                    borderRadius: 'var(--radius)',
+                    background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(221, 51, 121, 0.15) 100%)',
+                    border: '2px solid rgba(181, 31, 101, 0.2)',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    color: 'var(--color-primary)',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}>
+                    +{activity.xp} XP
                   </div>
                 </motion.div>
               );

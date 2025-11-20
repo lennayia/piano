@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus, GripVertical, Copy, Trash2, Upload, Volume2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus, GripVertical, Copy, Trash2, Upload, Volume2, XCircle, ChevronDown, ChevronUp, Eye, EyeOff, Trophy, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import audioEngine from '../../utils/audio';
 import PianoKeyboard from '../lessons/PianoKeyboard';
 import NoteComposer from './NoteComposer';
+import Confetti from '../common/Confetti';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
@@ -69,6 +70,16 @@ function SongLibrary() {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [audioFile, setAudioFile] = useState(null);
   const [expandedSongs, setExpandedSongs] = useState({}); // State pro accordion
+
+  // Practice mode states
+  const [hideNotes, setHideNotes] = useState({}); // {songId: boolean}
+  const [practicingMode, setPracticingMode] = useState(null); // songId když je v practice režimu
+  const [practiceProgress, setPracticeProgress] = useState([]); // [{note, correct}]
+  const [practiceErrors, setPracticeErrors] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [completedSongTitle, setCompletedSongTitle] = useState('');
+
   const playingRef = useRef(false);
   const audioRef = useRef(null);
 
@@ -333,6 +344,184 @@ function SongLibrary() {
     setShowKeyboard(showKeyboard === songId ? null : songId);
   };
 
+  const toggleHideNotes = (songId) => {
+    setHideNotes(prev => ({
+      ...prev,
+      [songId]: !prev[songId]
+    }));
+  };
+
+  const startPractice = (song) => {
+    setPracticingMode(song.id);
+    setPracticeProgress([]);
+    setPracticeErrors(0);
+    setHideNotes(prev => ({ ...prev, [song.id]: true }));
+    setShowKeyboard(song.id);
+  };
+
+  const stopPractice = () => {
+    setPracticingMode(null);
+    setPracticeProgress([]);
+    setPracticeErrors(0);
+  };
+
+  const normalizeNote = (note) => {
+    if (!note) return null;
+
+    let normalized = note.trim();
+
+    // Ignorovat pauzy
+    if (/^-+$/.test(normalized)) return null;
+
+    // Ignorovat text (slova delší než 2 znaky bez notového formátu)
+    if (/[a-zčďěňřšťůžá]{3,}/.test(normalized.toLowerCase()) && !/^[a-h]+\.?'?$/.test(normalized.toLowerCase())) {
+      return null;
+    }
+
+    // Extrahovat základní notu (první písmeno) před is/es/tečkou/apostrofem
+    // Př.: "DDDes" -> "D", "dd" -> "d", "c'" -> "c", "Ccis" -> "C"
+    let baseNote = normalized[0];
+
+    // Zachovat apostrof pro vyšší oktávu (pokud je na konci)
+    let octaveModifier = '';
+    if (normalized.endsWith("'")) {
+      octaveModifier = "'";
+    }
+
+    // Zkontrolovat is/es suffix (po opakování písmen)
+    let accidental = '';
+    if (/is$/i.test(normalized)) {
+      accidental = '#';
+    } else if (/es$/i.test(normalized)) {
+      accidental = '#';
+    }
+
+    // Převést na velké písmeno
+    baseNote = baseNote.toUpperCase();
+
+    // Složit dohromady: nota + accidental + oktáva
+    normalized = baseNote + accidental + octaveModifier;
+
+    return normalized;
+  };
+
+  const handleNotePlay = (playedNote, song) => {
+    if (practicingMode !== song.id) return;
+
+    // Získat pole not písně a filtrovat jen platné noty
+    let notesArray;
+    if (Array.isArray(song.notes)) {
+      notesArray = song.notes;
+    } else {
+      notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+    }
+
+    // Normalizovat a filtrovat noty
+    const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
+
+    const currentIndex = practiceProgress.length;
+    const expectedNote = validNotes[currentIndex];
+    const normalizedPlayedNote = normalizeNote(playedNote);
+
+    const isCorrect = normalizedPlayedNote === expectedNote;
+
+    console.log(`[${currentIndex + 1}/${validNotes.length}] Hráno: "${normalizedPlayedNote}" | Očekáváno: "${expectedNote}" | Správně:`, isCorrect);
+
+    setPracticeProgress(prev => [...prev, { note: playedNote, correct: isCorrect }]);
+
+    if (!isCorrect) {
+      setPracticeErrors(prev => prev + 1);
+      audioEngine.playError();
+    } else {
+      audioEngine.playSuccess();
+    }
+
+    // Zkontrolovat, zda byla dokončena celá skladba
+    if (currentIndex + 1 === validNotes.length) {
+      setTimeout(() => checkSongCompletion(song, validNotes.length), 500);
+    }
+  };
+
+  const checkSongCompletion = async (song, totalNotes) => {
+    const isPerfect = practiceErrors === 0;
+
+    if (isPerfect) {
+      // Celebrace!
+      setShowCelebration(true);
+      audioEngine.playFanfare();
+      setTimeout(() => audioEngine.playApplause(), 500);
+
+      // Uložit do databáze
+      await saveSongCompletion(song, totalNotes);
+
+      // Uložit název písně a zobrazit success modal
+      setCompletedSongTitle(song.title);
+
+      setTimeout(() => {
+        setShowCelebration(false);
+        setShowSuccessModal(true);
+        stopPractice();
+      }, 3000);
+    } else {
+      // Není perfektní - zobrazit počet chyb a nabídnout opakování
+      alert(`Skladba dokončena s ${practiceErrors} chybami. Zkus to znovu pro perfektní zahrání!`);
+      stopPractice();
+    }
+  };
+
+  const saveSongCompletion = async (song, totalNotes) => {
+    const currentUser = useUserStore.getState().currentUser;
+    if (!currentUser) return;
+
+    try {
+      // 1. Uložit do historie
+      const { error: completionError } = await supabase
+        .from('piano_song_completions')
+        .insert([{
+          user_id: currentUser.id,
+          song_id: song.id.toString(),
+          song_title: song.title,
+          mistakes_count: 0,
+          is_perfect: true
+        }]);
+
+      if (completionError) {
+        console.error('Chyba při ukládání dokončení písně:', completionError);
+      }
+
+      // 2. Aktualizovat statistiky
+      const { data: stats, error: statsError } = await supabase
+        .from('piano_user_stats')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      if (stats && !statsError) {
+        const { error: updateError } = await supabase
+          .from('piano_user_stats')
+          .update({
+            songs_completed: (stats.songs_completed || 0) + 1,
+            songs_perfect_score: (stats.songs_perfect_score || 0) + 1,
+            total_xp: (stats.total_xp || 0) + 100, // 100 XP za perfektní píseň
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', currentUser.id);
+
+        if (updateError) {
+          console.error('Chyba při aktualizaci statistik:', updateError);
+        } else {
+          // Aktualizovat lokální store
+          const updateUserStats = useUserStore.getState().updateUserStats;
+          if (updateUserStats) {
+            updateUserStats();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Chyba při ukládání písně:', error);
+    }
+  };
+
   const startEditing = (song) => {
     setEditingSong(song.id);
     setAudioFile(null);
@@ -523,6 +712,143 @@ function SongLibrary() {
 
   return (
     <div>
+      {/* Confetti při perfektním zahrání */}
+      <Confetti show={showCelebration} onComplete={() => setShowCelebration(false)} />
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowSuccessModal(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: '1rem'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+              className="card"
+              style={{
+                maxWidth: '500px',
+                width: '100%',
+                padding: '2rem',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '2px solid rgba(181, 31, 101, 0.3)',
+                boxShadow: '0 20px 60px rgba(181, 31, 101, 0.4)',
+                textAlign: 'center'
+              }}
+            >
+              {/* Trophy Icon */}
+              <div style={{
+                width: '80px',
+                height: '80px',
+                margin: '0 auto 1.5rem',
+                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(221, 51, 121, 0.2) 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '3px solid rgba(181, 31, 101, 0.3)'
+              }}>
+                <Trophy size={40} color="var(--color-primary)" />
+              </div>
+
+              {/* Success Message */}
+              <h2 style={{
+                marginBottom: '0.5rem',
+                color: '#1e293b',
+                fontSize: '1.75rem'
+              }}>
+                Skvěle, naprosto bez chyb!
+              </h2>
+
+              <p style={{
+                fontSize: '1.125rem',
+                color: '#64748b',
+                marginBottom: '1.5rem'
+              }}>
+                Dokončili jste písničku <strong style={{ color: 'var(--color-primary)' }}>"{completedSongTitle}"</strong>
+              </p>
+
+              {/* Reward Info */}
+              <div style={{
+                padding: '1.5rem',
+                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.1) 0%, rgba(221, 51, 121, 0.1) 100%)',
+                borderRadius: 'var(--radius)',
+                marginBottom: '1.5rem',
+                border: '2px solid rgba(181, 31, 101, 0.2)'
+              }}>
+                <div style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  color: 'var(--color-primary)',
+                  marginBottom: '0.5rem'
+                }}>
+                  +100 XP
+                </div>
+                <div style={{
+                  fontSize: '0.875rem',
+                  color: '#64748b'
+                }}>
+                  Odměna za perfektní zahrání
+                </div>
+              </div>
+
+              {/* Info where to find stats */}
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#64748b',
+                marginBottom: '1.5rem'
+              }}>
+                Své statistiky a odměny najdete na{' '}
+                <strong style={{ color: 'var(--color-primary)' }}>Dashboardu</strong>
+              </p>
+
+              {/* Close Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowSuccessModal(false)}
+                className="btn btn-primary"
+                style={{
+                  padding: '0.75rem 2rem',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)',
+                  border: '2px solid rgba(181, 31, 101, 0.3)',
+                  color: '#ffffff',
+                  borderRadius: 'var(--radius)',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 16px rgba(181, 31, 101, 0.3)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                Pokračovat
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div style={{
           width: '48px',
@@ -1272,7 +1598,9 @@ function SongLibrary() {
 
                     {/* Noty s vizualizací */}
                     <div style={{ marginTop: '1rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                      {/* Pokud nejsou noty skryté, zobrazit je */}
+                      {!hideNotes[song.id] && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
                     {(() => {
                       // Rozdělit notes na jednotlivé elementy (může být string nebo pole)
                       let notesArray;
@@ -1331,23 +1659,118 @@ function SongLibrary() {
                           )}
                         </motion.div>
                       );
-                    })}
-                  </div>
+                          })}
+                        </div>
+                      )}
 
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => toggleKeyboard(song.id)}
-                    className="btn btn-secondary"
-                    style={{
-                      fontSize: '0.875rem',
-                      padding: '0.5rem 1rem',
-                      marginBottom: '0.75rem'
-                    }}
-                  >
-                    <Piano size={16} />
-                    {showKeyboard === song.id ? 'Skrýt klavír' : 'Zkusit na klavíru'}
-                  </motion.button>
+                      {/* Tlačítka */}
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                        {/* Toggle skrytí/zobrazení not */}
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => toggleHideNotes(song.id)}
+                          disabled={practicingMode === song.id}
+                          className="btn btn-secondary"
+                          style={{
+                            fontSize: '0.875rem',
+                            padding: '0.5rem 1rem',
+                            opacity: practicingMode === song.id ? 0.5 : 1,
+                            cursor: practicingMode === song.id ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {hideNotes[song.id] ? <Eye size={16} /> : <EyeOff size={16} />}
+                          {hideNotes[song.id] ? 'Zobrazit noty' : 'Skrýt noty'}
+                        </motion.button>
+
+                        {/* Tlačítko Procvičovat / Ukončit */}
+                        {practicingMode === song.id ? (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={stopPractice}
+                            className="btn btn-primary"
+                            style={{
+                              fontSize: '0.875rem',
+                              padding: '0.5rem 1rem',
+                              background: 'var(--color-danger)',
+                              border: 'none'
+                            }}
+                          >
+                            <X size={16} />
+                            Ukončit procvičování
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => startPractice(song)}
+                            className="btn btn-primary"
+                            style={{
+                              fontSize: '0.875rem',
+                              padding: '0.5rem 1rem'
+                            }}
+                          >
+                            <Target size={16} />
+                            Procvičovat
+                          </motion.button>
+                        )}
+
+                        {/* Klavír toggle */}
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => toggleKeyboard(song.id)}
+                          className="btn btn-secondary"
+                          style={{
+                            fontSize: '0.875rem',
+                            padding: '0.5rem 1rem'
+                          }}
+                        >
+                          <Piano size={16} />
+                          {showKeyboard === song.id ? 'Skrýt klavír' : 'Zkusit na klavíru'}
+                        </motion.button>
+                      </div>
+
+                      {/* Zobrazit progress při procvičování */}
+                      {practicingMode === song.id && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          style={{
+                            padding: '1rem',
+                            background: 'rgba(181, 31, 101, 0.1)',
+                            borderRadius: 'var(--radius)',
+                            marginBottom: '0.75rem',
+                            border: '2px solid var(--color-primary)'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                            <Trophy size={20} color="var(--color-primary)" />
+                            <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
+                              Režim procvičování
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                            Postupně zahraj všechny noty správně. Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
+                          </div>
+                          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                            Postup: <strong>{practiceProgress.length}</strong> / <strong>
+                              {(() => {
+                                let notesArray;
+                                if (Array.isArray(song.notes)) {
+                                  notesArray = song.notes;
+                                } else {
+                                  notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                                }
+                                // Počítat jen validní noty (bez pauz a textu)
+                                const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
+                                return validNotes.length;
+                              })()}
+                            </strong>
+                          </div>
+                        </motion.div>
+                      )}
                 </div>
 
                 <AnimatePresence>
@@ -1369,6 +1792,7 @@ function SongLibrary() {
                             ? song.notes
                             : song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n)
                         }
+                        onNoteClick={(note) => handleNotePlay(note, song)}
                       />
                     </motion.div>
                   )}

@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown } from 'lucide-react';
+import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import useUserStore from '../../store/useUserStore';
@@ -200,6 +200,36 @@ function Header() {
                           zIndex: 1000
                         }}
                       >
+                        <Link
+                          to="/history"
+                          onClick={() => {
+                            audioEngine.playClick();
+                            setUserMenuOpen(false);
+                          }}
+                          style={{
+                            textDecoration: 'none'
+                          }}
+                        >
+                          <motion.div
+                            whileHover={{ backgroundColor: 'rgba(181, 31, 101, 0.1)' }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.75rem 1rem',
+                              borderRadius: 'var(--radius)',
+                              color: '#1e293b',
+                              fontSize: '0.875rem',
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              transition: 'background-color 0.2s ease'
+                            }}
+                          >
+                            <History size={18} color="var(--color-primary)" />
+                            <span>Historie</span>
+                          </motion.div>
+                        </Link>
+
                         <motion.button
                           whileHover={{ backgroundColor: 'rgba(181, 31, 101, 0.1)' }}
                           onClick={handleLogout}
@@ -336,6 +366,26 @@ function Header() {
                         <span>Admin</span>
                       </Link>
                     )}
+
+                    <Link to="/history" onClick={handleNavClick} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      textDecoration: 'none',
+                      color: location.pathname === '/history'
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                      fontSize: '1rem',
+                      fontWeight: location.pathname === '/history' ? 600 : 500,
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius)',
+                      background: location.pathname === '/history'
+                        ? 'rgba(181, 31, 101, 0.1)'
+                        : 'transparent'
+                    }}>
+                      <History size={20} />
+                      <span>Historie</span>
+                    </Link>
 
                     <div style={{
                       display: 'flex',

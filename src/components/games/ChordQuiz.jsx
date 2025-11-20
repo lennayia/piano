@@ -95,6 +95,7 @@ function ChordQuiz() {
 
     try {
       // 1. Uložit dokončení kvízu do historie
+      const xpEarned = isPerfect ? 50 : 20;
       const { error: quizError } = await supabase
         .from('piano_quiz_completions')
         .insert([{
@@ -102,7 +103,8 @@ function ChordQuiz() {
           quiz_name: 'Poznáš akord?',
           score: finalScore,
           total_questions: chords.length,
-          is_perfect: isPerfect
+          is_perfect: isPerfect,
+          xp_earned: xpEarned
         }]);
 
       if (quizError) {

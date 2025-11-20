@@ -7,6 +7,7 @@ import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
 import audioEngine from '../utils/audio';
 import Confetti from '../components/common/Confetti';
+import { supabase } from '../lib/supabase';
 
 function Lesson() {
   const { id } = useParams();
@@ -21,7 +22,6 @@ function Lesson() {
   );
 
   const currentUser = useUserStore((state) => state.currentUser);
-  const updateUserProgress = useUserStore((state) => state.updateUserProgress);
 
   useEffect(() => {
     if (!lesson) {
@@ -38,11 +38,57 @@ function Lesson() {
     return null;
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (currentUser && !isCompleted) {
-      updateUserProgress(currentUser.id, lesson.id);
       setIsCompleted(true);
       setEarnedPoints(100);
+
+      // Uložit dokončení lekce do historie a aktualizovat statistiky
+      try {
+        // 1. Uložit do historie
+        const { error: lessonError } = await supabase
+          .from('piano_lesson_completions')
+          .insert([{
+            user_id: currentUser.id,
+            lesson_id: lesson.id.toString(),
+            lesson_title: lesson.title,
+            xp_earned: 50
+          }]);
+
+        if (lessonError) {
+          console.error('Chyba při ukládání lekce:', lessonError);
+        }
+
+        // 2. Aktualizovat statistiky
+        const { data: stats, error: statsError } = await supabase
+          .from('piano_user_stats')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        if (stats && !statsError) {
+          const { error: updateError } = await supabase
+            .from('piano_user_stats')
+            .update({
+              lessons_completed: (stats.lessons_completed || 0) + 1,
+              total_xp: (stats.total_xp || 0) + 50,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', currentUser.id);
+
+          if (updateError) {
+            console.error('Chyba při aktualizaci statistik:', updateError);
+          } else {
+            // Aktualizovat lokální store
+            const updateUserStats = useUserStore.getState().updateUserStats;
+            if (updateUserStats) {
+              updateUserStats();
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Chyba při ukládání lekce:', error);
+      }
 
       // Získat aktualizovaného uživatele pro nové achievementy
       setTimeout(() => {
