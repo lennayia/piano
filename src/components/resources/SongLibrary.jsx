@@ -537,7 +537,8 @@ function SongLibrary() {
       tempo: song.tempo,
       key: song.key,
       tips: song.tips,
-      audioUrl: song.audioUrl || ''
+      audioUrl: song.audioUrl || '',
+      category: song.category || 'lidovky'
     });
   };
 
@@ -565,7 +566,8 @@ function SongLibrary() {
       tempo: editForm.tempo,
       key: editForm.key,
       tips: editForm.tips,
-      audioUrl: audioUrl || ''
+      audioUrl: audioUrl || '',
+      category: editForm.category
     });
 
     setEditingSong(null);
@@ -683,18 +685,27 @@ function SongLibrary() {
       if (!audioUrl) return; // Upload selhal
     }
 
-    addSong({
-      title: newSongForm.title,
-      notes: newSongForm.notes, // Uložit přímo jako string
-      lyrics: newSongForm.lyrics,
-      difficulty: newSongForm.difficulty,
-      tempo: newSongForm.tempo,
-      key: newSongForm.key,
-      tips: newSongForm.tips,
-      audioUrl: audioUrl || ''
-    });
+    try {
+      await addSong({
+        title: newSongForm.title,
+        notes: newSongForm.notes, // Uložit přímo jako string
+        lyrics: newSongForm.lyrics,
+        difficulty: newSongForm.difficulty,
+        tempo: newSongForm.tempo,
+        key: newSongForm.key,
+        tips: newSongForm.tips,
+        audioUrl: audioUrl || '',
+        category: newSongForm.category
+      });
 
-    setIsAddingNew(false);
+      // Znovu načíst písničky z databáze
+      await fetchSongs();
+
+      setIsAddingNew(false);
+    } catch (error) {
+      console.error('Chyba při ukládání písničky:', error);
+      alert('Aaa, něco se nepovedlo 😕 Písnička se neuložila. Chyba: ' + error.message);
+    }
   };
 
   const cancelAddingNew = () => {
@@ -923,8 +934,8 @@ function SongLibrary() {
         {activeCategory === 'detske' && 'Dětské písničky'}
       </h2>
       <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
-        {activeCategory === 'lidovky' && 'Procvičte si harmonizaci na těchto oblíbených lidových písních'}
-        {activeCategory === 'uzskorolidovky' && 'Užsko-oravské lidové písně'}
+        {activeCategory === 'lidovky' && 'Tak pojďte na to, dobře je všechny znáte'}
+        {activeCategory === 'uzskorolidovky' && 'Jsou tak skvělý, proto skoro zlidověly'}
         {activeCategory === 'detske' && 'Písničky pro děti'}
       </p>
 
