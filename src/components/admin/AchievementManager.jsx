@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import * as LucideIcons from 'lucide-react';
 import useLessonStore from '../../store/useLessonStore';
+import useSongStore from '../../store/useSongStore';
 
 // Dostupné ikony pro výběr
 const AVAILABLE_ICONS = [
@@ -39,10 +40,13 @@ function AchievementManager() {
     trigger_id: null
   });
   const lessons = useLessonStore((state) => state.lessons);
+  const songs = useSongStore((state) => state.songs);
+  const fetchSongs = useSongStore((state) => state.fetchSongs);
 
   useEffect(() => {
     fetchAchievements();
-  }, []);
+    fetchSongs(); // Načíst písničky pro dropdown
+  }, [fetchSongs]);
 
   const fetchAchievements = async () => {
     const { data, error } = await supabase
@@ -317,8 +321,8 @@ function AchievementManager() {
                     <ul style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
                       <li style={{ marginBottom: '0.25rem' }}><strong>Globální</strong> - přidělí se automaticky při splnění podmínky (XP, série, počet lekcí)</li>
                       <li style={{ marginBottom: '0.25rem' }}><strong>Za lekci</strong> - přidělí se po dokončení konkrétní lekce</li>
-                      <li style={{ marginBottom: '0.25rem' }}><strong>Za kvíz</strong> - přidělí se po úspěšném splnění kvízu</li>
-                      <li><strong>Za materiál</strong> - přidělí se po prostudování materiálu</li>
+                      <li style={{ marginBottom: '0.25rem' }}><strong>Za kvíz</strong> - přidělí se po úspěšném splnění kvízu (např. Poznáte akord?)</li>
+                      <li><strong>Za materiál</strong> - přidělí se po dokončení konkrétní písničky, šablony nebo slovníčkového pojmu</li>
                     </ul>
                   </div>
 
@@ -652,6 +656,36 @@ function AchievementManager() {
                     <option value="">-- Vyberte kvíz --</option>
                     <option value="1">Poznáte akord?</option>
                     {/* Další kvízy budou přidány později */}
+                  </select>
+                </div>
+              )}
+
+              {/* Trigger ID - materiál */}
+              {formData.trigger_type === 'material' && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                    Materiál
+                  </label>
+                  <select
+                    value={formData.trigger_id || ''}
+                    onChange={(e) => setFormData({ ...formData, trigger_id: parseInt(e.target.value) || null })}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius)',
+                      border: '1px solid #ddd',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    <option value="">-- Vyberte materiál --</option>
+                    <optgroup label="Písničky">
+                      {songs.map(song => (
+                        <option key={`song-${song.id}`} value={song.id}>
+                          {song.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                    {/* Další typy materiálů budou přidány podle potřeby */}
                   </select>
                 </div>
               )}

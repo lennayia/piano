@@ -50,6 +50,7 @@ function SortableSongCard({ song, children }) {
 }
 
 function SongLibrary() {
+  const [activeCategory, setActiveCategory] = useState('lidovky'); // Nový state pro kategorii
   const [playingSong, setPlayingSong] = useState(null);
   const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
   const [showKeyboard, setShowKeyboard] = useState(null);
@@ -65,7 +66,8 @@ function SongLibrary() {
     tempo: '',
     key: '',
     tips: '',
-    audioUrl: ''
+    audioUrl: '',
+    category: 'lidovky' // Přidat výchozí kategorii
   });
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [audioFile, setAudioFile] = useState(null);
@@ -849,6 +851,59 @@ function SongLibrary() {
         )}
       </AnimatePresence>
 
+      {/* Kategorie písniček */}
+      <div style={{
+        display: 'flex',
+        gap: '0.75rem',
+        marginBottom: '2rem',
+        flexWrap: 'wrap'
+      }}>
+        {[
+          { id: 'lidovky', label: 'Lidovky', icon: Music },
+          { id: 'uzskorolidovky', label: 'Užskorolidovky', icon: Music },
+          { id: 'detske', label: 'Dětské', icon: Music }
+        ].map((category) => {
+          const Icon = category.icon;
+          return (
+            <motion.button
+              key={category.id}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setActiveCategory(category.id)}
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: activeCategory === category.id
+                  ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
+                  : 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: activeCategory === category.id
+                  ? '2px solid rgba(181, 31, 101, 0.3)'
+                  : '2px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: 'calc(var(--radius) * 2)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.875rem',
+                fontWeight: activeCategory === category.id ? 600 : 500,
+                color: activeCategory === category.id ? '#ffffff' : '#64748b',
+                boxShadow: activeCategory === category.id
+                  ? '0 4px 16px rgba(181, 31, 101, 0.3)'
+                  : 'none',
+                transition: 'all 0.3s'
+              }}
+            >
+              <Icon
+                size={18}
+                color={activeCategory === category.id ? '#ffffff' : '#64748b'}
+              />
+              {category.label}
+            </motion.button>
+          );
+        })}
+      </div>
+
       <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div style={{
           width: '48px',
@@ -863,10 +918,14 @@ function SongLibrary() {
         }}>
           <Music size={24} color="var(--color-primary)" />
         </div>
-        Playlist lidových písní
+        {activeCategory === 'lidovky' && 'Lidovky'}
+        {activeCategory === 'uzskorolidovky' && 'Užskorolidovky'}
+        {activeCategory === 'detske' && 'Dětské písničky'}
       </h2>
       <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
-        Procvičte si harmonizaci na těchto oblíbených lidových písních
+        {activeCategory === 'lidovky' && 'Procvičte si harmonizaci na těchto oblíbených lidových písních'}
+        {activeCategory === 'uzskorolidovky' && 'Užsko-oravské lidové písně'}
+        {activeCategory === 'detske' && 'Písničky pro děti'}
       </p>
 
       {/* Tlačítko pro přidání nové písně (pouze pro adminy) */}
@@ -975,7 +1034,23 @@ function SongLibrary() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Kategorie
+                </label>
+                <select
+                  className="form-input"
+                  value={newSongForm.category}
+                  onChange={(e) => handleNewSongChange('category', e.target.value)}
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="lidovky">Lidovky</option>
+                  <option value="uzskorolidovky">Užskorolidovky</option>
+                  <option value="detske">Dětské</option>
+                </select>
+              </div>
+
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                   Obtížnost
@@ -1126,11 +1201,11 @@ function SongLibrary() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={songs.map(s => s.id)}
+          items={songs.filter(s => s.category === activeCategory || !s.category).map(s => s.id)}
           strategy={verticalListSortingStrategy}
         >
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {songs.map((song, index) => (
+            {songs.filter(song => song.category === activeCategory || !song.category).map((song, index) => (
               <SortableSongCard key={song.id} song={song}>
                 {(dragAttributes, dragListeners) => (
                   <motion.div

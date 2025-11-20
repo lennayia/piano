@@ -44,7 +44,8 @@ const useSongStore = create((set, get) => ({
           tempo: updatedData.tempo,
           key: updatedData.key,
           tips: updatedData.tips,
-          audio_url: updatedData.audioUrl
+          audio_url: updatedData.audioUrl,
+          category: updatedData.category
         })
         .eq('id', songId)
         .select()
@@ -81,6 +82,7 @@ const useSongStore = create((set, get) => ({
           key: newSong.key,
           tips: newSong.tips,
           audio_url: newSong.audioUrl,
+          category: newSong.category || 'lidovky',
           order_index: maxOrder + 1
         })
         .select()
@@ -137,6 +139,7 @@ const useSongStore = create((set, get) => ({
           key: songToDuplicate.key,
           tips: songToDuplicate.tips,
           audio_url: songToDuplicate.audio_url,
+          category: songToDuplicate.category || 'lidovky',
           order_index: maxOrder + 1
         })
         .select()

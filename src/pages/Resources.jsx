@@ -12,7 +12,7 @@ function Resources() {
 
   const tabs = [
     { id: 'quiz', label: 'Poznáte akord?', icon: Target, color: 'var(--color-primary)' },
-    { id: 'playlist', label: 'Lidové písničky', icon: Music, color: 'var(--color-secondary)' },
+    { id: 'playlist', label: 'Písničky', icon: Music, color: 'var(--color-secondary)' },
     { id: 'templates', label: 'Šablony harmonizace', icon: BookOpen, color: 'var(--color-secondary)' },
     { id: 'glossary', label: 'Slovníček', icon: Book, color: 'var(--color-secondary)' }
   ];
