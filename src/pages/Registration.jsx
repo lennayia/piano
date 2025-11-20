@@ -246,7 +246,7 @@ function Registration() {
             opacity: 0.9,
             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}>
-            Moderní a zábavný způsob výuky na klavír
+            Moderním a zábavným způsobem
           </p>
         </motion.div>
 

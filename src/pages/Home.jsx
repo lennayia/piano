@@ -124,7 +124,7 @@ function Home() {
           transition={{ delay: 0.2, duration: 0.5 }}
           style={{ fontSize: '3rem', marginBottom: '1rem', color: '#1e293b' }}
         >
-          Naučte se na piano
+          Naučte se na piano!
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
