@@ -667,7 +667,8 @@ function SongLibrary() {
       tempo: '',
       key: '',
       tips: '',
-      audioUrl: ''
+      audioUrl: '',
+      category: activeCategory // Nastavit kategorii podle aktivního tabu
     });
   };
 
