@@ -70,10 +70,10 @@ function UserDashboard() {
         overflow: 'hidden'
       }}>
         <h1 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>
-          Vítejte zpět, {toVocative(currentUser.firstName)}!
+          Vítejte, {toVocative(currentUser.first_name)}!
         </h1>
         <p style={{ color: '#64748b' }}>
-          Pokračujte ve svém učení a objevujte nové lekce
+          Těšíte se na svoje další pokroky? Pojďme na to! 
         </p>
 
         <div style={{ display: 'flex', gap: '2rem', marginTop: '1.5rem' }}>

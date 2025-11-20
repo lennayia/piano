@@ -1,8 +1,48 @@
 import { useState } from 'react';
-import { FileText, Download, Eye, EyeOff, Sparkles, Plus, Edit3, Save, X, Trash2 } from 'lucide-react';
+import { FileText, Download, Eye, EyeOff, Sparkles, Plus, Edit3, Save, X, Trash2, GripVertical, Copy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import useHarmonizationTemplatesStore from '../../store/useHarmonizationTemplatesStore';
 import useUserStore from '../../store/useUserStore';
+
+// Sortable wrapper component for drag and drop
+function SortableTemplate({ template, children }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: template.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children(attributes, listeners)}
+    </div>
+  );
+}
 
 function HarmonizationTemplates() {
   const [expandedTemplate, setExpandedTemplate] = useState(null);
@@ -22,9 +62,30 @@ function HarmonizationTemplates() {
   const updateTemplate = useHarmonizationTemplatesStore((state) => state.updateTemplate);
   const addTemplate = useHarmonizationTemplatesStore((state) => state.addTemplate);
   const deleteTemplate = useHarmonizationTemplatesStore((state) => state.deleteTemplate);
+  const duplicateTemplate = useHarmonizationTemplatesStore((state) => state.duplicateTemplate);
+  const reorderTemplates = useHarmonizationTemplatesStore((state) => state.reorderTemplates);
   const currentUser = useUserStore((state) => state.currentUser);
 
-  const isAdmin = currentUser?.isAdmin === true;
+  const isAdmin = currentUser?.is_admin === true;
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = templates.findIndex((template) => template.id === active.id);
+      const newIndex = templates.findIndex((template) => template.id === over.id);
+      const newOrder = arrayMove(templates, oldIndex, newIndex);
+      reorderTemplates(newOrder);
+    }
+  };
 
   // Admin funkce pro šablony
   const handleNewTemplateChange = (field, value) => {
@@ -144,7 +205,7 @@ function HarmonizationTemplates() {
             background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
             borderRadius: 'calc(var(--radius) * 2)',
-            color: '#1e293b',
+            color: '#ffffff',
             fontSize: '0.875rem',
             fontWeight: 600,
             cursor: 'pointer',
@@ -281,72 +342,116 @@ function HarmonizationTemplates() {
         )}
       </AnimatePresence>
 
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        {templates.map((template, index) => (
-          <motion.div
-            key={template.id}
-            className="card"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            style={{
-              background: 'rgba(255, 255, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              overflow: 'hidden'
-            }}
-          >
-            <div
-              onClick={() => toggleTemplate(template.id)}
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                    <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
-                      {template.title}
-                    </h3>
-                    <span className={`badge ${getDifficultyColor(template.difficulty)}`}>
-                      {template.difficulty}
-                    </span>
-                    {isAdmin && (
-                      <div style={{ display: 'flex', gap: '0.25rem', marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => startEditingTemplate(template)}
-                          style={{
-                            padding: '0.25rem 0.5rem',
-                            background: 'rgba(45, 91, 120, 0.1)',
-                            border: '1px solid rgba(45, 91, 120, 0.3)',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Edit3 size={14} color="var(--color-secondary)" />
-                        </motion.button>
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handleDeleteTemplate(template.id)}
-                          style={{
-                            padding: '0.25rem 0.5rem',
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Trash2 size={14} color="var(--color-danger)" />
-                        </motion.button>
-                      </div>
-                    )}
-                  </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={templates.map(t => t.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {templates.map((template, index) => (
+              <SortableTemplate key={template.id} template={template}>
+                {(dragAttributes, dragListeners) => (
+                  <motion.div
+                    className="card"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      onClick={() => toggleTemplate(template.id)}
+                      style={{ cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                            {isAdmin && (
+                              <div
+                                {...dragAttributes}
+                                {...dragListeners}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  cursor: 'grab',
+                                  padding: '0.25rem',
+                                  opacity: 0.5,
+                                  transition: 'opacity 0.2s',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.3'}
+                                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                              >
+                                <GripVertical size={16} />
+                              </div>
+                            )}
+                            <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
+                              {template.title}
+                            </h3>
+                            <span className={`badge ${getDifficultyColor(template.difficulty)}`}>
+                              {template.difficulty}
+                            </span>
+                            {isAdmin && (
+                              <div style={{ display: 'flex', gap: '0.25rem', marginLeft: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => duplicateTemplate(template.id)}
+                                  style={{
+                                    padding: '0.25rem 0.5rem',
+                                    background: 'rgba(181, 31, 101, 0.1)',
+                                    border: '1px solid rgba(181, 31, 101, 0.3)',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  title="Duplikovat šablonu"
+                                >
+                                  <Copy size={14} color="var(--color-primary)" />
+                                </motion.button>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => startEditingTemplate(template)}
+                                  style={{
+                                    padding: '0.25rem 0.5rem',
+                                    background: 'rgba(45, 91, 120, 0.1)',
+                                    border: '1px solid rgba(45, 91, 120, 0.3)',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <Edit3 size={14} color="var(--color-secondary)" />
+                                </motion.button>
+                                <motion.button
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  onClick={() => handleDeleteTemplate(template.id)}
+                                  style={{
+                                    padding: '0.25rem 0.5rem',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <Trash2 size={14} color="var(--color-danger)" />
+                                </motion.button>
+                              </div>
+                            )}
+                          </div>
                   <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: 0 }}>
                     {template.description}
                   </p>
@@ -587,8 +692,12 @@ function HarmonizationTemplates() {
               )}
             </AnimatePresence>
           </motion.div>
-        ))}
-      </div>
+                )}
+              </SortableTemplate>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }

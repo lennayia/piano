@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase } from '../lib/supabase';
 
 const defaultSongs = [
   {
@@ -81,6 +82,27 @@ const useSongStore = create(
         set((state) => ({
           songs: state.songs.filter(song => song.id !== songId)
         }));
+      },
+
+      duplicateSong: (songId) => {
+        set((state) => {
+          const songToDuplicate = state.songs.find(song => song.id === songId);
+          if (!songToDuplicate) return state;
+
+          const duplicatedSong = {
+            ...songToDuplicate,
+            id: Date.now(),
+            title: `${songToDuplicate.title} (kopie)`
+          };
+
+          return {
+            songs: [...state.songs, duplicatedSong]
+          };
+        });
+      },
+
+      reorderSongs: (newOrder) => {
+        set({ songs: newOrder });
       },
 
       resetSongs: () => {

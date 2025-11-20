@@ -1,21 +1,85 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Save, X, Trash2 } from 'lucide-react';
+import { Plus, Edit3, Save, X, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import LessonCard from './LessonCard';
 import LessonModal from './LessonModal';
 import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
+
+// Sortable Lesson Wrapper
+function SortableLessonCard({ lesson, children }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lesson.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children(attributes, listeners)}
+    </div>
+  );
+}
 
 function LessonList() {
   const lessons = useLessonStore((state) => state.lessons);
   const addLesson = useLessonStore((state) => state.addLesson);
   const updateLesson = useLessonStore((state) => state.updateLesson);
   const deleteLesson = useLessonStore((state) => state.deleteLesson);
+  const duplicateLesson = useLessonStore((state) => state.duplicateLesson);
+  const reorderLessons = useLessonStore((state) => state.reorderLessons);
   const currentUser = useUserStore((state) => state.currentUser);
 
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
+
+  const isAdmin = currentUser?.is_admin === true;
+
+  // Sensors pro drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = lessons.findIndex((lesson) => lesson.id === active.id);
+      const newIndex = lessons.findIndex((lesson) => lesson.id === over.id);
+      const newOrder = arrayMove(lessons, oldIndex, newIndex);
+      reorderLessons(newOrder);
+    }
+  };
   const [newLessonForm, setNewLessonForm] = useState({
     title: '',
     description: '',
@@ -27,8 +91,6 @@ function LessonList() {
     }
   });
   const [editForm, setEditForm] = useState(null);
-
-  const isAdmin = currentUser?.isAdmin === true;
 
   const container = {
     hidden: { opacity: 0 },
@@ -305,30 +367,47 @@ function LessonList() {
         )}
       </AnimatePresence>
 
-      <motion.div
-        className="grid grid-cols-2"
-        variants={container}
-        initial="hidden"
-        animate="show"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        {lessons.map((lesson, index) => (
+        <SortableContext
+          items={lessons.map(l => l.id)}
+          strategy={rectSortingStrategy}
+        >
           <motion.div
-            key={lesson.id}
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              show: { opacity: 1, y: 0 }
-            }}
+            className="grid grid-cols-2"
+            variants={container}
+            initial="hidden"
+            animate="show"
           >
-            <LessonCard
-              lesson={lesson}
-              onClick={handleLessonClick}
-              isAdmin={isAdmin}
-              onEdit={startEditingLesson}
-              onDelete={handleDeleteLesson}
-            />
+            {lessons.map((lesson, index) => (
+              <SortableLessonCard key={lesson.id} lesson={lesson}>
+                {(dragAttributes, dragListeners) => (
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      show: { opacity: 1, y: 0 }
+                    }}
+                  >
+                    <LessonCard
+                      lesson={lesson}
+                      onClick={handleLessonClick}
+                      isAdmin={isAdmin}
+                      onEdit={startEditingLesson}
+                      onDelete={handleDeleteLesson}
+                      onDuplicate={duplicateLesson}
+                      dragAttributes={dragAttributes}
+                      dragListeners={dragListeners}
+                    />
+                  </motion.div>
+                )}
+              </SortableLessonCard>
+            ))}
           </motion.div>
-        ))}
-      </motion.div>
+        </SortableContext>
+      </DndContext>
 
       {/* Edit Form */}
       <AnimatePresence>

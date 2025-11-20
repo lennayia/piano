@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Registration from './pages/Registration';
+import PianoLogin from './pages/PianoLogin';
 import UserDashboard from './pages/UserDashboard';
 import Admin from './pages/Admin';
 import Lesson from './pages/Lesson';
@@ -26,6 +27,7 @@ function App() {
           {/* Veřejné routes */}
           <Route path="/" element={<Home />} />
           <Route path="/registration" element={<Registration />} />
+          <Route path="/piano-login" element={<PianoLogin />} />
 
           {/* Chráněné routes - vyžadují přihlášení */}
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />

@@ -13,44 +13,69 @@ function Layout({ children }) {
         {children}
       </main>
       <footer style={{
-        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        borderTop: '1px solid rgba(0, 0, 0, 0.2)',
         padding: '2rem 0',
         marginTop: '4rem',
         textAlign: 'center',
-        color: '#ffffff',
+        color: '#00000081',
         fontSize: '0.875rem'
       }}>
         <div className="container">
-          {!currentUser && location.pathname === '/' && (
-            <div style={{ marginBottom: '1rem' }}>
-              <Link
-                to="/registration"
-                style={{
-                  color: '#ffffff',
-                  textDecoration: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  padding: '0.5rem 1.5rem',
-                  borderRadius: 'var(--radius)',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  display: 'inline-block',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.2)';
-                  e.target.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                  e.target.style.transform = 'scale(1)';
-                }}
-              >
-                Přihlásit se
-              </Link>
-            </div>
-          )}
-          <p>© 2025 Piano Learning App. Naučte se hrát na klavír jednoduše a zábavně.</p>
+          <p style={{ marginBottom: '0.5rem' }}>
+            © 2025 {' '}
+            <a
+              href="https://online-byznys.cz"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: 'var(--color-primary)',
+                textDecoration: 'none',
+                fontWeight: 500
+              }}
+            >
+              online-byznys.cz
+            </a>
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', fontSize: '0.875rem' }}>
+            <a
+              href="/gdpr"
+              style={{
+                color: '#00000081',
+                textDecoration: 'none',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.target.style.color = '#00000081'}
+            >
+              GDPR
+            </a>
+            <span style={{ color: '#00000081' }}>|</span>
+            <a
+              href="/vop"
+              style={{
+                color: '#00000081',
+                textDecoration: 'none',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.target.style.color = '#00000081'}
+            >
+              VOP
+            </a>
+            <span style={{ color: '#00000081' }}>|</span>
+            <a
+              href="/cookies"
+              style={{
+                color: '#00000081',
+                textDecoration: 'none',
+                transition: 'color 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.target.style.color = '#00000081'}
+            >
+              Cookies
+            </a>
+          </div>
         </div>
       </footer>
     </div>

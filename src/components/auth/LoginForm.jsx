@@ -249,7 +249,7 @@ function LoginForm({ disableBackgroundMusic = false }) {
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Vítejte</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
-          Zadejte své údaje a začněte svou cestu ke hře na klavír
+          Vyplňte svoje údaje a začněte hrát na klavír
         </p>
       </div>
 

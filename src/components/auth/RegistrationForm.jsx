@@ -117,7 +117,7 @@ function RegistrationForm() {
         </motion.div>
         <h2>Začněte se učit</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
-          Zadejte své údaje a začněte svou cestu ke hře na klavír
+          Vyplňte svoje údaje a začněte hrát na klavír
         </p>
       </div>
 

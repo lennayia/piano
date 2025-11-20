@@ -41,29 +41,80 @@ class AudioEngine {
   // Note frequencies (C4 = middle C)
   // Chromatická stupnice vzestupně
   getNoteFrequency(note) {
+    // Převést na velká písmena a odstranit mezery
+    let normalizedNote = note.trim().toUpperCase();
+
+    // Převést is/es notaci na # a b
+    normalizedNote = normalizedNote
+      .replace(/CIS/g, 'C#')
+      .replace(/DIS/g, 'D#')
+      .replace(/FIS/g, 'F#')
+      .replace(/GIS/g, 'G#')
+      .replace(/AIS/g, 'A#')
+      .replace(/DES/g, 'DB')
+      .replace(/ES/g, 'EB')
+      .replace(/GES/g, 'GB')
+      .replace(/AS/g, 'AB')
+      .replace(/B(?!B)/g, 'BB'); // B -> Bb (ale ne BB -> BBb)
+
     const frequencies = {
+      // Nižší oktáva (basová, velká C3)
+      'C.': 130.81,   // C3 (velké C)
+      'C#.': 138.59,  // C#3/Db3
+      'DB.': 138.59,
+      'D.': 146.83,   // D3
+      'D#.': 155.56,  // D#3/Eb3
+      'EB.': 155.56,
+      'E.': 164.81,   // E3
+      'F.': 174.61,   // F3
+      'F#.': 185.00,  // F#3/Gb3
+      'GB.': 185.00,
+      'G.': 196.00,   // G3
+      'G#.': 207.65,  // G#3/Ab3
+      'AB.': 207.65,
+      'A.': 220.00,   // A3
+      'A#.': 233.08,  // A#3/Bb3
+      'BB.': 233.08,
+      'H.': 246.94,   // H3/B3
+      // Střední oktáva (C4)
       'C': 261.63,    // C4 (malé c)
       'C#': 277.18,   // C#4/Db4
-      'Db': 277.18,
+      'DB': 277.18,
       'D': 293.66,    // D4
       'D#': 311.13,   // D#4/Eb4
-      'Eb': 311.13,
+      'EB': 311.13,
       'E': 329.63,    // E4
       'F': 349.23,    // F4
       'F#': 369.99,   // F#4/Gb4
-      'Gb': 369.99,
+      'GB': 369.99,
       'G': 392.00,    // G4
       'G#': 415.30,   // G#4/Ab4
-      'Ab': 415.30,
+      'AB': 415.30,
       'A': 440.00,    // A4 (komorní A)
       'A#': 466.16,   // A#4/Bb4
-      'Bb': 466.16,
+      'BB': 466.16,
       'H': 493.88,    // H4/B4
-      'B': 493.88,
+      // Vyšší oktáva (jednočárkovaná, C5)
       "C'": 523.25,   // C5 (c' - jednočárkované)
+      "C#'": 554.37,  // C#5/Db5
+      "DB'": 554.37,
+      "D'": 587.33,   // D5
+      "D#'": 622.25,  // D#5/Eb5
+      "EB'": 622.25,
+      "E'": 659.25,   // E5
+      "F'": 698.46,   // F5
+      "F#'": 739.99,  // F#5/Gb5
+      "GB'": 739.99,
+      "G'": 783.99,   // G5
+      "G#'": 830.61,  // G#5/Ab5
+      "AB'": 830.61,
+      "A'": 880.00,   // A5
+      "A#'": 932.33,  // A#5/Bb5
+      "BB'": 932.33,
+      "H'": 987.77,   // H5/B5
     };
 
-    return frequencies[note] || 440;
+    return frequencies[normalizedNote] || 440;
   }
 
   playNote(note, duration = 0.5) {

@@ -193,6 +193,27 @@ const useGlossaryStore = create(
         }));
       },
 
+      duplicateTerm: (termId) => {
+        set((state) => {
+          const termToDuplicate = state.terms.find(term => term.id === termId);
+          if (!termToDuplicate) return state;
+
+          const duplicatedTerm = {
+            ...termToDuplicate,
+            id: Date.now(),
+            term: `${termToDuplicate.term} (kopie)`
+          };
+
+          return {
+            terms: [...state.terms, duplicatedTerm]
+          };
+        });
+      },
+
+      reorderTerms: (newOrder) => {
+        set({ terms: newOrder });
+      },
+
       resetTerms: () => {
         set({ terms: defaultTerms });
       }

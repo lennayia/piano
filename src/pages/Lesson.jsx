@@ -230,7 +230,7 @@ function Lesson() {
         style={{ marginBottom: '2rem' }}
       >
         <ArrowLeft size={18} />
-        Zpět na přehled
+        Zpátky na přehled
       </button>
 
       <div className="card" style={{

@@ -12,7 +12,7 @@ function Resources() {
 
   const tabs = [
     { id: 'quiz', label: 'Poznáš akord?', icon: Target, color: 'var(--color-primary)' },
-    { id: 'playlist', label: 'Lidové písně', icon: Music, color: 'var(--color-secondary)' },
+    { id: 'playlist', label: 'Lidové písničky', icon: Music, color: 'var(--color-secondary)' },
     { id: 'templates', label: 'Šablony harmonizace', icon: BookOpen, color: 'var(--color-secondary)' },
     { id: 'glossary', label: 'Slovníček', icon: Book, color: 'var(--color-secondary)' }
   ];
@@ -28,7 +28,7 @@ function Resources() {
           Výukové materiály
         </h1>
         <p style={{ fontSize: '1.125rem', color: '#64748b' }}>
-          Procvičte si harmonizaci pomocí interaktivního kvízu, playlistu lidových písní a připravených šablon
+          Procvičte si harmonizaci pomocí interaktivního kvízu, playlistu lidovek a připravených šablon
         </p>
       </motion.div>
 

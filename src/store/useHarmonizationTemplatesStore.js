@@ -39,7 +39,7 @@ const defaultTemplates = [
       { name: 'G dur', notes: ['G', 'H', 'D'], function: 'V. stupeň - dominanta' }
     ],
     progression: 'I - VI - IV - V - I',
-    example: 'Použití: Složitější lidové písně s melancholickým nádechem'
+    example: 'Použití: Složitější lidové písničky s melancholickým nádechem'
   },
   {
     id: 4,
@@ -79,6 +79,27 @@ const useHarmonizationTemplatesStore = create(
         set((state) => ({
           templates: state.templates.filter(template => template.id !== templateId)
         }));
+      },
+
+      duplicateTemplate: (templateId) => {
+        set((state) => {
+          const templateToDuplicate = state.templates.find(template => template.id === templateId);
+          if (!templateToDuplicate) return state;
+
+          const duplicatedTemplate = {
+            ...templateToDuplicate,
+            id: Date.now(),
+            title: `${templateToDuplicate.title} (kopie)`
+          };
+
+          return {
+            templates: [...state.templates, duplicatedTemplate]
+          };
+        });
+      },
+
+      reorderTemplates: (newOrder) => {
+        set({ templates: newOrder });
       },
 
       resetTemplates: () => {

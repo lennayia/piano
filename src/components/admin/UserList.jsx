@@ -64,7 +64,9 @@ function UserList() {
             {users.map((user) => (
               <tr key={user.id}>
                 <td style={{ fontWeight: 500 }}>
-                  {user.firstName} {user.lastName}
+                  {user.first_name && user.last_name
+                    ? `${user.first_name} ${user.last_name}`
+                    : (user.email || '—')}
                 </td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -75,7 +77,7 @@ function UserList() {
                   </div>
                 </td>
                 <td>
-                  {user.isAdmin ? (
+                  {user.is_admin ? (
                     <span className="badge" style={{
                       background: 'rgba(239, 68, 68, 0.1)',
                       color: 'var(--color-danger)',
@@ -94,21 +96,21 @@ function UserList() {
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
                     <Calendar size={16} color="var(--color-text-secondary)" />
-                    {formatDate(user.createdAt)}
+                    {formatDate(user.created_at)}
                   </div>
                 </td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Hash size={16} color="var(--color-secondary)" />
                     <span style={{ fontWeight: 600, color: 'var(--color-secondary)' }}>
-                      {user.loginCount || 1}×
+                      {user.login_count || 0}×
                     </span>
                   </div>
                 </td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
                     <LogIn size={16} color="var(--color-text-secondary)" />
-                    {formatDate(user.lastLogin)}
+                    {formatDate(user.last_login)}
                   </div>
                 </td>
                 <td>
@@ -123,15 +125,22 @@ function UserList() {
                       Detail
                     </button>
                     <button
-                      onClick={() => handleToggleAdmin(user.id, `${user.firstName} ${user.lastName}`, user.isAdmin)}
-                      className={user.isAdmin ? 'btn btn-secondary' : 'btn btn-warning'}
+                      onClick={() => handleToggleAdmin(
+                        user.id,
+                        user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email,
+                        user.is_admin
+                      )}
+                      className={user.is_admin ? 'btn btn-secondary' : 'btn btn-warning'}
                       style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
-                      title={user.isAdmin ? 'Odebrat admin práva' : 'Přidat admin práva'}
+                      title={user.is_admin ? 'Odebrat admin práva' : 'Přidat admin práva'}
                     >
-                      {user.isAdmin ? <ShieldOff size={14} /> : <Shield size={14} />}
+                      {user.is_admin ? <ShieldOff size={14} /> : <Shield size={14} />}
                     </button>
                     <button
-                      onClick={() => handleDelete(user.id, `${user.firstName} ${user.lastName}`)}
+                      onClick={() => handleDelete(
+                        user.id,
+                        user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email
+                      )}
                       className="btn btn-danger"
                       style={{ padding: '0.375rem 0.75rem', fontSize: '0.75rem' }}
                     >
@@ -255,11 +264,15 @@ function UserList() {
                     fontWeight: 600,
                     color: 'var(--color-primary)'
                   }}>
-                    {selectedUser.firstName[0]}{selectedUser.lastName[0]}
+                    {selectedUser.first_name && selectedUser.last_name
+                      ? `${selectedUser.first_name[0]}${selectedUser.last_name[0]}`
+                      : (selectedUser.email?.[0]?.toUpperCase() || '?')}
                   </div>
                   <div>
                     <h3 style={{ marginBottom: '0.25rem', color: '#1e293b' }}>
-                      {selectedUser.firstName} {selectedUser.lastName}
+                      {selectedUser.first_name && selectedUser.last_name
+                        ? `${selectedUser.first_name} ${selectedUser.last_name}`
+                        : selectedUser.email}
                     </h3>
                     <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
                       {selectedUser.email}
@@ -281,7 +294,7 @@ function UserList() {
                     <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Přihlášení</span>
                   </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-secondary)' }}>
-                    {selectedUser.loginCount || 1}×
+                    {selectedUser.login_count || 0}×
                   </div>
                 </div>
 

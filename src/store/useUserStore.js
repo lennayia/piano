@@ -27,12 +27,14 @@ const useUserStore = create(
             .single();
 
           if (existingUser) {
-            // User exists - update name if changed
+            // User exists - update name if changed and increment login count
             const { data: updatedUser, error: updateError } = await supabase
               .from('piano_users')
               .update({
                 first_name: userData.firstName,
-                last_name: userData.lastName
+                last_name: userData.lastName,
+                login_count: (existingUser.login_count || 0) + 1,
+                last_login: new Date().toISOString()
               })
               .eq('id', existingUser.id)
               .select()
@@ -96,6 +98,85 @@ const useUserStore = create(
       },
 
       setCurrentUser: (user) => set({ currentUser: user }),
+
+      // Admin login with password (Supabase Auth)
+      adminLogin: async (credentials) => {
+        set({ loading: true, error: null });
+        try {
+          console.log('🔑 Step 1: Authenticating with Supabase...');
+          // Sign in with Supabase Auth
+          const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            email: credentials.email.toLowerCase(),
+            password: credentials.password
+          });
+
+          if (authError) {
+            console.error('❌ Auth error:', authError);
+            throw authError;
+          }
+          console.log('✅ Auth successful:', authData.user?.email);
+
+          console.log('🔍 Step 2: Fetching user profile...');
+          // Get user profile from piano_users table
+          const { data: userProfile, error: profileError } = await supabase
+            .from('piano_users')
+            .select('*')
+            .eq('email', credentials.email.toLowerCase())
+            .single();
+
+          if (profileError) {
+            console.error('❌ Profile error:', profileError);
+            throw new Error('Uživatelský profil nebyl nalezen');
+          }
+          console.log('✅ Profile found:', userProfile);
+
+          // Check if user is admin
+          if (!userProfile.is_admin) {
+            console.error('❌ User is not admin');
+            await supabase.auth.signOut();
+            throw new Error('Tento účet nemá administrátorská oprávnění');
+          }
+          console.log('✅ User is admin');
+
+          console.log('📊 Step 3: Updating login stats...');
+          // Update login count and last login time
+          const { data: updatedProfile, error: updateError } = await supabase
+            .from('piano_users')
+            .update({
+              login_count: (userProfile.login_count || 0) + 1,
+              last_login: new Date().toISOString()
+            })
+            .eq('id', userProfile.id)
+            .select()
+            .single();
+
+          if (updateError) {
+            console.warn('⚠️ Login stats update error (non-critical):', updateError);
+          }
+
+          console.log('📊 Step 4: Fetching user stats...');
+          // Get user stats
+          const { data: stats, error: statsError } = await supabase
+            .from('piano_user_stats')
+            .select('*')
+            .eq('user_id', userProfile.id)
+            .single();
+
+          if (statsError) {
+            console.warn('⚠️ Stats error (non-critical):', statsError);
+          }
+          console.log('✅ Stats fetched:', stats);
+
+          const userWithStats = { ...(updatedProfile || userProfile), stats };
+          set({ currentUser: userWithStats, loading: false });
+          console.log('✅ Admin login complete, user set in store');
+          return userWithStats;
+        } catch (error) {
+          console.error('❌ Admin login error:', error);
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
 
   // Set admin rights for an email
   setAdminByEmail: async (email) => {

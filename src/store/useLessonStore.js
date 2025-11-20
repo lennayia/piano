@@ -101,6 +101,27 @@ const useLessonStore = create(
         }));
       },
 
+      duplicateLesson: (lessonId) => {
+        set((state) => {
+          const lessonToDuplicate = state.lessons.find(lesson => lesson.id === lessonId);
+          if (!lessonToDuplicate) return state;
+
+          const duplicatedLesson = {
+            ...lessonToDuplicate,
+            id: Date.now(),
+            title: `${lessonToDuplicate.title} (kopie)`
+          };
+
+          return {
+            lessons: [...state.lessons, duplicatedLesson]
+          };
+        });
+      },
+
+      reorderLessons: (newOrder) => {
+        set({ lessons: newOrder });
+      },
+
       resetLessons: () => {
         set({ lessons: defaultLessons });
       }

@@ -1,8 +1,8 @@
-import { Clock, TrendingUp, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import { Clock, TrendingUp, ChevronRight, Edit3, Trash2, GripVertical, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 
-function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete }) {
+function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners }) {
   const getDifficultyColor = (difficulty) => {
     switch (difficulty) {
       case 'začátečník':
@@ -47,11 +47,52 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete }) {
     >
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          {/* Drag Handle (pouze pro adminy) */}
+          {isAdmin && dragAttributes && dragListeners && (
+            <div
+              {...dragAttributes}
+              {...dragListeners}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                cursor: 'grab',
+                padding: '0.25rem',
+                color: 'var(--color-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.5,
+                transition: 'opacity 0.2s',
+                marginRight: '0.5rem'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+            >
+              <GripVertical size={16} />
+            </div>
+          )}
+
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: '1.125rem', marginBottom: '0.5rem' }}>{lesson.title}</h3>
               {isAdmin && (
                 <div style={{ display: 'flex', gap: '0.25rem' }} onClick={(e) => e.stopPropagation()}>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => onDuplicate(lesson.id)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      background: 'rgba(181, 31, 101, 0.1)',
+                      border: '1px solid rgba(181, 31, 101, 0.3)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                    title="Duplikovat lekci"
+                  >
+                    <Copy size={14} color="var(--color-primary)" />
+                  </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}

@@ -59,7 +59,7 @@ function Header() {
             <motion.div whileHover={{ rotate: 10 }}>
               <Piano size={28} color="var(--color-primary)" />
             </motion.div>
-            <span>Piano Learning</span>
+            <span>Piano learning</span>
           </Link>
 
           {currentUser && (
@@ -100,7 +100,7 @@ function Header() {
                 <span>Materiály</span>
               </Link>
 
-              {currentUser.isAdmin && (
+              {currentUser.is_admin && (
                 <Link to="/admin" style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -131,7 +131,7 @@ function Header() {
               }}>
                 <User size={18} color="var(--color-primary)" />
                 <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                  {currentUser.firstName} {currentUser.lastName}
+                  {currentUser.first_name} {currentUser.last_name}
                 </span>
               </div>
 

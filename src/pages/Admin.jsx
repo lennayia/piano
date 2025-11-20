@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, BarChart3, Users, Music } from 'lucide-react';
 import AdminDashboard from '../components/admin/Dashboard';
@@ -10,9 +10,17 @@ function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [hoveredTab, setHoveredTab] = useState(null);
   const currentUser = useUserStore((state) => state.currentUser);
+  const getAllUsers = useUserStore((state) => state.getAllUsers);
 
   // Kontrola, zda je uživatel admin
-  const isAdmin = currentUser?.isAdmin === true;
+  const isAdmin = currentUser?.is_admin === true;
+
+  // Načíst všechny uživatele při otevření Admin stránky
+  useEffect(() => {
+    if (isAdmin) {
+      getAllUsers();
+    }
+  }, [isAdmin, getAllUsers]);
 
   if (!isAdmin) {
     return (
@@ -58,7 +66,7 @@ function Admin() {
           <Shield size={24} color="var(--color-primary)" />
         </div>
         <div>
-          <h1 style={{ marginBottom: '0.25rem', color: '#1e293b' }}>Admin Panel</h1>
+          <h1 style={{ marginBottom: '0.25rem', color: '#1e293b' }}>Admin panel</h1>
           <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
             Správa uživatelů, statistik a obsahu aplikace
           </p>

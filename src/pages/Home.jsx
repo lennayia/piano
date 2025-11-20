@@ -28,7 +28,7 @@ function Home() {
     {
       icon: Users,
       title: 'Pro všechny úrovně',
-      description: 'Od začátečníků po pokročilé, každý najde své lekce'
+      description: 'Od začátečníků po pokročilé, každý najde svoje lekce'
     }
   ];
 
@@ -66,7 +66,7 @@ function Home() {
     },
     {
       title: 'Praktická harmonizace',
-      description: 'Harmonizujte 5 lidových písní od základu',
+      description: 'Harmonizujte 5 lidovek od základu',
       completed: false
     },
     {
@@ -105,13 +105,26 @@ function Home() {
           <Piano size={48} color="var(--color-primary)" />
         </motion.div>
 
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          style={{
+            fontSize: '1.5rem',
+            color: 'var(--color-primary)',
+            marginBottom: '0.5rem',
+            fontWeight: 500
+          }}
+        >
+          Máte rádi Vltavu?
+        </motion.p>
         <motion.h1
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
           style={{ fontSize: '3rem', marginBottom: '1rem', color: '#1e293b' }}
         >
-          Naučte se hrát na klavír
+          Naučte se na piano
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -126,7 +139,7 @@ function Home() {
             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}
         >
-          Moderní způsob výuky klavíru pro začátečníky i pokročilé. Začněte svou hudební cestu ještě dnes.
+          Vydejte se na svoji hudební cestu hned dneska. Moderním způsobem výuky klavíru pro začátečníky i pokročilé.
         </motion.p>
 
         <motion.div
@@ -200,10 +213,10 @@ function Home() {
       {/* Pro koho je to Section */}
       <div style={{ padding: '4rem 0', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius)', margin: '2rem 0' }}>
         <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: '#1e293b' }}>
-          Pro koho je tento kurz určený
+          Pro koho je aplikace vhodná
         </h2>
         <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '3rem', fontSize: '1.125rem' }}>
-          Pokud se v některé z těchto situací poznáváte, tento kurz je přesně pro vás
+          Poznávate se v některé z těchto situací? Pak je přesně pro vás
         </p>
 
         <div className="grid grid-cols-3">
@@ -263,7 +276,7 @@ function Home() {
           Co konkrétně se naučíte
         </h2>
         <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '3rem', fontSize: '1.125rem' }}>
-          Kurz je rozdělen do modulů, které vás provedou od základů k praktické aplikaci
+          Aplikace je rozdělená do modulů, které vás provedou od základů k praxi
         </p>
 
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -361,11 +374,11 @@ function Home() {
             <div>
               <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>O lektorce Evě Lorenc</h2>
               <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: 1.8, marginBottom: '1rem' }}>
-                Eva Lorenc je zkušená klavíristka a pedagožka s více než 15 lety praxe. Specializuje se na harmonizaci a doprovod sborových písní.
+                Eva Lorenc je zkušená klavíristka, skladatelka a nadšená pedagožka hry na klavír s více než 15 lety praxe. Specializuje se na výuku dětí i dospělých od základů až po profi úroveň.
               </p>
               <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: 1.8, marginBottom: '1rem' }}>
-                "Vytvořila jsem tento kurz, protože jsem viděla, jak mnoho lidí umí zahrát melodii, ale váhají s doprovodem.
-                Chci vám ukázat, že harmonizace není složitá - stačí znát pár základních principů a můžete oživit jakoukoli píseň."
+                „Vytvořila jsem tento kurz, protože jsem viděla, jak mnoho lidí umí zahrát melodii, ale váhají s doprovodem.
+                Chci vám ukázat, že harmonizace není složitá - stačí znát pár základních principů a můžete oživit jakoukoli písničku.“
               </p>
               <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -374,7 +387,7 @@ function Home() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Users size={20} color="var(--color-secondary)" />
-                  <span style={{ fontSize: '0.9375rem', color: '#64748b' }}>100+ studentů</span>
+                  <span style={{ fontSize: '0.9375rem', color: '#64748b' }}>1600+ studentů</span>
                 </div>
               </div>
             </div>
@@ -419,9 +432,9 @@ function Home() {
         >
           <Music size={40} color="var(--color-primary)" />
         </motion.div>
-        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#1e293b' }}>Připraveni začít?</h2>
+        <h2 style={{ marginBottom: '1rem', fontSize: '2rem', color: '#1e293b' }}>Jste připraveni začít?</h2>
         <p style={{ marginBottom: '2.5rem', fontSize: '1.125rem', color: '#1e293b', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
-          Registrace je rychlá a jednoduchá. Začněte se učit během několika vteřin a objevte krásu harmonizace.
+          Přihlaste se a začněte se učit během několika vteřin. Objevte, že je ve vás něco, o čem jste možná ani nevěděli.
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}
