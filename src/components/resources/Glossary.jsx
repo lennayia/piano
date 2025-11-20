@@ -103,7 +103,7 @@ function Glossary() {
 
   const saveNewTerm = () => {
     if (!newTermForm.term || !newTermForm.definition) {
-      alert('Vyplňte alespoň název a definici');
+      alert('Vyplňte aspoň něco 😊 Třeba název a definici.');
       return;
     }
 
@@ -132,7 +132,7 @@ function Glossary() {
 
   const saveEditedTerm = () => {
     if (!editForm.term || !editForm.definition) {
-      alert('Vyplňte alespoň název a definici');
+      alert('Vyplňte aspoň něco 😊 Třeba název a definici.');
       return;
     }
     updateTerm(editingTerm, editForm);
@@ -146,7 +146,7 @@ function Glossary() {
   };
 
   const handleDeleteTerm = (termId) => {
-    if (confirm('Opravdu chcete smazat tento výraz?')) {
+    if (confirm('Aha, tenhle výraz se vám nelíbí a chcete ho smazat. Ano, ale je to definitivní. Takže vážně smazat?')) {
       deleteTerm(termId);
     }
   };
@@ -697,7 +697,7 @@ function Glossary() {
           color: '#64748b',
           fontSize: '1rem'
         }}>
-          Žádný výraz nenalezen. Zkuste jiné hledání.
+          Hm, tohle tady nemáme 🔍 Zkuste hledat znova a jinak.
         </div>
       )}
     </div>

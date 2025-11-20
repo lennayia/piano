@@ -132,7 +132,7 @@ function History() {
   const lessonCount = activities.filter(a => a.type === 'lesson').length;
 
   const filterButtons = [
-    { id: 'all', label: 'Vše', icon: HistoryIcon },
+    { id: 'all', label: 'Všechno', icon: HistoryIcon },
     { id: 'lessons', label: 'Lekce', icon: Book },
     { id: 'songs', label: 'Písničky', icon: Music },
     { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
@@ -295,15 +295,11 @@ function History() {
       ) : filteredActivities.length === 0 ? (
         <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
           <HistoryIcon size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>Zatím žádná aktivita</h3>
+          <h3 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>Ještě tu nic není</h3>
           <p style={{ color: '#64748b' }}>
             {filter === 'all'
-              ? 'Začněte procvičovat a vaše aktivita se zobrazí zde.'
-              : `Zatím jste nedokončili žádné ${
-                  filter === 'songs' ? 'písničky' :
-                  filter === 'quizzes' ? 'kvízy' :
-                  filter === 'lessons' ? 'lekce' : 'aktivity'
-                }.`
+              ? 'Hned jak začnete cvičit, uvidíte tady všechny svoje úspěchy 🎉'
+              : `Ještě jste to nezkusili. Tak s chutí do toho! 🎵`
             }
           </p>
         </div>

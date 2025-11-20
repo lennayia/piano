@@ -75,7 +75,7 @@ Budete automaticky nastavena jako **admin**! 👑
 ## Proč custom schéma?
 
 ✅ Oddělení od jiných projektů v `public` schématu
-✅ Lepší organizace při více projektech
+✅ Lepší organizace při víc projektech
 ✅ Stejný prefix `piano_` jako u jiných vašich projektů
 
 ---

@@ -195,7 +195,7 @@ function SongLibrary() {
       if (!element) continue;
 
       // Ignorovat text (slova bez notového formátu) - například text v závorkách nebo běžná slova
-      // Text se pozná podle toho, že obsahuje více než 2 malá písmena za sebou nebo speciální znaky
+      // Text se pozná podle toho, že obsahuje víc než 2 malá písmena za sebou nebo speciální znaky
       if (/[a-zčďěňřšťůžá]{3,}/.test(element.toLowerCase()) && !/^[a-h]+\.?'?$/.test(element.toLowerCase())) {
         continue; // Přeskočit text
       }
@@ -464,7 +464,7 @@ function SongLibrary() {
       }, 3000);
     } else {
       // Není perfektní - zobrazit počet chyb a nabídnout opakování
-      alert(`Skladba dokončena s ${practiceErrors} chybami. Zkus to znovu pro perfektní zahrání!`);
+      alert(`Skladba dokončena s ${practiceErrors} chybami. Zkuste to znovu pro perfektní zahrání!`);
       stopPractice();
     }
   };
@@ -540,7 +540,7 @@ function SongLibrary() {
   };
 
   const handleDeleteSong = (songId) => {
-    if (confirm('Opravdu chcete smazat tuto písničku?')) {
+    if (confirm('Jestli tu písničku teď smažete, budete ji muset celou typovat znova, když si to pak rozmyslíte. Nepůjde totiž vrátit zpátky. Tak určitě ji chcete smazat?')) {
       deleteSong(songId);
     }
   };
@@ -601,7 +601,7 @@ function SongLibrary() {
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading audio:', error);
-      alert('Chyba při nahrávání audio souboru: ' + error.message);
+      alert('Tohle se nám nedaří nahrát: ' + error.message);
       setUploadingAudio(false);
       return null;
     }
@@ -610,7 +610,7 @@ function SongLibrary() {
   const handleDeleteAudio = async (audioUrl) => {
     if (!audioUrl) return;
 
-    if (!confirm('Opravdu chcete smazat audio soubor?')) return;
+    if (!confirm('Klidně tohle audio smažte, kdyžtak ho nahrajete znova. Jestli teda máte zálohu. Smazat nebo nechat?')) return;
 
     try {
       // Extrahovat cestu ze URL
@@ -934,7 +934,7 @@ function SongLibrary() {
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Noty (klikni na klavír nebo zadej ručně)
+                Noty (klikněte na klavír nebo zadejte ručně)
               </label>
 
               {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
@@ -1339,7 +1339,7 @@ function SongLibrary() {
 
                     <div className="form-group" style={{ marginBottom: '1rem' }}>
                       <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Noty (klikni na klavír nebo zadej ručně)
+                        Noty (klikněte na klavír nebo zadejte ručně)
                       </label>
 
                       {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
@@ -1752,7 +1752,7 @@ function SongLibrary() {
                             </span>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                            Postupně zahraj všechny noty správně. Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
+                            Postupně zahrajte všechny noty správně. Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                             Postup: <strong>{practiceProgress.length}</strong> / <strong>

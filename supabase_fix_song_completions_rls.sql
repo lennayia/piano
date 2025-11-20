@@ -22,7 +22,7 @@ CREATE POLICY "Uživatelé mohou číst své písničky"
     TO authenticated
     USING (user_id = auth.uid());
 
--- Admin může číst vše
+-- Admin může číst všechno
 CREATE POLICY "Admin může číst všechny písničky"
     ON piano.piano_song_completions FOR SELECT
     TO authenticated

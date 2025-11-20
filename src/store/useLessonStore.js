@@ -35,7 +35,7 @@ const defaultLessons = [
     {
       id: 3,
       title: 'Twinkle Twinkle Little Star',
-      description: 'Zahrajte svou první písničku!',
+      description: 'Zahrajte svoji první písničku!',
       difficulty: 'začátečník',
       duration: '15 min',
       content: {

@@ -139,7 +139,7 @@ function LessonList() {
 
   const saveNewLesson = () => {
     if (!newLessonForm.title || !newLessonForm.description) {
-      alert('Vyplňte alespoň název a popis lekce');
+      alert('Vyplňte aspoň něco 😊 Třeba název a popis lekce.');
       return;
     }
     addLesson(newLessonForm);
@@ -175,7 +175,7 @@ function LessonList() {
 
   const saveEditedLesson = () => {
     if (!editForm.title || !editForm.description) {
-      alert('Vyplňte alespoň název a popis lekce');
+      alert('Vyplňte aspoň něco 😊 Třeba název a popis lekce.');
       return;
     }
     updateLesson(editingLesson, editForm);
@@ -189,7 +189,7 @@ function LessonList() {
   };
 
   const handleDeleteLesson = (lessonId) => {
-    if (confirm('Opravdu chcete smazat tuto lekci?')) {
+    if (confirm('Když to teď smažete, už to nepůjde nikdy, ale vůbec nikdy vrátit. Vážně chcete tuhle lekci smazat?')) {
       deleteLesson(lessonId);
     }
   };

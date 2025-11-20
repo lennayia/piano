@@ -418,7 +418,7 @@ function Lesson() {
                 style={{ padding: '1rem', fontSize: '1rem' }}
               >
                 <CheckCircle size={20} />
-                Označit jako dokončenou
+                Fajn, mám hotovo
               </button>
             )}
           </div>

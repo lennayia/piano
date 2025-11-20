@@ -435,7 +435,7 @@ function AchievementManager() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="např. Dokončil jsi svou první lekci!"
+                  placeholder="např. Dokončili jste svoji první lekci!"
                   rows={2}
                   style={{
                     width: '100%',

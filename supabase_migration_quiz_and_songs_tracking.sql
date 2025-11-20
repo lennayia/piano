@@ -68,7 +68,7 @@ CREATE POLICY "Uživatelé mohou vkládat své písničky"
     TO authenticated
     WITH CHECK (user_id = (current_setting('request.jwt.claims', true)::json->>'sub')::uuid);
 
--- Admin může číst vše
+-- Admin může číst všechno
 CREATE POLICY "Admin může číst všechny kvízy"
     ON piano.piano_quiz_completions FOR SELECT
     TO authenticated

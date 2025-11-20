@@ -438,7 +438,7 @@ function UserDashboard() {
               onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
               onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
-              Zobrazit vše →
+              Ukázat všechno →
             </Link>
           </div>
 

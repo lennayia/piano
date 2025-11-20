@@ -205,7 +205,7 @@ function NoteComposer({ value, onChange }) {
         border: '2px dashed rgba(45, 91, 120, 0.3)'
       }}>
         <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.75rem' }}>
-          👆 Klikni na klávesu pro přidání noty:
+          👆 Klikněte na klávesu pro přidání noty:
         </p>
         <PianoKeyboard onNoteClick={handleNoteClick} />
       </div>
@@ -214,7 +214,7 @@ function NoteComposer({ value, onChange }) {
       <div style={{ marginBottom: '1rem' }}>
         <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1e293b', marginBottom: '0.5rem', display: 'block' }}>
           <Music size={14} style={{ display: 'inline', marginRight: '0.5rem' }} />
-          Vyber délku noty:
+          Vyberte délku noty:
         </label>
         <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
           {Object.entries(durations).map(([key, { format, example }]) => (

@@ -277,13 +277,13 @@ CREATE TRIGGER update_piano_user_progress_updated_at
 
 INSERT INTO piano.piano_achievements (title, description, icon, requirement_type, requirement_value, xp_reward)
 VALUES
-    ('První kroky', 'Dokončil jsi svou první lekci!', '🎹', 'lessons_completed', 1, 10),
-    ('Aktivní student', 'Dokončil jsi 5 lekcí', '📚', 'lessons_completed', 5, 25),
-    ('Piano mistr', 'Dokončil jsi 10 lekcí', '🎓', 'lessons_completed', 10, 50),
-    ('Týdenní série', 'Udržel jsi 7denní sérii', '🔥', 'streak', 7, 30),
-    ('Měsíční série', 'Udržel jsi 30denní sérii', '⭐', 'streak', 30, 100),
-    ('100 XP', 'Získal jsi 100 XP', '💯', 'xp', 100, 20),
-    ('500 XP', 'Získal jsi 500 XP', '🏆', 'xp', 500, 50)
+    ('První kroky', 'Dokončili jste svoji první lekci!', '🎹', 'lessons_completed', 1, 10),
+    ('Aktivní student', 'Dokončili jste 5 lekcí!', '📚', 'lessons_completed', 5, 25),
+    ('Piano mistr', 'Dokončili jste 10 lekcí!', '🎓', 'lessons_completed', 10, 50),
+    ('Týdenní série', 'Udrželi jste 7denní sérii!', '🔥', 'streak', 7, 30),
+    ('Měsíční série', 'Udrželi jste 30denní sérii!', '⭐', 'streak', 30, 100),
+    ('100 XP', 'Získali jste 100 XP!', '💯', 'xp', 100, 20),
+    ('500 XP', 'Získali jste 500 XP!', '🏆', 'xp', 500, 50)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================

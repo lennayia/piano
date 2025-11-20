@@ -123,7 +123,7 @@ CREATE POLICY "Každý může číst možnosti akordů"
     TO anon, authenticated
     USING (true);
 
--- Admin může vše
+-- Admin může všechno
 CREATE POLICY "Admin může upravovat akordy"
     ON piano.piano_quiz_chords FOR ALL
     TO authenticated

@@ -7,7 +7,7 @@ const defaultTerms = [
     id: 1,
     category: 'Harmonie',
     term: 'Akord',
-    definition: 'Současné znění tří nebo více tónů. Základní stavební kámen harmonizace.',
+    definition: 'Současné znění tří nebo víc tónů. Základní stavební kámen harmonizace.',
     example: 'C dur akord se skládá z tónů C, E a G zahraných současně.'
   },
   {

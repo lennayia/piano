@@ -45,7 +45,7 @@ function ChordQuiz() {
       if (chordsError) throw chordsError;
 
       if (!chordsData || chordsData.length === 0) {
-        setError('Žádné aktivní akordy nenalezeny. Kontaktujte administrátora.');
+        setError('Ještě tu nejsou žádné akordy k procvičování 🎹 Ozvěte se nám, prosím.');
         setLoading(false);
         return;
       }
@@ -76,7 +76,7 @@ function ChordQuiz() {
       setLoading(false);
     } catch (err) {
       console.error('Error fetching chords:', err);
-      setError('Nepodařilo se načíst akordy: ' + err.message);
+      setError('Neumíme načíst tyhle akordy: ' + err.message);
       setLoading(false);
     }
   };
@@ -225,7 +225,7 @@ function ChordQuiz() {
         <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáte akord?</h2>
         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
           <XCircle size={48} color="var(--color-danger)" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Chyba při načítání</h3>
+          <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Tohle se nám nedaří načíst</h3>
           <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{error}</p>
           <button
             onClick={fetchChords}
@@ -339,9 +339,9 @@ function ChordQuiz() {
                   {score === chords.length ? (
                     <>🎉 Perfektní! Všechno správně!</>
                   ) : score >= chords.length * 0.6 ? (
-                    <>Dobře! Zkus to znovu pro 100%</>
+                    <>Dobře! Zkuste to znovu pro 100%</>
                   ) : (
-                    <>Není to špatné! Zkus to ještě jednou</>
+                    <>Není to špatné! Zkuste to ještě jednou</>
                   )}
                 </div>
                 {score < chords.length && (
@@ -353,7 +353,7 @@ function ChordQuiz() {
                     borderRadius: 'var(--radius)',
                     borderLeft: '3px solid var(--color-primary)'
                   }}>
-                    💡 Tip: Poslouchej si akordy vícekrát, pomůže ti to lépe je rozpoznat!
+                    💡 Tip: Poslouchejte si akordy víckrát, pomůže vám to líp je rozpoznat!
                   </div>
                 )}
               </motion.div>

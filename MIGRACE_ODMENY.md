@@ -51,7 +51,7 @@ psql "postgresql://postgres.afkznfjtfjyfrxuwpqgp:Pianolektori2024@aws-0-eu-centr
 ```
 
 ### Krok 2: Ověření migrace
-Po spuštění migrace ověřte, že vše proběhlo v pořádku:
+Po spuštění migrace ověřte, že všechno proběhlo v pořádku:
 
 1. Zkontrolujte, zda se přidaly nové sloupce:
 ```sql

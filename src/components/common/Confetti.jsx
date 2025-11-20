@@ -6,7 +6,7 @@ function Confetti({ show, onComplete }) {
 
   useEffect(() => {
     if (show) {
-      // Vytvořit 80 konfet - více pro lepší efekt
+      // Vytvořit 80 konfet - víc pro lepší efekt
       const pieces = Array.from({ length: 80 }, (_, i) => ({
         id: i,
         left: Math.random() * 100,

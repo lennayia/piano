@@ -32,17 +32,17 @@ function RegistrationForm() {
     const newErrors = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'Jméno je povinné';
+      newErrors.firstName = 'Vyplňte svoje jméno, prosím';
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Příjmení je povinné';
+      newErrors.lastName = 'Vyplňte svoje příjmení, prosím';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email je povinný';
+      newErrors.email = 'Vyplňte svůj e-mail, prosím';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Zadejte platný email';
+      newErrors.email = 'Zkontrolujte, jestli v e-mailové adrese není chyba';
     }
 
     setErrors(newErrors);
@@ -65,7 +65,7 @@ function RegistrationForm() {
       setTimeout(() => navigate('/dashboard'), 500);
     } catch (error) {
       console.error('Chyba při přihlášení:', error);
-      setErrors({ general: error.message || 'Nastala chyba. Zkuste to prosím znovu.' });
+      setErrors({ general: error.message || 'Aaa, něco se nepovedlo 😕 Zkuste to znovu, prosím.' });
     } finally {
       setIsSubmitting(false);
     }

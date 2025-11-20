@@ -375,7 +375,7 @@ function Home() {
             <div className="about-eva-content" style={{ flex: 1 }}>
               <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>O lektorce Evě Lorenc</h2>
               <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: 1.8, marginBottom: '1rem' }}>
-                Eva Lorenc je zkušená klavíristka, skladatelka a nadšená pedagožka hry na klavír s více než 15 lety praxe. Specializuje se na výuku dětí i dospělých od základů až po profi úroveň.
+                Eva Lorenc je zkušená klavíristka, skladatelka a nadšená pedagožka hry na klavír s víc než 15 lety praxe. Specializuje se na výuku dětí i dospělých od základů až po profi úroveň.
               </p>
               <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: 1.8, marginBottom: '1rem' }}>
                 „Vytvořila jsem tento kurz, protože jsem viděla, jak mnoho lidí umí zahrát melodii, ale váhají s doprovodem.
