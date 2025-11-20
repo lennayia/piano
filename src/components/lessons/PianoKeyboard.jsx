@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 
-function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
+function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
   const [activeKeys, setActiveKeys] = useState(new Set());
   const [particles, setParticles] = useState([]);
 
@@ -25,6 +25,12 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false }) {
   const handleKeyPress = (e, note) => {
     e.stopPropagation();
     e.preventDefault();
+
+    // Pokud je callback onNoteClick, zavolat ho místo přehrání
+    if (onNoteClick) {
+      onNoteClick(note);
+      return;
+    }
 
     audioEngine.playNote(note, 0.5);
     setActiveKeys(prev => new Set(prev).add(note));

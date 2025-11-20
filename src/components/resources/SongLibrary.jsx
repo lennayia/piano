@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import audioEngine from '../../utils/audio';
 import PianoKeyboard from '../lessons/PianoKeyboard';
+import NoteComposer from './NoteComposer';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
@@ -582,25 +583,28 @@ function SongLibrary() {
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Noty a text (oddělené podtržítky _)
+                Noty (klikni na klavír nebo zadej ručně)
               </label>
+
+              {/* NoteComposer - interaktivní klavír pro snadný zápis */}
+              <NoteComposer
+                value={newSongForm.notes}
+                onChange={(value) => handleNewSongChange('notes', value)}
+              />
+
+              {/* Textové pole pro ruční úpravu */}
               <textarea
                 className="form-input"
                 value={newSongForm.notes}
                 onChange={(e) => handleNewSongChange('notes', e.target.value)}
-                placeholder="D_D_E_-_F | G_text_A_H"
-                rows={4}
-                style={{ fontSize: '0.875rem', fontFamily: 'monospace' }}
+                placeholder="D_D_E_-_F_|_G_A_H"
+                rows={3}
+                style={{
+                  fontSize: '0.875rem',
+                  fontFamily: 'monospace',
+                  marginTop: '0.5rem'
+                }}
               />
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                <strong>Příklad:</strong> D._D_E_-_DDis_--_DDDes'_ddis | C'_D'_text_E'<br/>
-                <strong>Oddělovače:</strong> _ (podtržítko = další nota), | (roura = nový řádek), Enter (nový řádek)<br/>
-                <strong>Délky:</strong> dd=šestnáctinová, d=osminová, D=čtvrťová, Dd=čtvrťová s tečkou, DD=půlová, DDD=půlová s tečkou, DDDD=celá<br/>
-                <strong>Křížky/béčka:</strong> Dis, dis, DDis (přidat "is" za notu), Des, des, DDes (přidat "es" za notu)<br/>
-                <strong>Oktávy:</strong> C. (basová/nižší), C (střední), C' (vyšší - apostrof)<br/>
-                <strong>Pauzy:</strong> - (krátká), -- (střední), --- (dlouhá), ---- (extra dlouhá)<br/>
-                <strong>Text:</strong> Můžete přidat text mezi noty, např: D_D_slova_E_textu_F
-              </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
@@ -721,7 +725,7 @@ function SongLibrary() {
                 style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
               >
                 <Save size={16} />
-                Přidat písnička
+                Přidat písničku
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -945,68 +949,28 @@ function SongLibrary() {
 
                     <div className="form-group" style={{ marginBottom: '1rem' }}>
                       <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Noty a text (oddělené podtržítky _)
+                        Noty (klikni na klavír nebo zadej ručně)
                       </label>
+
+                      {/* NoteComposer - interaktivní klavír pro snadný zápis */}
+                      <NoteComposer
+                        value={editForm.notes}
+                        onChange={(value) => handleEditChange('notes', value)}
+                      />
+
+                      {/* Textové pole pro ruční úpravu */}
                       <textarea
                         className="form-input"
                         value={editForm.notes}
                         onChange={(e) => handleEditChange('notes', e.target.value)}
-                        placeholder="D_D_E_-_F | G_text_A_H"
-                        rows={4}
-                        style={{ fontSize: '0.875rem', fontFamily: 'monospace' }}
-                      />
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                        <strong>Příklad:</strong> D._D_E_-_DDis_--_DDDes'_ddis | C'_D'_text_E'<br/>
-                        <strong>Oddělovače:</strong> _ (podtržítko = další nota), | (roura = nový řádek), Enter (nový řádek)<br/>
-                        <strong>Délky:</strong> dd=šestnáctinová, d=osminová, D=čtvrťová, Dd=čtvrťová s tečkou, DD=půlová, DDD=půlová s tečkou, DDDD=celá<br/>
-                        <strong>Křížky/béčka:</strong> Dis, dis, DDis (přidat "is" za notu), Des, des, DDes (přidat "es" za notu)<br/>
-                        <strong>Oktávy:</strong> C. (basová/nižší), C (střední), C' (vyšší - apostrof)<br/>
-                        <strong>Pauzy:</strong> - (krátká), -- (střední), --- (dlouhá), ---- (extra dlouhá)<br/>
-                        <strong>Text:</strong> Můžete přidat text mezi noty, např: D_D_slova_E_textu_F
-                      </div>
-
-                      {/* Tlačítko pro zobrazení klavíru */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="button"
-                        onClick={() => setShowKeyboard(showKeyboard === song.id ? null : song.id)}
-                        className="btn btn-secondary"
+                        placeholder="D_D_E_-_F_|_G_A_H"
+                        rows={3}
                         style={{
-                          fontSize: '0.75rem',
-                          padding: '0.5rem 1rem',
-                          marginTop: '0.5rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
+                          fontSize: '0.875rem',
+                          fontFamily: 'monospace',
+                          marginTop: '0.5rem'
                         }}
-                      >
-                        <Piano size={16} />
-                        {showKeyboard === song.id ? 'Skrýt klavír' : 'Zkusit na klavíru'}
-                      </motion.button>
-
-                      {/* Klaviatura */}
-                      <AnimatePresence>
-                        {showKeyboard === song.id && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            style={{ marginTop: '1rem' }}
-                          >
-                            <PianoKeyboard
-                              highlightedNotes={
-                                editForm.notes
-                                  .replace(/\|/g, '_')
-                                  .replace(/\n/g, '_')
-                                  .split('_')
-                                  .map(note => note.trim())
-                                  .filter(note => note.length > 0)
-                              }
-                            />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
