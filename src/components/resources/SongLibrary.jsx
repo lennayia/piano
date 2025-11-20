@@ -872,9 +872,9 @@ function SongLibrary() {
                                 fontWeight: 500
                               }}
                             >
-                              <option value="notes">🎹 Tóny</option>
-                              <option value="audio">🎵 Audio</option>
-                              <option value="both">🎹🎵 Obojí</option>
+                              <option value="notes">Tóny</option>
+                              <option value="audio">Audio</option>
+                              <option value="both">Obojí</option>
                             </select>
                           </div>
                         )}

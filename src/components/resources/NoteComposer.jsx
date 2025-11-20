@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Music, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Music, Plus, Trash2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PianoKeyboard from '../lessons/PianoKeyboard';
 
@@ -399,7 +399,10 @@ function NoteComposer({ value, onChange }) {
             color: '#1e293b'
           }}
         >
-          <span>📚 Nápověda - Formát zápisu not</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <BookOpen size={18} color="var(--color-primary)" />
+            Nápověda - Formát zápisu not
+          </span>
           {showHelp ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </motion.button>
 

@@ -1,8 +1,35 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trash2, Mail, Calendar, Shield, ShieldOff, LogIn, Hash, Eye, X, CheckCircle, Trophy, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Trash2, Mail, Calendar, Shield, ShieldOff, LogIn, Hash, Eye, X, CheckCircle, Trophy, ArrowUpDown, ArrowUp, ArrowDown, Piano, Star, Target, GraduationCap, BookOpen, Flame, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
+import * as LucideIcons from 'lucide-react';
+
+// Dynamické renderování ikony odměny podle dat z databáze
+const getAchievementIcon = (achievement, size = 20) => {
+  // Pokud máme icon_type z databáze, použijeme ho
+  if (achievement.icon_type) {
+    const IconComponent = LucideIcons[achievement.icon_type];
+    const color = achievement.icon_color || 'primary';
+
+    if (IconComponent) {
+      return <IconComponent size={size} color={`var(--color-${color})`} />;
+    }
+  }
+
+  // Fallback: pokud nemáme icon_type, použijeme staré emoji mapování (zpětná kompatibilita)
+  const iconMap = {
+    '🎹': <Piano size={size} color="var(--color-primary)" />,
+    '📚': <BookOpen size={size} color="var(--color-secondary)" />,
+    '🎓': <GraduationCap size={size} color="var(--color-primary)" />,
+    '🔥': <Flame size={size} color="var(--color-secondary)" />,
+    '⭐': <Star size={size} color="var(--color-primary)" />,
+    '💯': <Target size={size} color="var(--color-secondary)" />,
+    '🏆': <Trophy size={size} color="var(--color-primary)" />
+  };
+
+  return iconMap[achievement.icon] || <Award size={size} color="var(--color-primary)" />;
+};
 
 function UserList() {
   const users = useUserStore((state) => state.users);
@@ -705,7 +732,7 @@ function UserList() {
                           border: '2px solid rgba(181, 31, 101, 0.2)',
                           flexShrink: 0
                         }}>
-                          {achievement.icon}
+                          {getAchievementIcon(achievement, 20)}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.8125rem' }}>

@@ -1,10 +1,37 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Award, BookOpen, Trophy, Flame, Zap } from 'lucide-react';
+import { Award, BookOpen, Trophy, Flame, Zap, Piano, Star, Target, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
 import useLessonStore from '../store/useLessonStore';
+import * as LucideIcons from 'lucide-react';
+
+// Dynamické renderování ikony odměny podle dat z databáze
+const getAchievementIcon = (achievement) => {
+  // Pokud máme icon_type z databáze, použijeme ho
+  if (achievement.icon_type) {
+    const IconComponent = LucideIcons[achievement.icon_type];
+    const color = achievement.icon_color || 'primary';
+
+    if (IconComponent) {
+      return <IconComponent size={32} color={`var(--color-${color})`} />;
+    }
+  }
+
+  // Fallback: pokud nemáme icon_type, použijeme staré emoji mapování (zpětná kompatibilita)
+  const iconMap = {
+    '🎹': <Piano size={32} color="var(--color-primary)" />,
+    '📚': <BookOpen size={32} color="var(--color-secondary)" />,
+    '🎓': <GraduationCap size={32} color="var(--color-primary)" />,
+    '🔥': <Flame size={32} color="var(--color-secondary)" />,
+    '⭐': <Star size={32} color="var(--color-primary)" />,
+    '💯': <Target size={32} color="var(--color-secondary)" />,
+    '🏆': <Trophy size={32} color="var(--color-primary)" />
+  };
+
+  return iconMap[achievement.icon] || <Award size={32} color="var(--color-primary)" />;
+};
 
 // Jednoduchá funkce pro převod jména do vokativu (5. pádu)
 function toVocative(name) {
@@ -271,10 +298,9 @@ function UserDashboard() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     border: '2px solid rgba(181, 31, 101, 0.2)',
-                    boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)',
-                    fontSize: '2.25rem'
+                    boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
                   }}>
-                    {achievement.icon}
+                    {getAchievementIcon(achievement)}
                   </div>
                   <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
                     {achievement.title}
