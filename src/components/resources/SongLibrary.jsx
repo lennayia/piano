@@ -1356,7 +1356,12 @@ function SongLibrary() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      style={{ marginTop: '1rem', marginBottom: '1rem' }}
+                      style={{
+                        marginTop: '1rem',
+                        marginBottom: '1rem',
+                        overflowX: 'auto',
+                        WebkitOverflowScrolling: 'touch'
+                      }}
                     >
                       <PianoKeyboard
                         highlightedNotes={

@@ -60,10 +60,40 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
   const whiteKeys = keys.filter(k => k.type === 'white');
   const blackKeys = keys.filter(k => k.type === 'black');
 
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Responsivní šířka klávesy
+  const getKeyWidth = () => {
+    if (windowWidth < 360) return 28;  // Extra malé mobily (320px)
+    if (windowWidth < 480) return 35;  // Malé mobily
+    if (windowWidth < 768) return 45;  // Mobily
+    if (windowWidth < 1024) return 50; // Tablety
+    return 60;                         // Desktop
+  };
+
+  const getKeyHeight = () => {
+    if (windowWidth < 360) return 120; // Extra malé mobily (320px)
+    if (windowWidth < 480) return 140; // Malé mobily
+    if (windowWidth < 768) return 160; // Mobily
+    return 200;                        // Desktop & tablety
+  };
+
+  const keyWidth = getKeyWidth();
+  const keyHeight = getKeyHeight();
+
   return (
     <div style={{
       position: 'relative',
-      padding: '2rem',
+      padding: windowWidth < 360 ? '0.75rem 0.25rem' : windowWidth < 768 ? '1rem 0.5rem' : '1.5rem 1rem',
       background: 'var(--glass-bg)',
       backdropFilter: 'blur(20px)',
       borderRadius: 'var(--radius)',
@@ -72,12 +102,13 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     }}>
       <div style={{
         position: 'relative',
-        height: '200px',
+        height: `${keyHeight}px`,
         display: 'flex',
         justifyContent: 'flex-start',
         gap: '2px',
         width: 'fit-content',
-        margin: '0 auto'
+        margin: '0 auto',
+        maxWidth: '100%'
       }}>
         {/* White Keys */}
         {whiteKeys.map((key, index) => (
@@ -88,13 +119,13 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             style={{
-              width: '60px',
-              height: '200px',
+              width: `${keyWidth}px`,
+              height: `${keyHeight}px`,
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              paddingBottom: '1rem',
-              fontSize: '0.875rem',
+              paddingBottom: windowWidth < 360 ? '0.25rem' : windowWidth < 768 ? '0.5rem' : '1rem',
+              fontSize: windowWidth < 360 ? '0.5rem' : windowWidth < 480 ? '0.625rem' : windowWidth < 768 ? '0.75rem' : '0.875rem',
               fontWeight: 500,
               position: 'relative',
               border: isHighlighted(key.note) ? '3px solid #2d5b78' : '2px solid #ddd',
@@ -124,16 +155,25 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
 
         {/* Black Keys */}
         {blackKeys.map((key, index) => {
-          // Správné pozice černých kláves - vycentrované mezi středy bílých kláves
-          // Bílé klávesy (60px široké): C(0-60), D(62-122), E(124-184), F(186-246), G(248-308), A(310-370), H(372-432)
-          // Středy bílých: C(30), D(92), E(154), F(216), G(278), A(340), H(402)
-          // Černá klávesa 40px široká, takže střed mezi bílými minus 20px
-          const blackKeyPositions = {
-            'C#': 41,   // mezi C a D: (30 + 92) / 2 - 20 = 61 - 20
-            'D#': 103,  // mezi D a E: (92 + 154) / 2 - 20 = 123 - 20
-            'F#': 227,  // mezi F a G: (216 + 278) / 2 - 20 = 247 - 20
-            'G#': 289,  // mezi G a A: (278 + 340) / 2 - 20 = 309 - 20
-            'A#': 351   // mezi A a H: (340 + 402) / 2 - 20 = 371 - 20
+          // Responsivní šířka a výška černé klávesy
+          const blackKeyWidth = Math.floor(keyWidth * 0.67); // ~67% šířky bílé klávesy
+          const blackKeyHeight = Math.floor(keyHeight * 0.6); // 60% výšky bílé klávesy
+          const halfBlackWidth = Math.floor(blackKeyWidth / 2);
+
+          // Dynamické pozice černých kláves
+          const gap = 2;
+          const getBlackKeyPosition = (noteIndex) => {
+            // Pozice mezi středy bílých kláves minus polovina šířky černé klávesy
+            const whiteKeyCenter = (pos) => (keyWidth / 2) + pos * (keyWidth + gap);
+
+            switch(noteIndex) {
+              case 0: return whiteKeyCenter(0.5) - halfBlackWidth; // C# mezi C a D
+              case 1: return whiteKeyCenter(1.5) - halfBlackWidth; // D# mezi D a E
+              case 2: return whiteKeyCenter(3.5) - halfBlackWidth; // F# mezi F a G
+              case 3: return whiteKeyCenter(4.5) - halfBlackWidth; // G# mezi G a A
+              case 4: return whiteKeyCenter(5.5) - halfBlackWidth; // A# mezi A a H
+              default: return 0;
+            }
           };
 
           return (
@@ -144,17 +184,17 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{
-                width: '40px',
-                height: '120px',
+                width: `${blackKeyWidth}px`,
+                height: `${blackKeyHeight}px`,
                 position: 'absolute',
-                left: `${blackKeyPositions[key.note]}px`,
+                left: `${getBlackKeyPosition(index)}px`,
                 top: 0,
                 zIndex: 2,
                 display: 'flex',
                 alignItems: 'flex-end',
                 justifyContent: 'center',
-                paddingBottom: '0.5rem',
-                fontSize: '0.75rem',
+                paddingBottom: windowWidth < 360 ? '0.125rem' : windowWidth < 768 ? '0.25rem' : '0.5rem',
+                fontSize: windowWidth < 360 ? '0.375rem' : windowWidth < 480 ? '0.5rem' : windowWidth < 768 ? '0.625rem' : '0.75rem',
                 fontWeight: 500,
                 color: 'white',
                 border: isHighlighted(key.note) ? '3px solid #4a7a9e' : '2px solid #000',
