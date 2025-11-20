@@ -383,162 +383,38 @@ function LessonList() {
             animate="show"
           >
             {lessons.map((lesson, index) => (
-              <SortableLessonCard key={lesson.id} lesson={lesson}>
-                {(dragAttributes, dragListeners) => (
-                  <motion.div
-                    variants={{
-                      hidden: { opacity: 0, y: 20 },
-                      show: { opacity: 1, y: 0 }
-                    }}
-                  >
-                    <LessonCard
-                      lesson={lesson}
-                      onClick={handleLessonClick}
-                      isAdmin={isAdmin}
-                      onEdit={startEditingLesson}
-                      onDelete={handleDeleteLesson}
-                      onDuplicate={duplicateLesson}
-                      dragAttributes={dragAttributes}
-                      dragListeners={dragListeners}
-                    />
-                  </motion.div>
-                )}
-              </SortableLessonCard>
+              <div key={lesson.id} style={{ gridColumn: editingLesson === lesson.id ? '1 / -1' : 'auto' }}>
+                <SortableLessonCard lesson={lesson}>
+                  {(dragAttributes, dragListeners) => (
+                    <motion.div
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        show: { opacity: 1, y: 0 }
+                      }}
+                    >
+                      <LessonCard
+                        lesson={lesson}
+                        onClick={handleLessonClick}
+                        isAdmin={isAdmin}
+                        onEdit={startEditingLesson}
+                        onDelete={handleDeleteLesson}
+                        onDuplicate={duplicateLesson}
+                        dragAttributes={dragAttributes}
+                        dragListeners={dragListeners}
+                        isEditing={editingLesson === lesson.id}
+                        editForm={editingLesson === lesson.id ? editForm : null}
+                        onEditFormChange={handleEditFormChange}
+                        onSaveEdit={saveEditedLesson}
+                        onCancelEdit={cancelEditingLesson}
+                      />
+                    </motion.div>
+                  )}
+                </SortableLessonCard>
+              </div>
             ))}
           </motion.div>
         </SortableContext>
       </DndContext>
-
-      {/* Edit Form */}
-      <AnimatePresence>
-        {editingLesson && editForm && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="card"
-            style={{
-              marginTop: '2rem',
-              background: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(40px)',
-              WebkitBackdropFilter: 'blur(40px)',
-              border: '2px solid rgba(45, 91, 120, 0.4)',
-              boxShadow: '0 8px 32px rgba(45, 91, 120, 0.25)'
-            }}
-          >
-            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Edit3 size={20} color="var(--color-secondary)" />
-              Upravit lekci
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                  Název lekce
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={editForm.title}
-                  onChange={(e) => handleEditFormChange('title', e.target.value)}
-                  style={{ fontSize: '0.875rem' }}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                  Obtížnost
-                </label>
-                <select
-                  className="form-input"
-                  value={editForm.difficulty}
-                  onChange={(e) => handleEditFormChange('difficulty', e.target.value)}
-                  style={{ fontSize: '0.875rem' }}
-                >
-                  <option value="začátečník">začátečník</option>
-                  <option value="mírně pokročilý">mírně pokročilý</option>
-                  <option value="pokročilý">pokročilý</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                  Délka
-                </label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={editForm.duration}
-                  onChange={(e) => handleEditFormChange('duration', e.target.value)}
-                  style={{ fontSize: '0.875rem' }}
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Popis
-              </label>
-              <textarea
-                className="form-input"
-                value={editForm.description}
-                onChange={(e) => handleEditFormChange('description', e.target.value)}
-                rows={2}
-                style={{ fontSize: '0.875rem' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Tóny (oddělené čárkou)
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                value={editForm.content.notes.join(', ')}
-                onChange={(e) => handleEditFormChange('content.notes', e.target.value.split(',').map(n => n.trim()).filter(n => n))}
-                style={{ fontSize: '0.875rem' }}
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Instrukce (jedna na řádek)
-              </label>
-              <textarea
-                className="form-input"
-                value={editForm.content.instructions.join('\n')}
-                onChange={(e) => handleEditFormChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
-                rows={3}
-                style={{ fontSize: '0.875rem' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={saveEditedLesson}
-                className="btn btn-primary"
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                <Save size={16} />
-                Uložit změny
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={cancelEditingLesson}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                <X size={16} />
-                Zrušit
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <LessonModal
         lesson={selectedLesson}

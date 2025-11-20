@@ -353,9 +353,10 @@ function Home() {
             border: '1px solid rgba(255, 255, 255, 0.3)'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'start', gap: '2rem' }}>
+          <div className="about-eva-wrapper" style={{ display: 'flex', alignItems: 'start', gap: '2rem' }}>
             <motion.div
               whileHover={{ scale: 1.05 }}
+              className="about-eva-icon"
               style={{
                 width: '120px',
                 height: '120px',
@@ -371,16 +372,16 @@ function Home() {
             >
               <Star size={60} color="var(--color-primary)" />
             </motion.div>
-            <div>
+            <div className="about-eva-content" style={{ flex: 1 }}>
               <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>O lektorce Evě Lorenc</h2>
               <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: 1.8, marginBottom: '1rem' }}>
                 Eva Lorenc je zkušená klavíristka, skladatelka a nadšená pedagožka hry na klavír s více než 15 lety praxe. Specializuje se na výuku dětí i dospělých od základů až po profi úroveň.
               </p>
               <p style={{ fontSize: '1rem', color: '#64748b', lineHeight: 1.8, marginBottom: '1rem' }}>
                 „Vytvořila jsem tento kurz, protože jsem viděla, jak mnoho lidí umí zahrát melodii, ale váhají s doprovodem.
-                Chci vám ukázat, že harmonizace není složitá - stačí znát pár základních principů a můžete oživit jakoukoli písničku.“
+                Chci vám ukázat, že harmonizace není složitá - stačí znát pár základních principů a můžete oživit jakoukoli písničku."
               </p>
-              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem' }}>
+              <div className="about-eva-stats" style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <GraduationCap size={20} color="var(--color-secondary)" />
                   <span style={{ fontSize: '0.9375rem', color: '#64748b' }}>15+ let zkušeností</span>

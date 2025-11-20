@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus, GripVertical, Copy, Trash2, Upload, Volume2, XCircle } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus, GripVertical, Copy, Trash2, Upload, Volume2, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -68,6 +68,7 @@ function SongLibrary() {
   });
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [audioFile, setAudioFile] = useState(null);
+  const [expandedSongs, setExpandedSongs] = useState({}); // State pro accordion
   const playingRef = useRef(false);
   const audioRef = useRef(null);
 
@@ -164,6 +165,18 @@ function SongLibrary() {
 
     const elements = melodieString.split('_'); // Split podle podtržítka
 
+    // Multiplikátor tempa podle označení (definovat jednou před smyčkou)
+    const tempoMultipliers = {
+      'Largo': 1.8,        // velmi pomalé (40-60 BPM)
+      'Adagio': 1.5,       // pomalé (66-76 BPM)
+      'Andante': 1.3,      // klidné (76-108 BPM)
+      'Moderato': 1.0,     // střední (108-120 BPM) - výchozí
+      'Allegro': 0.8,      // rychlé (120-156 BPM)
+      'Presto': 0.6        // velmi rychlé (168-200 BPM)
+    };
+
+    const tempoMultiplier = tempoMultipliers[song.tempo] || 1.0;
+
     for (let i = 0; i < elements.length; i++) {
       if (!playingRef.current) break;
 
@@ -185,17 +198,17 @@ function SongLibrary() {
       if (dashMatch) {
         const dashCount = element.length;
         if (dashCount === 1) {
-          // Krátká pauza (200ms)
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Krátká pauza (200ms) * tempo
+          await new Promise(resolve => setTimeout(resolve, 200 * tempoMultiplier));
         } else if (dashCount === 2) {
-          // Střední pauza (400ms)
-          await new Promise(resolve => setTimeout(resolve, 400));
+          // Střední pauza (400ms) * tempo
+          await new Promise(resolve => setTimeout(resolve, 400 * tempoMultiplier));
         } else if (dashCount === 3) {
-          // Dlouhá pauza (800ms)
-          await new Promise(resolve => setTimeout(resolve, 800));
+          // Dlouhá pauza (800ms) * tempo
+          await new Promise(resolve => setTimeout(resolve, 800 * tempoMultiplier));
         } else if (dashCount >= 4) {
-          // Extra dlouhá pauza (1200ms)
-          await new Promise(resolve => setTimeout(resolve, 1200));
+          // Extra dlouhá pauza (1200ms) * tempo
+          await new Promise(resolve => setTimeout(resolve, 1200 * tempoMultiplier));
         }
         continue;
       }
@@ -281,8 +294,8 @@ function SongLibrary() {
         noteName += '.';
       }
 
-      // Délky v sekundách a čekací časy
-      const durations = {
+      // Základní délky v sekundách a čekací časy (pro Moderato)
+      const baseDurations = {
         'sixteenth': { play: 0.08, wait: 100 },
         'eighth': { play: 0.15, wait: 180 },
         'quarter': { play: 0.3, wait: 350 },
@@ -292,7 +305,12 @@ function SongLibrary() {
         'whole': { play: 1.2, wait: 1250 }
       };
 
-      const timing = durations[noteType] || durations['quarter'];
+      // Aplikovat multiplikátor tempa
+      const baseTiming = baseDurations[noteType] || baseDurations['quarter'];
+      const timing = {
+        play: baseTiming.play * tempoMultiplier,
+        wait: baseTiming.wait * tempoMultiplier
+      };
 
       setCurrentNoteIndex(i); // Zvýraznit aktuální tón
       audioEngine.playNote(noteName, timing.play);
@@ -302,6 +320,13 @@ function SongLibrary() {
     playingRef.current = false;
     setPlayingSong(null);
     setCurrentNoteIndex(-1);
+  };
+
+  const toggleSongExpansion = (songId) => {
+    setExpandedSongs(prev => ({
+      ...prev,
+      [songId]: !prev[songId]
+    }));
   };
 
   const toggleKeyboard = (songId) => {
@@ -586,13 +611,7 @@ function SongLibrary() {
                 Noty (klikni na klavír nebo zadej ručně)
               </label>
 
-              {/* NoteComposer - interaktivní klavír pro snadný zápis */}
-              <NoteComposer
-                value={newSongForm.notes}
-                onChange={(value) => handleNewSongChange('notes', value)}
-              />
-
-              {/* Textové pole pro ruční úpravu */}
+              {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
               <textarea
                 className="form-input"
                 value={newSongForm.notes}
@@ -602,8 +621,14 @@ function SongLibrary() {
                 style={{
                   fontSize: '0.875rem',
                   fontFamily: 'monospace',
-                  marginTop: '0.5rem'
+                  marginBottom: '0.5rem'
                 }}
+              />
+
+              {/* NoteComposer - interaktivní klavír pro snadný zápis - POD textovým polem */}
+              <NoteComposer
+                value={newSongForm.notes}
+                onChange={(value) => handleNewSongChange('notes', value)}
               />
             </div>
 
@@ -624,7 +649,7 @@ function SongLibrary() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                   Obtížnost
@@ -645,29 +670,56 @@ function SongLibrary() {
                 <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                   Tempo
                 </label>
-                <input
-                  type="text"
+                <select
                   className="form-input"
                   value={newSongForm.tempo}
                   onChange={(e) => handleNewSongChange('tempo', e.target.value)}
-                  placeholder="Allegro, Moderato, Andante..."
                   style={{ fontSize: '0.875rem' }}
-                />
+                >
+                  <option value="">Vyberte tempo...</option>
+                  <option value="Largo">Largo (velmi pomalé)</option>
+                  <option value="Adagio">Adagio (pomalé)</option>
+                  <option value="Andante">Andante (klidné)</option>
+                  <option value="Moderato">Moderato (střední)</option>
+                  <option value="Allegro">Allegro (rychlé)</option>
+                  <option value="Presto">Presto (velmi rychlé)</option>
+                </select>
               </div>
-            </div>
 
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Tónina
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                value={newSongForm.key}
-                onChange={(e) => handleNewSongChange('key', e.target.value)}
-                placeholder="C dur, G dur..."
-                style={{ fontSize: '0.875rem' }}
-              />
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Tónina
+                </label>
+                <select
+                  className="form-input"
+                  value={newSongForm.key}
+                  onChange={(e) => handleNewSongChange('key', e.target.value)}
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="">Vyberte tóninu...</option>
+                  <optgroup label="Durové tóniny">
+                    <option value="C dur">C dur</option>
+                    <option value="G dur">G dur</option>
+                    <option value="D dur">D dur</option>
+                    <option value="A dur">A dur</option>
+                    <option value="E dur">E dur</option>
+                    <option value="F dur">F dur</option>
+                    <option value="B dur">B dur</option>
+                    <option value="Es dur">Es dur</option>
+                    <option value="As dur">As dur</option>
+                  </optgroup>
+                  <optgroup label="Mollové tóniny">
+                    <option value="a moll">a moll</option>
+                    <option value="e moll">e moll</option>
+                    <option value="h moll">h moll</option>
+                    <option value="fis moll">fis moll</option>
+                    <option value="d moll">d moll</option>
+                    <option value="g moll">g moll</option>
+                    <option value="c moll">c moll</option>
+                    <option value="f moll">f moll</option>
+                  </optgroup>
+                </select>
+              </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
@@ -773,164 +825,176 @@ function SongLibrary() {
                       boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'start', gap: '1.5rem' }}>
-                      {/* Drag Handle (pouze pro adminy) */}
-                      {isAdmin && (
-                        <div
-                          {...dragAttributes}
-                          {...dragListeners}
+                    <div className="song-card-wrapper">
+                      <div className="song-card-controls">
+                        {/* Drag Handle (pouze pro adminy) */}
+                        {isAdmin && (
+                          <div
+                            {...dragAttributes}
+                            {...dragListeners}
+                            className="drag-handle"
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                          >
+                            <GripVertical className="grip-icon" />
+                          </div>
+                        )}
+
+                        {/* Play Button */}
+                        <motion.button
+                          className={`play-button ${playingSong === song.id ? 'playing' : ''}`}
+                          whileHover={{ scale: 1.15, rotate: 5 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => playMelody(song)}
+                        >
+                          {playingSong === song.id ? (
+                            <Pause className="play-icon" color="#ffffff" />
+                          ) : (
+                            <Play className="play-icon" color="#ffffff" style={{ marginLeft: '3px' }} />
+                          )}
+                        </motion.button>
+
+                        {/* Playback Mode Selector (pokud má píseň audio) */}
+                        {song.audioUrl && (
+                          <div style={{ marginLeft: '0.75rem' }}>
+                            <select
+                              value={userPlaybackMode[song.id] || 'notes'}
+                              onChange={(e) => setUserPlaybackMode(prev => ({ ...prev, [song.id]: e.target.value }))}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                fontSize: '0.75rem',
+                                padding: '0.5rem',
+                                borderRadius: 'var(--radius)',
+                                border: '1px solid rgba(45, 91, 120, 0.3)',
+                                background: 'rgba(255, 255, 255, 0.9)',
+                                cursor: 'pointer',
+                                color: '#1e293b',
+                                fontWeight: 500
+                              }}
+                            >
+                              <option value="notes">🎹 Tóny</option>
+                              <option value="audio">🎵 Audio</option>
+                              <option value="both">🎹🎵 Obojí</option>
+                            </select>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Song Info */}
+                      <div className="song-info-content" style={{ flex: 1 }}>
+                        {/* Klikací hlavička s názvem, badge a šipkou */}
+                        <motion.div
+                          className="song-header"
+                          onClick={() => toggleSongExpansion(song.id)}
+                          whileHover={{ backgroundColor: 'rgba(45, 91, 120, 0.05)' }}
                           style={{
-                            cursor: 'grab',
-                            padding: '0.5rem',
-                            color: 'var(--color-secondary)',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            opacity: 0.5,
-                            transition: 'opacity 0.2s'
+                            justifyContent: 'space-between',
+                            gap: '0.75rem',
+                            marginBottom: '0.5rem',
+                            cursor: 'pointer',
+                            padding: '0.5rem',
+                            borderRadius: 'var(--radius)',
+                            transition: 'background-color 0.2s'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
                         >
-                          <GripVertical size={20} />
-                        </div>
-                      )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+                            <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
+                              {song.title}
+                            </h3>
+                            <span className={`badge ${getDifficultyColor(song.difficulty)}`}>
+                              {song.difficulty}
+                            </span>
+                          </div>
 
-                      {/* Play Button */}
-                      <motion.button
-                whileHover={{ scale: 1.15, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => playMelody(song)}
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  background: playingSong === song.id
-                    ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
-                    : 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: playingSong === song.id
-                    ? '0 8px 32px rgba(181, 31, 101, 0.5)'
-                    : '0 8px 32px rgba(45, 91, 120, 0.4)',
-                  flexShrink: 0,
-                  transition: 'all 0.3s'
-                }}
-              >
-                {playingSong === song.id ? (
-                  <Pause size={24} color="#ffffff" />
-                ) : (
-                  <Play size={24} color="#ffffff" style={{ marginLeft: '3px' }} />
-                )}
-              </motion.button>
+                          {/* Šipka pro rozbalení/sbalení */}
+                          <motion.div
+                            animate={{ rotate: expandedSongs[song.id] ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            style={{ flexShrink: 0 }}
+                          >
+                            <ChevronDown size={24} color="var(--color-secondary)" />
+                          </motion.div>
+                        </motion.div>
 
-              {/* Playback Mode Selector (pokud má píseň audio) */}
-              {song.audioUrl && (
-                <div style={{ marginLeft: '0.75rem' }}>
-                  <select
-                    value={userPlaybackMode[song.id] || 'notes'}
-                    onChange={(e) => setUserPlaybackMode(prev => ({ ...prev, [song.id]: e.target.value }))}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      fontSize: '0.75rem',
-                      padding: '0.5rem',
-                      borderRadius: 'var(--radius)',
-                      border: '1px solid rgba(45, 91, 120, 0.3)',
-                      background: 'rgba(255, 255, 255, 0.9)',
-                      cursor: 'pointer',
-                      color: '#1e293b',
-                      fontWeight: 500
-                    }}
-                  >
-                    <option value="notes">🎹 Tóny</option>
-                    <option value="audio">🎵 Audio</option>
-                    <option value="both">🎹🎵 Obojí</option>
-                  </select>
-                </div>
-              )}
+                        {/* Admin tlačítka - zobrazit vždy když je rozbaleno */}
+                        {isAdmin && editingSong !== song.id && expandedSongs[song.id] && (
+                          <div className="song-actions" style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => duplicateSong(song.id)}
+                              style={{
+                                background: 'rgba(181, 31, 101, 0.1)',
+                                border: '1px solid rgba(181, 31, 101, 0.3)',
+                                borderRadius: 'var(--radius)',
+                                padding: '0.25rem 0.5rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontSize: '0.75rem',
+                                color: 'var(--color-primary)'
+                              }}
+                              title="Duplikovat písničku"
+                            >
+                              <Copy size={14} />
+                              Duplikovat
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => handleDeleteSong(song.id)}
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                borderRadius: 'var(--radius)',
+                                padding: '0.25rem 0.5rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontSize: '0.75rem',
+                                color: '#ef4444'
+                              }}
+                              title="Smazat písničku"
+                            >
+                              <Trash2 size={14} />
+                              Smazat
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => startEditing(song)}
+                              style={{
+                                background: 'rgba(45, 91, 120, 0.2)',
+                                border: '1px solid rgba(45, 91, 120, 0.3)',
+                                borderRadius: 'var(--radius)',
+                                padding: '0.25rem 0.5rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontSize: '0.75rem',
+                                color: 'var(--color-secondary)'
+                              }}
+                            >
+                              <Edit3 size={14} />
+                              Upravit
+                            </motion.button>
+                          </div>
+                        )}
 
-              {/* Song Info */}
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                  <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
-                    {song.title}
-                  </h3>
-                  <span className={`badge ${getDifficultyColor(song.difficulty)}`}>
-                    {song.difficulty}
-                  </span>
-                  {isAdmin && editingSong !== song.id && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => duplicateSong(song.id)}
-                        style={{
-                          background: 'rgba(181, 31, 101, 0.1)',
-                          border: '1px solid rgba(181, 31, 101, 0.3)',
-                          borderRadius: 'var(--radius)',
-                          padding: '0.25rem 0.5rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          fontSize: '0.75rem',
-                          color: 'var(--color-primary)'
-                        }}
-                        title="Duplikovat písničku"
-                      >
-                        <Copy size={14} />
-                        Duplikovat
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDeleteSong(song.id)}
-                        style={{
-                          background: 'rgba(239, 68, 68, 0.1)',
-                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                          borderRadius: 'var(--radius)',
-                          padding: '0.25rem 0.5rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          fontSize: '0.75rem',
-                          color: '#ef4444'
-                        }}
-                        title="Smazat písničku"
-                      >
-                        <Trash2 size={14} />
-                        Smazat
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => startEditing(song)}
-                        style={{
-                          background: 'rgba(45, 91, 120, 0.2)',
-                          border: '1px solid rgba(45, 91, 120, 0.3)',
-                          borderRadius: 'var(--radius)',
-                          padding: '0.25rem 0.5rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          fontSize: '0.75rem',
-                          color: 'var(--color-secondary)'
-                        }}
-                      >
-                        <Edit3 size={14} />
-                        Upravit
-                      </motion.button>
-                    </div>
-                  )}
-                </div>
-
+                <AnimatePresence>
+                  {expandedSongs[song.id] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ overflow: 'hidden' }}
+                    >
                 {editingSong === song.id ? (
                   /* Editační formulář pro admina */
                   <div style={{ marginTop: '1rem' }}>
@@ -952,13 +1016,7 @@ function SongLibrary() {
                         Noty (klikni na klavír nebo zadej ručně)
                       </label>
 
-                      {/* NoteComposer - interaktivní klavír pro snadný zápis */}
-                      <NoteComposer
-                        value={editForm.notes}
-                        onChange={(value) => handleEditChange('notes', value)}
-                      />
-
-                      {/* Textové pole pro ruční úpravu */}
+                      {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
                       <textarea
                         className="form-input"
                         value={editForm.notes}
@@ -968,12 +1026,18 @@ function SongLibrary() {
                         style={{
                           fontSize: '0.875rem',
                           fontFamily: 'monospace',
-                          marginTop: '0.5rem'
+                          marginBottom: '0.5rem'
                         }}
+                      />
+
+                      {/* NoteComposer - interaktivní klavír pro snadný zápis - POD textovým polem */}
+                      <NoteComposer
+                        value={editForm.notes}
+                        onChange={(value) => handleEditChange('notes', value)}
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                       <div className="form-group">
                         <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                           Obtížnost
@@ -994,29 +1058,56 @@ function SongLibrary() {
                         <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                           Tempo
                         </label>
-                        <input
-                          type="text"
+                        <select
                           className="form-input"
                           value={editForm.tempo}
                           onChange={(e) => handleEditChange('tempo', e.target.value)}
-                          placeholder="Allegro, Moderato, Andante..."
                           style={{ fontSize: '0.875rem' }}
-                        />
+                        >
+                          <option value="">Vyberte tempo...</option>
+                          <option value="Largo">Largo (velmi pomalé)</option>
+                          <option value="Adagio">Adagio (pomalé)</option>
+                          <option value="Andante">Andante (klidné)</option>
+                          <option value="Moderato">Moderato (střední)</option>
+                          <option value="Allegro">Allegro (rychlé)</option>
+                          <option value="Presto">Presto (velmi rychlé)</option>
+                        </select>
                       </div>
-                    </div>
 
-                    <div className="form-group" style={{ marginBottom: '1rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Tónina
-                      </label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        value={editForm.key}
-                        onChange={(e) => handleEditChange('key', e.target.value)}
-                        placeholder="C dur, G dur..."
-                        style={{ fontSize: '0.875rem' }}
-                      />
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                          Tónina
+                        </label>
+                        <select
+                          className="form-input"
+                          value={editForm.key}
+                          onChange={(e) => handleEditChange('key', e.target.value)}
+                          style={{ fontSize: '0.875rem' }}
+                        >
+                          <option value="">Vyberte tóninu...</option>
+                          <optgroup label="Durové tóniny">
+                            <option value="C dur">C dur</option>
+                            <option value="G dur">G dur</option>
+                            <option value="D dur">D dur</option>
+                            <option value="A dur">A dur</option>
+                            <option value="E dur">E dur</option>
+                            <option value="F dur">F dur</option>
+                            <option value="B dur">B dur</option>
+                            <option value="Es dur">Es dur</option>
+                            <option value="As dur">As dur</option>
+                          </optgroup>
+                          <optgroup label="Mollové tóniny">
+                            <option value="a moll">a moll</option>
+                            <option value="e moll">e moll</option>
+                            <option value="h moll">h moll</option>
+                            <option value="fis moll">fis moll</option>
+                            <option value="d moll">d moll</option>
+                            <option value="g moll">g moll</option>
+                            <option value="c moll">c moll</option>
+                            <option value="f moll">f moll</option>
+                          </optgroup>
+                        </select>
+                      </div>
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '1rem' }}>
@@ -1331,9 +1422,12 @@ function SongLibrary() {
                 )}
                   </>
                 )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
                 )}
               </SortableSongCard>
             ))}

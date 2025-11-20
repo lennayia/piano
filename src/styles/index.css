@@ -75,6 +75,12 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  max-width: 100vw;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 @keyframes gradient-shift {
@@ -106,6 +112,37 @@ body::before {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1.5rem;
+}
+
+/* Responsive container padding */
+@media (max-width: 720px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .container-sm {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .container-sm {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  .container-sm {
+    padding: 0 0.5rem;
+  }
 }
 
 /* Typography */
@@ -513,4 +550,391 @@ h3 {
 .container-sm {
   position: relative;
   z-index: 1;
+}
+
+/* ============================================
+   Song Library Responsive Styles
+   ============================================ */
+
+/* Card responsive adjustments */
+.card {
+  overflow: hidden; /* Prevent overflow */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 1rem; /* Reduce from 1.5rem */
+  }
+
+  /* Make song title and buttons wrap on smaller screens */
+  .card h3 {
+    font-size: 1rem;
+    word-break: keep-all; /* Prevent breaking words */
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  /* Allow song header to wrap */
+  .song-header {
+    flex-wrap: wrap !important;
+  }
+
+  .song-header h3 {
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .song-actions {
+    flex-wrap: wrap !important;
+  }
+
+  /* Smaller action buttons on mobile */
+  .song-actions button {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .song-actions button svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 0.75rem; /* Further reduce padding */
+  }
+
+  .card h3 {
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  /* Even smaller action buttons */
+  .song-actions button {
+    font-size: 0.65rem !important;
+    padding: 0.15rem 0.35rem !important;
+  }
+
+  .song-actions button svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    padding: 0.6rem;
+  }
+
+  .card h3 {
+    font-size: 0.85rem;
+  }
+}
+
+/* Song card controls container */
+.song-card-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* Drag handle */
+.drag-handle {
+  cursor: grab;
+  padding: 0.5rem;
+  color: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.grip-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Play button */
+.play-button {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(45, 91, 120, 0.4);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.play-button.playing {
+  background: linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%);
+  box-shadow: 0 8px 32px rgba(181, 31, 101, 0.5);
+}
+
+.play-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Song card wrapper */
+.song-card-wrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* Responsive adjustments - under 720px */
+@media (max-width: 720px) {
+  .song-card-controls {
+    gap: 0.75rem; /* Reduce gap from 1.5rem to 0.75rem */
+  }
+
+  .drag-handle {
+    padding: 0.25rem;
+  }
+
+  .grip-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .play-button {
+    width: 48px; /* Reduce from 64px to 48px */
+    height: 48px;
+  }
+
+  .play-icon {
+    width: 20px; /* Reduce from 24px to 20px */
+    height: 20px;
+  }
+}
+
+/* Under 667px - Stack controls above title */
+@media (max-width: 667px) {
+  /* Wrapper stacks controls above content */
+  .song-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Controls stay in row but are on top */
+  .song-card-controls {
+    gap: 0.6rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .play-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .play-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .grip-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* Ensure playback selector wraps if present */
+  .song-card-wrapper > div:not(.song-card-controls) {
+    width: 100%;
+  }
+}
+
+/* Under 480px */
+@media (max-width: 480px) {
+  .song-card-controls {
+    gap: 0.5rem;
+  }
+
+  .play-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .play-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .grip-icon {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* Under 375px (iPhone SE, small phones) */
+@media (max-width: 375px) {
+  .song-card-controls {
+    gap: 0.4rem;
+  }
+
+  .play-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .play-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .grip-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .drag-handle {
+    padding: 0.2rem;
+  }
+}
+
+/* Under 320px (smallest screens) */
+@media (max-width: 320px) {
+  .song-card-controls {
+    gap: 0.3rem;
+  }
+
+  .play-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .play-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .grip-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .drag-handle {
+    padding: 0.15rem;
+  }
+}
+
+/* Header Navigation Responsive */
+@media (max-width: 768px) {
+  /* Hide desktop navigation */
+  .desktop-nav {
+    display: none !important;
+  }
+
+  /* Show mobile menu button */
+  .mobile-menu-button {
+    display: flex !important;
+  }
+
+  /* Show mobile navigation when open */
+  .mobile-nav {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 0.75rem 0 !important;
+  }
+
+  header .container > div {
+    gap: 0.5rem;
+  }
+
+  header a[href="/dashboard"] span {
+    font-size: 1rem !important;
+  }
+}
+
+/* Landing Page - About Eva Section Responsive */
+@media (max-width: 720px) {
+  .about-eva-wrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+  }
+
+  .about-eva-icon {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .about-eva-icon svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .about-eva-content h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .about-eva-content p {
+    font-size: 0.9375rem !important;
+  }
+
+  .about-eva-stats {
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-eva-wrapper {
+    gap: 1rem !important;
+  }
+
+  .about-eva-icon {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .about-eva-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .about-eva-content h2 {
+    font-size: 1.125rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .about-eva-content p {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .about-eva-stats {
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .about-eva-stats span {
+    font-size: 0.8125rem !important;
+  }
 }

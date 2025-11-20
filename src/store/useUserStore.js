@@ -49,7 +49,29 @@ const useUserStore = create(
               .eq('user_id', existingUser.id)
               .single();
 
-            const userWithStats = { ...updatedUser, stats };
+            // Get user achievements with full achievement data
+            const { data: userAchievements } = await supabase
+              .from('piano_user_achievements')
+              .select(`
+                achievement_id,
+                earned_at,
+                piano_achievements (
+                  id,
+                  title,
+                  description,
+                  icon,
+                  xp_reward
+                )
+              `)
+              .eq('user_id', existingUser.id);
+
+            const achievements = userAchievements?.map(a => ({
+              id: a.achievement_id,
+              earnedAt: a.earned_at,
+              ...a.piano_achievements
+            })) || [];
+
+            const userWithStats = { ...updatedUser, stats, achievements };
             set({ currentUser: userWithStats, loading: false });
             return userWithStats;
           } else {
@@ -86,7 +108,29 @@ const useUserStore = create(
               .eq('user_id', newUser.id)
               .single();
 
-            const userWithStats = { ...newUser, stats };
+            // Get user achievements with full achievement data (empty for new user)
+            const { data: userAchievements } = await supabase
+              .from('piano_user_achievements')
+              .select(`
+                achievement_id,
+                earned_at,
+                piano_achievements (
+                  id,
+                  title,
+                  description,
+                  icon,
+                  xp_reward
+                )
+              `)
+              .eq('user_id', newUser.id);
+
+            const achievements = userAchievements?.map(a => ({
+              id: a.achievement_id,
+              earnedAt: a.earned_at,
+              ...a.piano_achievements
+            })) || [];
+
+            const userWithStats = { ...newUser, stats, achievements };
             set({ currentUser: userWithStats, loading: false });
             return userWithStats;
           }
@@ -167,7 +211,35 @@ const useUserStore = create(
           }
           console.log('✅ Stats fetched:', stats);
 
-          const userWithStats = { ...(updatedProfile || userProfile), stats };
+          console.log('🏆 Step 5: Fetching user achievements...');
+          // Get user achievements with full achievement data
+          const { data: userAchievements, error: achievementsError } = await supabase
+            .from('piano_user_achievements')
+            .select(`
+              achievement_id,
+              earned_at,
+              piano_achievements (
+                id,
+                title,
+                description,
+                icon,
+                xp_reward
+              )
+            `)
+            .eq('user_id', userProfile.id);
+
+          if (achievementsError) {
+            console.warn('⚠️ Achievements error (non-critical):', achievementsError);
+          }
+
+          const achievements = userAchievements?.map(a => ({
+            id: a.achievement_id,
+            earnedAt: a.earned_at,
+            ...a.piano_achievements
+          })) || [];
+          console.log('✅ Achievements fetched:', achievements);
+
+          const userWithStats = { ...(updatedProfile || userProfile), stats, achievements };
           set({ currentUser: userWithStats, loading: false });
           console.log('✅ Admin login complete, user set in store');
           return userWithStats;
@@ -253,14 +325,8 @@ const useUserStore = create(
         bestStreak = newStreak;
       }
 
-      // Get lesson XP reward
-      const { data: lesson } = await supabase
-        .from('piano_lessons')
-        .select('xp_reward')
-        .eq('id', lessonId)
-        .single();
-
-      const xpReward = lesson?.xp_reward || 50;
+      // XP reward - defaultní hodnota, protože lekce jsou v localStorage
+      const xpReward = 50;
       const newTotalXp = (stats?.total_xp || 0) + xpReward;
       const newLevel = Math.floor(newTotalXp / 100) + 1;
       const newLessonsCompleted = (stats?.lessons_completed || 0) + 1;
@@ -354,8 +420,43 @@ const useUserStore = create(
       // Refresh current user data
       const state = get();
       if (state.currentUser?.id === userId) {
-        const profile = await getUserProfile(userId);
-        set({ currentUser: profile });
+        // Fetch updated user data with stats
+        const { data: updatedUser } = await supabase
+          .from('piano_users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        const { data: stats } = await supabase
+          .from('piano_user_stats')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        // Get updated achievements with full achievement data
+        const { data: userAchievements } = await supabase
+          .from('piano_user_achievements')
+          .select(`
+            achievement_id,
+            earned_at,
+            piano_achievements (
+              id,
+              title,
+              description,
+              icon,
+              xp_reward
+            )
+          `)
+          .eq('user_id', userId);
+
+        const achievements = userAchievements?.map(a => ({
+          id: a.achievement_id,
+          earnedAt: a.earned_at,
+          ...a.piano_achievements
+        })) || [];
+
+        const userWithStats = { ...updatedUser, stats, achievements };
+        set({ currentUser: userWithStats });
       }
 
     } catch (error) {
@@ -364,18 +465,58 @@ const useUserStore = create(
     }
   },
 
-      // Get all users (admin only)
+      // Get all users (admin only) with stats and achievements
   getAllUsers: async () => {
     try {
-      const { data, error } = await supabase
+      const { data: users, error } = await supabase
         .from('piano_users')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      set({ users: data || [] });
-      return data || [];
+      // Fetch stats and achievements for each user
+      const usersWithDetails = await Promise.all(
+        (users || []).map(async (user) => {
+          // Get user stats
+          const { data: stats } = await supabase
+            .from('piano_user_stats')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          // Get user achievements with full achievement data
+          const { data: userAchievements } = await supabase
+            .from('piano_user_achievements')
+            .select(`
+              achievement_id,
+              earned_at,
+              piano_achievements (
+                id,
+                title,
+                description,
+                icon,
+                xp_reward
+              )
+            `)
+            .eq('user_id', user.id);
+
+          const achievements = userAchievements?.map(a => ({
+            id: a.achievement_id,
+            earnedAt: a.earned_at,
+            ...a.piano_achievements
+          })) || [];
+
+          return {
+            ...user,
+            stats,
+            achievements
+          };
+        })
+      );
+
+      set({ users: usersWithDetails });
+      return usersWithDetails;
     } catch (error) {
       console.error('Error fetching users:', error);
       return [];

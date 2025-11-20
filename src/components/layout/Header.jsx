@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Piano, User, BookOpen, Lightbulb, Shield, LogOut } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 
@@ -9,11 +10,33 @@ function Header() {
   const logout = useUserStore((state) => state.logout);
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  // Zavřít dropdown při kliknutí mimo něj
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
     audioEngine.playClick();
     logout();
     navigate('/');
+    setMobileMenuOpen(false);
+    setUserMenuOpen(false);
+  };
+
+  const handleNavClick = () => {
+    audioEngine.playClick();
+    setMobileMenuOpen(false);
   };
 
   // Skrýt header na veřejné landing page a registraci
@@ -63,102 +86,300 @@ function Header() {
           </Link>
 
           {currentUser && (
-            <nav style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1.5rem'
-            }}>
-              <Link to="/dashboard" style={{
+            <>
+              {/* Desktop Navigation */}
+              <nav className="desktop-nav" style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.25rem',
-                textDecoration: 'none',
-                color: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
-                  ? 'var(--color-primary)'
-                  : 'var(--color-text-secondary)',
-                fontSize: '0.875rem',
-                fontWeight: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson') ? 600 : 500,
-                transition: 'all 0.3s ease'
+                gap: '1.5rem'
               }}>
-                <BookOpen size={18} />
-                <span>Moje lekce</span>
-              </Link>
-
-              <Link to="/resources" style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                textDecoration: 'none',
-                color: location.pathname === '/resources'
-                  ? 'var(--color-primary)'
-                  : 'var(--color-text-secondary)',
-                fontSize: '0.875rem',
-                fontWeight: location.pathname === '/resources' ? 600 : 500,
-                transition: 'all 0.3s ease'
-              }}>
-                <Lightbulb size={18} />
-                <span>Materiály</span>
-              </Link>
-
-              {currentUser.is_admin && (
-                <Link to="/admin" style={{
+                <Link to="/dashboard" onClick={handleNavClick} style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.25rem',
                   textDecoration: 'none',
-                  color: location.pathname === '/admin'
+                  color: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
                     ? 'var(--color-primary)'
                     : 'var(--color-text-secondary)',
                   fontSize: '0.875rem',
-                  fontWeight: location.pathname === '/admin' ? 600 : 500,
+                  fontWeight: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson') ? 600 : 500,
                   transition: 'all 0.3s ease'
                 }}>
-                  <Shield size={18} />
-                  <span>Admin</span>
+                  <BookOpen size={18} />
+                  <span>Moje lekce</span>
                 </Link>
-              )}
 
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.5rem 1rem',
-                background: 'rgba(181, 31, 101, 0.1)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: 'calc(var(--radius) * 2)',
-                border: '1px solid rgba(181, 31, 101, 0.2)',
-                color: '#1e293b'
-              }}>
-                <User size={18} color="var(--color-primary)" />
-                <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                  {currentUser.first_name} {currentUser.last_name}
-                </span>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleLogout}
-                style={{
+                <Link to="/resources" onClick={handleNavClick} style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  background: 'rgba(181, 31, 101, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: 'calc(var(--radius) * 2)',
-                  border: '1px solid rgba(181, 31, 101, 0.2)',
-                  color: 'var(--color-primary)',
+                  gap: '0.25rem',
+                  textDecoration: 'none',
+                  color: location.pathname === '/resources'
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-secondary)',
                   fontSize: '0.875rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
+                  fontWeight: location.pathname === '/resources' ? 600 : 500,
                   transition: 'all 0.3s ease'
+                }}>
+                  <Lightbulb size={18} />
+                  <span>Materiály</span>
+                </Link>
+
+                {currentUser.is_admin && (
+                  <Link to="/admin" onClick={handleNavClick} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    textDecoration: 'none',
+                    color: location.pathname === '/admin'
+                      ? 'var(--color-primary)'
+                      : 'var(--color-text-secondary)',
+                    fontSize: '0.875rem',
+                    fontWeight: location.pathname === '/admin' ? 600 : 500,
+                    transition: 'all 0.3s ease'
+                  }}>
+                    <Shield size={18} />
+                    <span>Admin</span>
+                  </Link>
+                )}
+
+                {/* User Dropdown Menu */}
+                <div ref={userMenuRef} style={{ position: 'relative' }}>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      audioEngine.playClick();
+                      setUserMenuOpen(!userMenuOpen);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 1rem',
+                      background: 'rgba(181, 31, 101, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 'calc(var(--radius) * 2)',
+                      border: '1px solid rgba(181, 31, 101, 0.2)',
+                      color: '#1e293b',
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    <User size={18} color="var(--color-primary)" />
+                    <span>{currentUser.first_name} {currentUser.last_name}</span>
+                    <motion.div
+                      animate={{ rotate: userMenuOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={16} color="var(--color-primary)" />
+                    </motion.div>
+                  </motion.button>
+
+                  {/* Dropdown Menu */}
+                  <AnimatePresence>
+                    {userMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 0.5rem)',
+                          right: 0,
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          borderRadius: 'var(--radius)',
+                          border: '1px solid rgba(181, 31, 101, 0.2)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                          padding: '0.5rem',
+                          minWidth: '200px',
+                          zIndex: 1000
+                        }}
+                      >
+                        <motion.button
+                          whileHover={{ backgroundColor: 'rgba(181, 31, 101, 0.1)' }}
+                          onClick={handleLogout}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1rem',
+                            background: 'transparent',
+                            border: 'none',
+                            borderRadius: 'var(--radius)',
+                            color: 'var(--color-primary)',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            width: '100%',
+                            textAlign: 'left',
+                            transition: 'background-color 0.2s ease'
+                          }}
+                        >
+                          <LogOut size={18} />
+                          <span>Odhlásit se</span>
+                        </motion.button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </nav>
+
+              {/* Mobile Hamburger Button */}
+              <motion.button
+                className="mobile-menu-button"
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  audioEngine.playClick();
+                  setMobileMenuOpen(!mobileMenuOpen);
+                }}
+                style={{
+                  display: 'none',
+                  padding: '0.5rem',
+                  background: 'rgba(181, 31, 101, 0.1)',
+                  border: '1px solid rgba(181, 31, 101, 0.2)',
+                  borderRadius: 'var(--radius)',
+                  cursor: 'pointer',
+                  color: 'var(--color-primary)'
                 }}
               >
-                <LogOut size={18} />
-                <span>Odhlásit se</span>
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </motion.button>
-            </nav>
+
+              {/* Mobile Menu */}
+              <AnimatePresence>
+                {mobileMenuOpen && (
+                  <motion.nav
+                    className="mobile-nav"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      borderBottom: '1px solid var(--glass-border)',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                      display: 'none',
+                      flexDirection: 'column',
+                      gap: '0.5rem',
+                      padding: '1rem',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Link to="/dashboard" onClick={handleNavClick} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      textDecoration: 'none',
+                      color: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                      fontSize: '1rem',
+                      fontWeight: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson') ? 600 : 500,
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius)',
+                      background: location.pathname === '/dashboard' || location.pathname.startsWith('/lesson')
+                        ? 'rgba(181, 31, 101, 0.1)'
+                        : 'transparent'
+                    }}>
+                      <BookOpen size={20} />
+                      <span>Moje lekce</span>
+                    </Link>
+
+                    <Link to="/resources" onClick={handleNavClick} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      textDecoration: 'none',
+                      color: location.pathname === '/resources'
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                      fontSize: '1rem',
+                      fontWeight: location.pathname === '/resources' ? 600 : 500,
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius)',
+                      background: location.pathname === '/resources'
+                        ? 'rgba(181, 31, 101, 0.1)'
+                        : 'transparent'
+                    }}>
+                      <Lightbulb size={20} />
+                      <span>Materiály</span>
+                    </Link>
+
+                    {currentUser.is_admin && (
+                      <Link to="/admin" onClick={handleNavClick} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        textDecoration: 'none',
+                        color: location.pathname === '/admin'
+                          ? 'var(--color-primary)'
+                          : 'var(--color-text-secondary)',
+                        fontSize: '1rem',
+                        fontWeight: location.pathname === '/admin' ? 600 : 500,
+                        padding: '0.75rem',
+                        borderRadius: 'var(--radius)',
+                        background: location.pathname === '/admin'
+                          ? 'rgba(181, 31, 101, 0.1)'
+                          : 'transparent'
+                      }}>
+                        <Shield size={20} />
+                        <span>Admin</span>
+                      </Link>
+                    )}
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.75rem',
+                      background: 'rgba(181, 31, 101, 0.1)',
+                      borderRadius: 'var(--radius)',
+                      border: '1px solid rgba(181, 31, 101, 0.2)',
+                      color: '#1e293b',
+                      marginTop: '0.5rem'
+                    }}>
+                      <User size={20} color="var(--color-primary)" />
+                      <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+                        {currentUser.first_name} {currentUser.last_name}
+                      </span>
+                    </div>
+
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleLogout}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        padding: '0.75rem',
+                        background: 'rgba(181, 31, 101, 0.1)',
+                        borderRadius: 'var(--radius)',
+                        border: '1px solid rgba(181, 31, 101, 0.2)',
+                        color: 'var(--color-primary)',
+                        fontSize: '1rem',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        marginTop: '0.5rem'
+                      }}
+                    >
+                      <LogOut size={20} />
+                      <span>Odhlásit se</span>
+                    </motion.button>
+                  </motion.nav>
+                )}
+              </AnimatePresence>
+            </>
           )}
         </div>
       </div>

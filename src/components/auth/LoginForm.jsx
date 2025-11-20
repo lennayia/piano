@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 
-function LoginForm({ disableBackgroundMusic = false }) {
+function LoginForm({ disableBackgroundMusic = false, videoRef = null, isVideoMuted = true, toggleVideoSound = null }) {
   const navigate = useNavigate();
   const loginUser = useUserStore((state) => state.loginUser);
 
@@ -41,12 +41,18 @@ function LoginForm({ disableBackgroundMusic = false }) {
   }, [disableBackgroundMusic]);
 
   const toggleMusic = () => {
-    if (isMusicPlaying) {
-      audioEngine.stopVltavaLoop();
-      setIsMusicPlaying(false);
+    // Pokud máme video se zvukem, ovládáme video
+    if (disableBackgroundMusic && toggleVideoSound) {
+      toggleVideoSound();
     } else {
-      audioEngine.startVltavaLoop();
-      setIsMusicPlaying(true);
+      // Jinak ovládáme Vltavu
+      if (isMusicPlaying) {
+        audioEngine.stopVltavaLoop();
+        setIsMusicPlaying(false);
+      } else {
+        audioEngine.startVltavaLoop();
+        setIsMusicPlaying(true);
+      }
     }
   };
 
@@ -220,34 +226,37 @@ function LoginForm({ disableBackgroundMusic = false }) {
       boxShadow: '0 8px 32px rgba(31, 38, 135, 0.2)',
       position: 'relative'
     }}>
-      {/* Music control button - zobrazit pouze pokud je povolená background music */}
-      {!disableBackgroundMusic && (
-        <button
+      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <h2 style={{ marginBottom: '1rem', fontSize: '2rem' }}>Vítejte</h2>
+
+        {/* Music control button */}
+        <motion.button
           type="button"
           onClick={toggleMusic}
+          whileHover={{ scale: 1.05, backgroundColor: 'rgba(45, 91, 120, 0.15)' }}
+          whileTap={{ scale: 0.95 }}
           style={{
-            position: 'absolute',
-            top: '1rem',
-            right: '1rem',
-            background: 'rgba(45, 91, 120, 0.1)',
-            border: '1px solid rgba(45, 91, 120, 0.3)',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
+            marginBottom: '1rem',
+            display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            background: (disableBackgroundMusic ? !isVideoMuted : isMusicPlaying) ? 'rgba(45, 91, 120, 0.12)' : 'rgba(120, 120, 120, 0.1)',
+            border: (disableBackgroundMusic ? !isVideoMuted : isMusicPlaying) ? '1.5px solid rgba(45, 91, 120, 0.4)' : '1.5px solid rgba(120, 120, 120, 0.3)',
+            borderRadius: 'var(--radius)',
             cursor: 'pointer',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            fontSize: '0.8125rem',
+            color: (disableBackgroundMusic ? !isVideoMuted : isMusicPlaying) ? 'var(--color-secondary)' : 'var(--color-text-secondary)',
+            fontWeight: 500
           }}
-          title={isMusicPlaying ? 'Vypnout hudbu' : 'Zapnout hudbu'}
+          title={(disableBackgroundMusic ? !isVideoMuted : isMusicPlaying) ? 'Vypněte si zvuk' : 'Zapněte si zvuk'}
         >
-          {isMusicPlaying ? <Volume2 size={20} color="var(--color-secondary)" /> : <VolumeX size={20} color="var(--color-text-secondary)" />}
-        </button>
-      )}
+          {(disableBackgroundMusic ? !isVideoMuted : isMusicPlaying) ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          <span>{(disableBackgroundMusic ? !isVideoMuted : isMusicPlaying) ? 'Vypněte si zvuk' : 'Zapněte si zvuk'}</span>
+        </motion.button>
 
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Vítejte</h2>
         <p className="text-secondary" style={{ fontSize: '0.875rem' }}>
           Vyplňte svoje údaje a začněte hrát na klavír
         </p>

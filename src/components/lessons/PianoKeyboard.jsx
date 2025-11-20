@@ -26,13 +26,8 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     e.stopPropagation();
     e.preventDefault();
 
-    // Pokud je callback onNoteClick, zavolat ho místo přehrání
-    if (onNoteClick) {
-      onNoteClick(note);
-      return;
-    }
-
-    audioEngine.playNote(note, 0.5);
+    // Vždy přehrát zvuk
+    audioEngine.playNote(note, 1.0);
     setActiveKeys(prev => new Set(prev).add(note));
 
     // Create smoke particle
@@ -51,6 +46,11 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     setTimeout(() => {
       setParticles(prev => prev.filter(p => p.id !== id));
     }, 2000);
+
+    // Pokud je callback onNoteClick, zavolat ho (pro zápis do textového pole)
+    if (onNoteClick) {
+      onNoteClick(note);
+    }
   };
 
   const isHighlighted = (note) => {

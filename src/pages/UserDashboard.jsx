@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Award, BookOpen, Trophy, Star, Flame, Zap } from 'lucide-react';
+import { Award, BookOpen, Trophy, Flame, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
@@ -41,21 +41,11 @@ function UserDashboard() {
     return null;
   }
 
-  const completedLessons = currentUser.progress?.length || 0;
+  const completedLessons = currentUser.stats?.lessons_completed || 0;
   const totalLessons = lessons.length;
-  const points = currentUser.points || 0;
-  const streak = currentUser.streak || 0;
+  const points = currentUser.stats?.total_xp || 0;
+  const streak = currentUser.stats?.current_streak || 0;
   const achievements = currentUser.achievements || [];
-
-  const getAchievementInfo = (achievementId) => {
-    const achievementData = {
-      'first-lesson': { title: 'První krok', icon: Star, color: 'rgba(255, 215, 0, 0.3)' },
-      'five-lessons': { title: 'Milovník hudby', icon: Trophy, color: 'rgba(181, 31, 101, 0.3)' },
-      'streak-3': { title: 'Série 3 dní', icon: Flame, color: 'rgba(255, 69, 0, 0.3)' },
-      'streak-7': { title: 'Týdenní šampion', icon: Flame, color: 'rgba(255, 140, 0, 0.3)' }
-    };
-    return achievementData[achievementId] || { title: 'Achievement', icon: Star, color: 'rgba(45, 91, 120, 0.3)' };
-  };
 
   return (
     <div className="container">
@@ -247,12 +237,10 @@ function UserDashboard() {
             Vaše odměny
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-            {achievements.map((achId, index) => {
-              const achInfo = getAchievementInfo(achId);
-              const Icon = achInfo.icon;
+            {achievements.map((achievement, index) => {
               return (
                 <motion.div
-                  key={achId}
+                  key={achievement.id}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: 1.1 + index * 0.1, type: 'spring' }}
@@ -272,6 +260,7 @@ function UserDashboard() {
                     alignItems: 'center',
                     gap: '1rem'
                   }}
+                  title={achievement.description}
                 >
                   <div style={{
                     width: '72px',
@@ -282,12 +271,16 @@ function UserDashboard() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     border: '2px solid rgba(181, 31, 101, 0.2)',
-                    boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
+                    boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)',
+                    fontSize: '2.25rem'
                   }}>
-                    <Icon size={36} color="#64748b" />
+                    {achievement.icon}
                   </div>
                   <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
-                    {achInfo.title}
+                    {achievement.title}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    +{achievement.xp_reward} XP
                   </div>
                 </motion.div>
               );

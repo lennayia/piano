@@ -79,40 +79,6 @@ function Registration() {
             Váš prohlížeč nepodporuje video tag.
           </video>
 
-          {/* Tlačítko pro zapnutí/vypnutí zvuku - zobrazí se pouze když chceme zvuk */}
-          {!backgroundConfig.video.muted && (
-            <button
-              onClick={toggleVideoSound}
-              style={{
-                position: 'fixed',
-                top: '20px',
-                right: '20px',
-                zIndex: 1000,
-                background: 'rgba(0, 0, 0, 0.5)',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '50%',
-                width: '50px',
-                height: '50px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: 'white',
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                e.currentTarget.style.transform = 'scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              {isVideoMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-            </button>
-          )}
         </>
       ) : (
         /* Fotka pozadí */
@@ -246,11 +212,11 @@ function Registration() {
             opacity: 0.9,
             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}>
-            Moderním a zábavným způsobem
+            moderním a zábavným způsobem
           </p>
         </motion.div>
 
-        <LoginForm disableBackgroundMusic={useVideoAudio} />
+        <LoginForm disableBackgroundMusic={useVideoAudio} videoRef={videoRef} isVideoMuted={isVideoMuted} toggleVideoSound={toggleVideoSound} />
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
