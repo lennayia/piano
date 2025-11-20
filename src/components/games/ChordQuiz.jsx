@@ -100,7 +100,7 @@ function ChordQuiz() {
         .from('piano_quiz_completions')
         .insert([{
           user_id: currentUser.id,
-          quiz_name: 'Poznáš akord?',
+          quiz_name: 'Poznáte akord?',
           score: finalScore,
           total_questions: chords.length,
           is_perfect: isPerfect,
@@ -209,7 +209,7 @@ function ChordQuiz() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáš akord?</h2>
+        <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáte akord?</h2>
         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
           <Music size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem', animation: 'pulse 1.5s infinite' }} />
           <p style={{ color: '#64748b' }}>Načítám akordy...</p>
@@ -222,7 +222,7 @@ function ChordQuiz() {
   if (error) {
     return (
       <div>
-        <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáš akord?</h2>
+        <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáte akord?</h2>
         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
           <XCircle size={48} color="var(--color-danger)" style={{ margin: '0 auto 1rem' }} />
           <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Chyba při načítání</h3>
@@ -273,7 +273,7 @@ function ChordQuiz() {
           <Target size={24} color="var(--color-primary)" />
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          Poznáš akord?
+          Poznáte akord?
           <Music size={24} color="var(--color-primary)" />
         </span>
       </h2>

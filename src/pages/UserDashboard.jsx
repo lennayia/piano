@@ -109,7 +109,7 @@ function UserDashboard() {
           allActivities.push({
             id: `quiz-${quiz.id}`,
             type: 'quiz',
-            title: 'Poznáš akord?',
+            title: 'Poznáte akord?',
             date: new Date(quiz.completed_at),
             xp: quiz.xp_earned || 50,
             icon: Gamepad2
