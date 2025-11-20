@@ -313,7 +313,7 @@ function ChordQuiz() {
             </motion.div>
 
             <h3 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#1e293b' }}>
-              Připraven na výzvu?
+              Jste připraveni na výzvu?
             </h3>
 
             {score > 0 && (

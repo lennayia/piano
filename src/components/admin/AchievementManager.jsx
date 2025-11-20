@@ -650,7 +650,7 @@ function AchievementManager() {
                     }}
                   >
                     <option value="">-- Vyberte kvíz --</option>
-                    <option value="1">Poznáš akord?</option>
+                    <option value="1">Poznáte akord?</option>
                     {/* Další kvízy budou přidány později */}
                   </select>
                 </div>

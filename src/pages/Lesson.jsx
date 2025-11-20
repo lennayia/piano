@@ -29,10 +29,29 @@ function Lesson() {
     }
 
     if (currentUser && lesson) {
-      const completed = currentUser.progress?.some(p => p.lessonId === lesson.id);
-      setIsCompleted(completed);
+      checkLessonCompletion();
     }
   }, [lesson, currentUser, navigate]);
+
+  const checkLessonCompletion = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('piano_lesson_completions')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('lesson_id', lesson.id.toString())
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        setIsCompleted(true);
+      } else {
+        setIsCompleted(false);
+      }
+    } catch (error) {
+      console.error('Chyba při kontrole dokončení lekce:', error);
+      setIsCompleted(false);
+    }
+  };
 
   if (!lesson) {
     return null;

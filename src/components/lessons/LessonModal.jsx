@@ -5,31 +5,92 @@ import Modal from '../ui/Modal';
 import PianoKeyboard from './PianoKeyboard';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
+import { supabase } from '../../lib/supabase';
 
 function LessonModal({ lesson, isOpen, onClose }) {
   const [isCompleted, setIsCompleted] = useState(false);
   const currentUser = useUserStore((state) => state.currentUser);
-  const updateUserProgress = useUserStore((state) => state.updateUserProgress);
 
   useEffect(() => {
-    if (currentUser && lesson) {
-      const completed = currentUser.progress?.some(p => p.lessonId === lesson.id);
-      setIsCompleted(completed);
+    if (currentUser && lesson && isOpen) {
+      checkLessonCompletion();
     }
-  }, [lesson, currentUser]);
+  }, [lesson, currentUser, isOpen]);
+
+  const checkLessonCompletion = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('piano_lesson_completions')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('lesson_id', lesson.id.toString())
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        setIsCompleted(true);
+      } else {
+        setIsCompleted(false);
+      }
+    } catch (error) {
+      console.error('Chyba při kontrole dokončení lekce:', error);
+      setIsCompleted(false);
+    }
+  };
 
   if (!lesson) return null;
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (currentUser && !isCompleted) {
-      updateUserProgress(currentUser.id, lesson.id);
-      setIsCompleted(true);
-      audioEngine.playSuccess();
+      try {
+        // 1. Uložit do historie
+        const { error: lessonError } = await supabase
+          .from('piano_lesson_completions')
+          .insert([{
+            user_id: currentUser.id,
+            lesson_id: lesson.id.toString(),
+            lesson_title: lesson.title,
+            xp_earned: 50
+          }]);
 
-      // Zavřít modal po 2 sekundách
-      setTimeout(() => {
-        onClose();
-      }, 2000);
+        if (lessonError) {
+          console.error('Chyba při ukládání lekce:', lessonError);
+          return;
+        }
+
+        // 2. Aktualizovat statistiky
+        const { data: stats, error: statsError } = await supabase
+          .from('piano_user_stats')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        if (stats && !statsError) {
+          await supabase
+            .from('piano_user_stats')
+            .update({
+              lessons_completed: (stats.lessons_completed || 0) + 1,
+              total_xp: (stats.total_xp || 0) + 50,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', currentUser.id);
+
+          // Aktualizovat lokální store
+          const updateUserStats = useUserStore.getState().updateUserStats;
+          if (updateUserStats) {
+            updateUserStats();
+          }
+        }
+
+        setIsCompleted(true);
+        audioEngine.playSuccess();
+
+        // Zavřít modal po 2 sekundách
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } catch (error) {
+        console.error('Chyba při ukládání lekce:', error);
+      }
     }
   };
 
