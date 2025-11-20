@@ -1,118 +1,178 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 
-const defaultSongs = [
-  {
-    id: 1,
-    title: 'Skákal pes přes oves',
-    difficulty: 'začátečník',
-    notes: ['G', 'G', 'A', 'H', 'H', 'A', 'G'],
-    tempo: 'Allegro',
-    key: 'C dur',
-    tips: 'Doprovod: C dur - F dur - G dur - C dur'
-  },
-  {
-    id: 2,
-    title: 'Holka modrooká',
-    difficulty: 'začátečník',
-    notes: ['G', 'A', 'H', 'C', 'D', 'C', 'H'],
-    tempo: 'Moderato',
-    key: 'C dur',
-    tips: 'Doprovod: C dur - G dur - C dur'
-  },
-  {
-    id: 3,
-    title: 'Když jsem já šel okolo vrat',
-    difficulty: 'mírně pokročilý',
-    notes: ['G', 'A', 'H', 'H', 'C', 'H', 'A', 'G', 'A', 'H', 'C', 'D'],
-    tempo: 'Andante',
-    key: 'G dur',
-    tips: 'Doprovod: G dur - D dur - Em - C dur - G dur'
-  },
-  {
-    id: 4,
-    title: 'Ach synku, synku',
-    difficulty: 'začátečník',
-    notes: ['C', 'C', 'C', 'C', 'D', 'E', 'F', 'E', 'E', 'E', 'E', 'F', 'G'],
-    tempo: 'Moderato',
-    key: 'C dur',
-    tips: 'Doprovod: C dur - F dur - G dur - C dur'
-  },
-  {
-    id: 5,
-    title: 'Slyšel jsem zvon',
-    difficulty: 'mírně pokročilý',
-    notes: ['D', 'F#', 'A', 'A', 'G', 'F#', 'E', 'D'],
-    tempo: 'Andante',
-    key: 'D dur',
-    tips: 'Doprovod: D dur - A dur - Hm - G dur - D dur'
-  },
-  {
-    id: 6,
-    title: 'Twinkle Twinkle Little Star',
-    difficulty: 'začátečník',
-    notes: ['C', 'C', 'G', 'G', 'A', 'A', 'G', 'F', 'F', 'E', 'E', 'D', 'D', 'C'],
-    tempo: 'Andante',
-    key: 'C dur',
-    tips: 'Doprovod: C dur - F dur - C dur - G dur - C dur'
-  }
-];
+const useSongStore = create((set, get) => ({
+  songs: [],
+  loading: false,
+  error: null,
 
-const useSongStore = create(
-  persist(
-    (set) => ({
-      songs: defaultSongs,
+  // Načíst písničky z databáze
+  fetchSongs: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { data, error } = await supabase
+        .from('piano_songs')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
 
-      updateSong: (songId, updatedData) => {
-        set((state) => ({
-          songs: state.songs.map(song =>
-            song.id === songId ? { ...song, ...updatedData } : song
-          )
-        }));
-      },
+      if (error) throw error;
 
-      addSong: (newSong) => {
-        set((state) => ({
-          songs: [...state.songs, { ...newSong, id: Date.now() }]
-        }));
-      },
+      // Mapovat audio_url → audioUrl pro kompatibilitu s komponentou
+      const mappedData = (data || []).map(song => ({
+        ...song,
+        audioUrl: song.audio_url
+      }));
 
-      deleteSong: (songId) => {
-        set((state) => ({
-          songs: state.songs.filter(song => song.id !== songId)
-        }));
-      },
-
-      duplicateSong: (songId) => {
-        set((state) => {
-          const songToDuplicate = state.songs.find(song => song.id === songId);
-          if (!songToDuplicate) return state;
-
-          const duplicatedSong = {
-            ...songToDuplicate,
-            id: Date.now(),
-            title: `${songToDuplicate.title} (kopie)`
-          };
-
-          return {
-            songs: [...state.songs, duplicatedSong]
-          };
-        });
-      },
-
-      reorderSongs: (newOrder) => {
-        set({ songs: newOrder });
-      },
-
-      resetSongs: () => {
-        set({ songs: defaultSongs });
-      }
-    }),
-    {
-      name: 'song-storage'
+      set({ songs: mappedData, loading: false });
+    } catch (error) {
+      console.error('Error fetching songs:', error);
+      set({ error: error.message, loading: false });
     }
-  )
-);
+  },
+
+  // Aktualizovat písničku
+  updateSong: async (songId, updatedData) => {
+    try {
+      const { data, error } = await supabase
+        .from('piano_songs')
+        .update({
+          title: updatedData.title,
+          notes: updatedData.notes,
+          lyrics: updatedData.lyrics,
+          difficulty: updatedData.difficulty,
+          tempo: updatedData.tempo,
+          key: updatedData.key,
+          tips: updatedData.tips,
+          audio_url: updatedData.audioUrl
+        })
+        .eq('id', songId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Aktualizovat lokální state
+      set((state) => ({
+        songs: state.songs.map(song =>
+          song.id === songId ? { ...song, ...data, audioUrl: data.audio_url } : song
+        )
+      }));
+    } catch (error) {
+      console.error('Error updating song:', error);
+      throw error;
+    }
+  },
+
+  // Přidat novou písničku
+  addSong: async (newSong) => {
+    try {
+      // Získat nejvyšší order_index
+      const maxOrder = Math.max(...get().songs.map(s => s.order_index || 0), 0);
+
+      const { data, error } = await supabase
+        .from('piano_songs')
+        .insert({
+          title: newSong.title,
+          notes: newSong.notes,
+          lyrics: newSong.lyrics,
+          difficulty: newSong.difficulty,
+          tempo: newSong.tempo,
+          key: newSong.key,
+          tips: newSong.tips,
+          audio_url: newSong.audioUrl,
+          order_index: maxOrder + 1
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Přidat do lokálního state
+      set((state) => ({
+        songs: [...state.songs, { ...data, audioUrl: data.audio_url }]
+      }));
+    } catch (error) {
+      console.error('Error adding song:', error);
+      throw error;
+    }
+  },
+
+  // Smazat písničku
+  deleteSong: async (songId) => {
+    try {
+      const { error } = await supabase
+        .from('piano_songs')
+        .delete()
+        .eq('id', songId);
+
+      if (error) throw error;
+
+      // Odstranit z lokálního state
+      set((state) => ({
+        songs: state.songs.filter(song => song.id !== songId)
+      }));
+    } catch (error) {
+      console.error('Error deleting song:', error);
+      throw error;
+    }
+  },
+
+  // Duplikovat písničku
+  duplicateSong: async (songId) => {
+    try {
+      const songToDuplicate = get().songs.find(song => song.id === songId);
+      if (!songToDuplicate) return;
+
+      const maxOrder = Math.max(...get().songs.map(s => s.order_index || 0), 0);
+
+      const { data, error } = await supabase
+        .from('piano_songs')
+        .insert({
+          title: `${songToDuplicate.title} (kopie)`,
+          notes: songToDuplicate.notes,
+          lyrics: songToDuplicate.lyrics,
+          difficulty: songToDuplicate.difficulty,
+          tempo: songToDuplicate.tempo,
+          key: songToDuplicate.key,
+          tips: songToDuplicate.tips,
+          audio_url: songToDuplicate.audio_url,
+          order_index: maxOrder + 1
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      set((state) => ({
+        songs: [...state.songs, { ...data, audioUrl: data.audio_url }]
+      }));
+    } catch (error) {
+      console.error('Error duplicating song:', error);
+      throw error;
+    }
+  },
+
+  // Změnit pořadí písniček
+  reorderSongs: async (newOrder) => {
+    try {
+      // Aktualizovat order_index pro všechny písničky
+      const updates = newOrder.map((song, index) =>
+        supabase
+          .from('piano_songs')
+          .update({ order_index: index })
+          .eq('id', song.id)
+      );
+
+      await Promise.all(updates);
+
+      // Aktualizovat lokální state
+      set({ songs: newOrder });
+    } catch (error) {
+      console.error('Error reordering songs:', error);
+      throw error;
+    }
+  }
+}));
 
 export default useSongStore;

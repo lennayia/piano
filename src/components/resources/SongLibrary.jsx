@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus, GripVertical, Copy, Trash2, Upload, Volume2, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -71,12 +71,18 @@ function SongLibrary() {
   const audioRef = useRef(null);
 
   const songs = useSongStore((state) => state.songs);
+  const fetchSongs = useSongStore((state) => state.fetchSongs);
   const updateSong = useSongStore((state) => state.updateSong);
   const addSong = useSongStore((state) => state.addSong);
   const duplicateSong = useSongStore((state) => state.duplicateSong);
   const deleteSong = useSongStore((state) => state.deleteSong);
   const reorderSongs = useSongStore((state) => state.reorderSongs);
   const currentUser = useUserStore((state) => state.currentUser);
+
+  // Načíst písničky při prvním načtení komponenty
+  useEffect(() => {
+    fetchSongs();
+  }, [fetchSongs]);
 
   // Admin je uživatel s is_admin === true
   const isAdmin = currentUser?.is_admin === true;
