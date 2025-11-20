@@ -1,4 +1,4 @@
-# Piano Learning App
+# PianoPro
 
 **Copyright (c) 2025 Lenka Roubalová. All rights reserved.**
 

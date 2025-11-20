@@ -1,7 +1,7 @@
 {
-  "name": "piano-learning-app",
+  "name": "pianopro",
   "version": "1.0.0",
-  "description": "Interactive piano learning application with lessons, songs, quizzes and gamification",
+  "description": "PianoPro - Interactive piano learning application with lessons, songs, quizzes and gamification",
   "author": "Lenka Roubalová <lenkaroubalova@gmail.com>",
   "license": "UNLICENSED",
   "private": true,
