@@ -158,9 +158,9 @@ function NoteComposer({ value, onChange }) {
                 {key === 'eighth' && '♪'}
                 {key === 'quarter' && '♩'}
                 {key === 'quarterDotted' && '♩.'}
-                {key === 'half' && '𝅗𝅥'}
-                {key === 'halfDotted' && '𝅗𝅥.'}
-                {key === 'whole' && '◯'}
+                {key === 'half' && '♫'}
+                {key === 'halfDotted' && '♫.'}
+                {key === 'whole' && '○'}
               </span>
               <code style={{
                 fontSize: '0.65rem',
@@ -353,19 +353,19 @@ function NoteComposer({ value, onChange }) {
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Cc, Ddis, Ee'</code></td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '0.4rem', textAlign: 'center', fontSize: '1.2rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>𝅗𝅥</td>
+                    <td style={{ padding: '0.4rem', textAlign: 'center', fontSize: '1.2rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>♫</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>Půlová</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DD</code></td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>CC, DDis, EE'</code></td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '0.4rem', textAlign: 'center', fontSize: '1.2rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>𝅗𝅥.</td>
+                    <td style={{ padding: '0.4rem', textAlign: 'center', fontSize: '1.2rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>♫.</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>Půlová s tečkou</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDD</code></td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>CCC, DDDis, EEE'</code></td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '0.4rem', textAlign: 'center', fontSize: '1.2rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>◯</td>
+                    <td style={{ padding: '0.4rem', textAlign: 'center', fontSize: '1.2rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>○</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>Celá</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDDD</code></td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>CCCC, DDDDis</code></td>
