@@ -1,5 +1,9 @@
 # Piano Learning App
 
+**Copyright (c) 2025 Lenka Roubalová. All rights reserved.**
+
+> ⚠️ **PROPRIETARY SOFTWARE** - This is closed-source, proprietary software. Unauthorized copying, distribution, or use is strictly prohibited. See [LICENSE](LICENSE) for details.
+
 Interaktivní webová aplikace pro výuku hry na klavír s gamifikací, lekcemi, kvízy a skladatelem not.
 
 ## Obsah

@@ -1,8 +1,15 @@
 {
-  "name": "piano",
+  "name": "piano-learning-app",
+  "version": "1.0.0",
+  "description": "Interactive piano learning application with lessons, songs, quizzes and gamification",
+  "author": "Lenka Roubalová <lenkaroubalova@gmail.com>",
+  "license": "UNLICENSED",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lennayia/piano.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
