@@ -780,13 +780,17 @@ function AchievementManager() {
                 onClick={() => handleDelete(achievement.id, achievement.title)}
                 className="btn btn-danger"
                 style={{
+                  flex: 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: '0.5rem',
+                  fontSize: '0.75rem',
                   padding: '0.5rem'
                 }}
               >
                 <Trash2 size={14} />
+                Smazat
               </motion.button>
             </div>
           </motion.div>

@@ -288,56 +288,61 @@ const ChordManager = () => {
   }
 
   return (
-    <div className="achievement-manager">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
-        <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Music size={28} color="var(--color-primary)" />
-          Správa akordů kvízu
-        </h2>
+    <div className="card">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '1.5rem',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <h3 className="card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Music size={24} color="var(--color-primary)" />
+            Správa akordů kvízu
+          </h3>
 
-        <button
-          onClick={() => setShowHelp(!showHelp)}
-          style={{
-            background: showHelp ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.9)',
-            border: '2px solid var(--color-primary)',
-            borderRadius: '8px',
-            padding: '8px 12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          <HelpCircle size={18} color={showHelp ? '#fff' : 'var(--color-primary)'} />
-          <span style={{ color: showHelp ? '#fff' : 'var(--color-primary)', fontSize: '14px' }}>
-            {showHelp ? 'Skrýt nápovědu' : 'Nápověda'}
-          </span>
-        </button>
+          {/* Help Button */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowHelp(!showHelp)}
+            style={{
+              background: showHelp ? 'rgba(181, 31, 101, 0.1)' : 'rgba(45, 91, 120, 0.1)',
+              border: showHelp ? '2px solid rgba(181, 31, 101, 0.3)' : '2px solid rgba(45, 91, 120, 0.2)',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            title="Zobrazit nápovědu"
+          >
+            <HelpCircle size={18} color={showHelp ? 'var(--color-primary)' : 'var(--color-secondary)'} />
+          </motion.button>
+        </div>
 
-        <button
-          onClick={handleAddChord}
-          style={{
-            marginLeft: 'auto',
-            background: 'var(--color-primary)',
-            border: 'none',
-            borderRadius: '12px',
-            padding: '12px 24px',
-            color: '#fff',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '16px',
-            fontWeight: '600',
-            transition: 'transform 0.2s ease'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-        >
-          <Plus size={20} />
-          Přidat akord
-        </button>
+        {!showAddForm && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleAddChord}
+            className="btn btn-primary"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}
+          >
+            <Plus size={16} />
+            Přidat akord
+          </motion.button>
+        )}
       </div>
 
       {/* Success Message */}
@@ -348,18 +353,18 @@ const ChordManager = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             style={{
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '2px solid #10b981',
-              borderRadius: '12px',
-              padding: '12px 20px',
-              marginBottom: '20px',
+              background: 'rgba(45, 91, 120, 0.1)',
+              border: '2px solid var(--color-secondary)',
+              borderRadius: 'var(--radius)',
+              padding: '0.75rem 1.25rem',
+              marginBottom: '1.25rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px'
+              gap: '0.625rem'
             }}
           >
-            <CheckCircle size={20} color="#10b981" />
-            <span style={{ color: '#10b981', fontWeight: '500' }}>{successMessage}</span>
+            <CheckCircle size={20} color="var(--color-secondary)" />
+            <span style={{ color: 'var(--color-secondary)', fontWeight: '500' }}>{successMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -372,21 +377,21 @@ const ChordManager = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '2px solid #ef4444',
-              borderRadius: '12px',
-              padding: '12px 20px',
-              marginBottom: '20px',
+              background: 'rgba(181, 31, 101, 0.1)',
+              border: '2px solid var(--color-primary)',
+              borderRadius: 'var(--radius)',
+              padding: '0.75rem 1.25rem',
+              marginBottom: '1.25rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px'
+              gap: '0.625rem'
             }}
           >
-            <AlertCircle size={20} color="#ef4444" />
-            <span style={{ color: '#ef4444', fontWeight: '500' }}>{error}</span>
+            <AlertCircle size={20} color="var(--color-primary)" />
+            <span style={{ color: 'var(--color-primary)', fontWeight: '500' }}>{error}</span>
             <X
               size={18}
-              color="#ef4444"
+              color="var(--color-primary)"
               style={{ marginLeft: 'auto', cursor: 'pointer' }}
               onClick={() => setError(null)}
             />
@@ -402,56 +407,83 @@ const ChordManager = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              border: '2px solid var(--color-primary)',
-              borderRadius: '16px',
-              padding: '20px',
-              marginBottom: '20px'
+              marginBottom: '2rem',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.05) 0%, rgba(181, 31, 101, 0.05) 100%)',
+              borderRadius: 'var(--radius)',
+              border: '2px solid rgba(45, 91, 120, 0.2)',
+              overflow: 'hidden'
             }}
           >
-            <h3 style={{ marginTop: 0, color: 'var(--color-primary)' }}>Nápověda - Správa akordů</h3>
+            <div style={{ display: 'flex', alignItems: 'start', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: 'rgba(45, 91, 120, 0.1)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <HelpCircle size={20} color="var(--color-secondary)" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ marginBottom: '0.75rem', color: '#1e293b', fontSize: '1rem' }}>
+                  Nápověda - Správa akordů
+                </h4>
 
-            <div style={{ marginBottom: '15px' }}>
-              <h4 style={{ color: 'var(--text-primary)', fontSize: '16px', marginBottom: '8px' }}>Jak přidat akord:</h4>
-              <ol style={{ color: 'var(--text-secondary)', lineHeight: '1.8', margin: 0 }}>
-                <li>Klikněte na "Přidat akord"</li>
-                <li>Zadejte název akordu (např. "C dur", "Am", "F#m")</li>
-                <li>Vyberte noty, které akord tvoří (kliknutím na klaviaturu)</li>
-                <li>Nastavte obtížnost (snadné/střední/těžké)</li>
-                <li>Zadejte 4 možnosti odpovědí a označte správnou</li>
-                <li>Uložte akord</li>
-              </ol>
-            </div>
+                <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>📝 Jak přidat akord:</strong>
+                    <ol style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
+                      <li style={{ marginBottom: '0.25rem' }}>Klikněte na "Přidat akord"</li>
+                      <li style={{ marginBottom: '0.25rem' }}>Zadejte název akordu (např. "C dur", "Am", "F#m")</li>
+                      <li style={{ marginBottom: '0.25rem' }}>Vyberte noty, které akord tvoří</li>
+                      <li style={{ marginBottom: '0.25rem' }}>Nastavte obtížnost (snadné/střední/těžké)</li>
+                      <li style={{ marginBottom: '0.25rem' }}>Zadejte 4 možnosti odpovědí a označte správnou</li>
+                      <li>Uložte akord</li>
+                    </ol>
+                  </div>
 
-            <div style={{ marginBottom: '15px' }}>
-              <h4 style={{ color: 'var(--text-primary)', fontSize: '16px', marginBottom: '8px' }}>Tipy:</h4>
-              <ul style={{ color: 'var(--text-secondary)', lineHeight: '1.8', margin: 0 }}>
-                <li>Vždy musí být právě jedna správná odpověď</li>
-                <li>Všechny 4 možnosti musí mít vyplněný název</li>
-                <li>Neaktivní akordy se nezobrazí v kvízu</li>
-                <li>Pořadí zobrazení určuje pole "Pořadí"</li>
-              </ul>
-            </div>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>💡 Tipy:</strong>
+                    <ul style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
+                      <li style={{ marginBottom: '0.25rem' }}>Vždy musí být právě jedna správná odpověď</li>
+                      <li style={{ marginBottom: '0.25rem' }}>Všechny 4 možnosti musí mít vyplněný název</li>
+                      <li style={{ marginBottom: '0.25rem' }}>Neaktivní akordy se nezobrazí v kvízu</li>
+                      <li>Pořadí zobrazení určuje pole "Pořadí"</li>
+                    </ul>
+                  </div>
 
-            <div>
-              <h4 style={{ color: 'var(--text-primary)', fontSize: '16px', marginBottom: '8px' }}>Dostupné noty:</h4>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {AVAILABLE_NOTES.map(note => (
-                  <span
-                    key={note}
-                    style={{
-                      background: 'var(--color-primary)',
-                      color: '#fff',
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {note}
-                  </span>
-                ))}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>🎹 Dostupné noty:</strong>
+                    <div style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem',
+                      padding: '0.75rem',
+                      background: 'rgba(255, 255, 255, 0.5)',
+                      borderRadius: 'var(--radius)'
+                    }}>
+                      {AVAILABLE_NOTES.map(note => (
+                        <span
+                          key={note}
+                          style={{
+                            background: 'var(--color-primary)',
+                            color: '#fff',
+                            padding: '0.375rem 0.75rem',
+                            borderRadius: 'var(--radius)',
+                            fontSize: '0.875rem',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {note}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -462,25 +494,24 @@ const ChordManager = () => {
       <AnimatePresence>
         {showAddForm && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
             style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              border: '2px solid var(--color-primary)',
-              borderRadius: '16px',
-              padding: '30px',
-              marginBottom: '30px'
+              marginBottom: '2rem',
+              padding: '1.5rem',
+              background: 'rgba(181, 31, 101, 0.05)',
+              borderRadius: 'var(--radius)',
+              border: '2px solid rgba(181, 31, 101, 0.2)'
             }}
           >
-            <h3 style={{ marginTop: 0, color: 'var(--color-primary)' }}>
+            <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
               {editingChord ? 'Upravit akord' : 'Přidat nový akord'}
-            </h3>
+            </h4>
 
             {/* Název akordu */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                 Název akordu *
               </label>
               <input
@@ -490,56 +521,58 @@ const ChordManager = () => {
                 placeholder="např. C dur, Am, F#m"
                 style={{
                   width: '100%',
-                  padding: '12px',
-                  border: '2px solid rgba(0, 0, 0, 0.1)',
-                  borderRadius: '8px',
-                  fontSize: '16px'
+                  padding: '0.5rem',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid #ddd',
+                  fontSize: '0.875rem'
                 }}
               />
             </div>
 
             {/* Výběr not */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                 Noty akordu * (vyberte kliknutím)
               </label>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))',
-                gap: '10px'
+                gap: '0.5rem'
               }}>
                 {AVAILABLE_NOTES.map(note => (
-                  <button
+                  <motion.button
                     key={note}
                     type="button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleNoteToggle(note)}
                     style={{
                       background: formData.notes.includes(note)
                         ? 'var(--color-primary)'
                         : 'rgba(255, 255, 255, 0.9)',
-                      border: `2px solid ${formData.notes.includes(note) ? 'var(--color-primary)' : 'rgba(0, 0, 0, 0.1)'}`,
-                      borderRadius: '8px',
-                      padding: '12px',
+                      border: `2px solid ${formData.notes.includes(note) ? 'var(--color-primary)' : '#ddd'}`,
+                      borderRadius: 'var(--radius)',
+                      padding: '0.75rem',
                       cursor: 'pointer',
-                      color: formData.notes.includes(note) ? '#fff' : 'var(--text-primary)',
+                      color: formData.notes.includes(note) ? '#fff' : '#1e293b',
                       fontWeight: '600',
-                      fontSize: '16px',
+                      fontSize: '0.875rem',
                       transition: 'all 0.2s ease'
                     }}
                   >
                     {note}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-              <div style={{ marginTop: '10px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
                 Vybrané noty: {formData.notes.length > 0 ? formData.notes.join(', ') : 'žádné'}
               </div>
             </div>
 
             {/* Obtížnost a Pořadí */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                   Obtížnost
                 </label>
                 <select
@@ -547,10 +580,10 @@ const ChordManager = () => {
                   onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                   style={{
                     width: '100%',
-                    padding: '12px',
-                    border: '2px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '8px',
-                    fontSize: '16px'
+                    padding: '0.5rem',
+                    borderRadius: 'var(--radius)',
+                    border: '1px solid #ddd',
+                    fontSize: '0.875rem'
                   }}
                 >
                   {DIFFICULTY_LEVELS.map(level => (
@@ -562,7 +595,7 @@ const ChordManager = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                   Pořadí
                 </label>
                 <input
@@ -571,10 +604,10 @@ const ChordManager = () => {
                   onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
                   style={{
                     width: '100%',
-                    padding: '12px',
-                    border: '2px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '8px',
-                    fontSize: '16px'
+                    padding: '0.5rem',
+                    borderRadius: 'var(--radius)',
+                    border: '1px solid #ddd',
+                    fontSize: '0.875rem'
                   }}
                 />
               </div>
@@ -583,27 +616,28 @@ const ChordManager = () => {
                 <label style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
+                  gap: '0.5rem',
                   cursor: 'pointer',
-                  padding: '12px',
+                  padding: '0.5rem',
                   background: 'rgba(255, 255, 255, 0.5)',
-                  borderRadius: '8px',
-                  width: '100%'
+                  borderRadius: 'var(--radius)',
+                  width: '100%',
+                  fontSize: '0.875rem'
                 }}>
                   <input
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    style={{ width: '20px', height: '20px' }}
+                    style={{ width: '18px', height: '18px' }}
                   />
-                  <span style={{ fontWeight: '600' }}>Aktivní</span>
+                  <span style={{ fontWeight: 500 }}>Aktivní</span>
                 </label>
               </div>
             </div>
 
             {/* Možnosti odpovědí */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600', fontSize: '18px' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
                 Možnosti odpovědí (4 možnosti) *
               </label>
               {formData.options.map((option, index) => (
@@ -611,16 +645,16 @@ const ChordManager = () => {
                   key={index}
                   style={{
                     display: 'flex',
-                    gap: '10px',
-                    marginBottom: '10px',
+                    gap: '0.5rem',
+                    marginBottom: '0.5rem',
                     alignItems: 'center',
-                    background: option.is_correct ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: option.is_correct ? '2px solid #10b981' : '2px solid transparent'
+                    background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
+                    padding: '0.5rem',
+                    borderRadius: 'var(--radius)',
+                    border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
                   }}
                 >
-                  <span style={{ fontWeight: '600', minWidth: '30px' }}>{index + 1}.</span>
+                  <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
                   <input
                     type="text"
                     value={option.option_name}
@@ -628,25 +662,26 @@ const ChordManager = () => {
                     placeholder={`Možnost ${index + 1}`}
                     style={{
                       flex: 1,
-                      padding: '12px',
-                      border: '2px solid rgba(0, 0, 0, 0.1)',
-                      borderRadius: '8px',
-                      fontSize: '16px'
+                      padding: '0.5rem',
+                      border: '1px solid #ddd',
+                      borderRadius: 'var(--radius)',
+                      fontSize: '0.875rem'
                     }}
                   />
                   <label
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '0.375rem',
                       cursor: 'pointer',
-                      padding: '8px 12px',
-                      background: option.is_correct ? '#10b981' : 'rgba(0, 0, 0, 0.05)',
-                      borderRadius: '8px',
-                      color: option.is_correct ? '#fff' : 'var(--text-secondary)',
-                      fontWeight: '600',
-                      minWidth: '120px',
-                      justifyContent: 'center'
+                      padding: '0.5rem 0.75rem',
+                      background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
+                      borderRadius: 'var(--radius)',
+                      color: option.is_correct ? '#fff' : '#64748b',
+                      fontWeight: 500,
+                      minWidth: '110px',
+                      justifyContent: 'center',
+                      fontSize: '0.75rem'
                     }}
                   >
                     <input
@@ -654,7 +689,7 @@ const ChordManager = () => {
                       name="correct_answer"
                       checked={option.is_correct}
                       onChange={() => handleOptionChange(index, 'is_correct', true)}
-                      style={{ width: '18px', height: '18px' }}
+                      style={{ width: '16px', height: '16px' }}
                     />
                     Správná
                   </label>
@@ -663,83 +698,78 @@ const ChordManager = () => {
             </div>
 
             {/* Tlačítka */}
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button
+            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setShowAddForm(false);
                   setEditingChord(null);
                   setError(null);
                 }}
+                className="btn btn-secondary"
                 style={{
-                  background: 'rgba(0, 0, 0, 0.1)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '16px',
-                  fontWeight: '600'
+                  gap: '0.5rem',
+                  fontSize: '0.875rem'
                 }}
               >
-                <X size={18} />
+                <X size={16} />
                 Zrušit
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleSaveChord}
+                className="btn btn-primary"
                 style={{
-                  background: 'var(--color-primary)',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 24px',
-                  color: '#fff',
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '16px',
-                  fontWeight: '600'
+                  gap: '0.5rem',
+                  fontSize: '0.875rem'
                 }}
               >
-                <Save size={18} />
-                Uložit akord
-              </button>
+                <Save size={16} />
+                Uložit
+              </motion.button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Seznam akordů */}
-      <div style={{ display: 'grid', gap: '15px' }}>
+      <div style={{ display: 'grid', gap: '1rem' }}>
         {chords.map((chord) => (
           <motion.div
             key={chord.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01, y: -2 }}
             style={{
               background: chord.is_active
-                ? 'rgba(255, 255, 255, 0.95)'
+                ? 'rgba(255, 255, 255, 0.9)'
                 : 'rgba(200, 200, 200, 0.5)',
-              backdropFilter: 'blur(10px)',
-              border: '2px solid rgba(255, 255, 255, 0.4)',
-              borderRadius: '16px',
-              padding: '20px',
+              backdropFilter: 'blur(20px)',
+              border: '2px solid rgba(181, 31, 101, 0.2)',
+              borderRadius: 'var(--radius)',
+              padding: '1.25rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '20px'
+              gap: '1.25rem',
+              boxShadow: '0 4px 15px rgba(181, 31, 101, 0.15)'
             }}
           >
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>{chord.name}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{chord.name}</h3>
                 <span style={{
-                  background: chord.difficulty === 'easy' ? '#10b981' :
-                             chord.difficulty === 'medium' ? '#f59e0b' : '#ef4444',
+                  background: chord.difficulty === 'easy' ? 'var(--color-secondary)' :
+                             chord.difficulty === 'medium' ? 'var(--color-primary)' : '#1e293b',
                   color: '#fff',
-                  padding: '4px 12px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: 'var(--radius)',
+                  fontSize: '0.75rem',
                   fontWeight: '600'
                 }}>
                   {chord.difficulty === 'easy' ? 'Snadné' :
@@ -749,9 +779,9 @@ const ChordManager = () => {
                   <span style={{
                     background: 'rgba(0, 0, 0, 0.3)',
                     color: '#fff',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: 'var(--radius)',
+                    fontSize: '0.75rem',
                     fontWeight: '600'
                   }}>
                     Neaktivní
@@ -759,27 +789,27 @@ const ChordManager = () => {
                 )}
               </div>
 
-              <div style={{ marginBottom: '8px' }}>
-                <strong style={{ color: 'var(--text-secondary)' }}>Noty:</strong>{' '}
+              <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                <strong style={{ color: '#64748b' }}>Noty:</strong>{' '}
                 <span style={{ color: 'var(--color-primary)', fontWeight: '600' }}>
                   {chord.notes?.join(', ') || 'Žádné'}
                 </span>
               </div>
 
-              <div>
-                <strong style={{ color: 'var(--text-secondary)' }}>Možnosti odpovědí:</strong>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+              <div style={{ fontSize: '0.875rem' }}>
+                <strong style={{ color: '#64748b' }}>Možnosti odpovědí:</strong>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
                   {chord.piano_quiz_chord_options
                     ?.sort((a, b) => a.display_order - b.display_order)
                     .map((opt, idx) => (
                       <span
                         key={idx}
                         style={{
-                          background: opt.is_correct ? '#10b981' : 'rgba(0, 0, 0, 0.1)',
-                          color: opt.is_correct ? '#fff' : 'var(--text-secondary)',
-                          padding: '4px 10px',
-                          borderRadius: '8px',
-                          fontSize: '13px',
+                          background: opt.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.1)',
+                          color: opt.is_correct ? '#fff' : '#64748b',
+                          padding: '0.25rem 0.625rem',
+                          borderRadius: 'var(--radius)',
+                          fontSize: '0.8125rem',
                           fontWeight: opt.is_correct ? '600' : '400'
                         }}
                       >
@@ -791,60 +821,52 @@ const ChordManager = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={() => handleToggleActive(chord.id, chord.is_active)}
-                style={{
-                  background: chord.is_active ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                  border: `2px solid ${chord.is_active ? '#ef4444' : '#10b981'}`,
-                  borderRadius: '8px',
-                  padding: '10px 16px',
-                  cursor: 'pointer',
-                  color: chord.is_active ? '#ef4444' : '#10b981',
-                  fontWeight: '600',
-                  fontSize: '14px'
-                }}
-              >
-                {chord.is_active ? 'Deaktivovat' : 'Aktivovat'}
-              </button>
-
-              <button
+            <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleEditChord(chord)}
+                className="btn btn-primary"
                 style={{
-                  background: 'rgba(59, 130, 246, 0.1)',
-                  border: '2px solid #3b82f6',
-                  borderRadius: '8px',
-                  padding: '10px',
-                  cursor: 'pointer',
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.375rem',
+                  fontSize: '0.75rem',
+                  padding: '0.5rem 0.75rem',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Edit size={18} color="#3b82f6" />
-              </button>
+                <Edit size={14} />
+                Upravit
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleDeleteChord(chord.id)}
+                className="btn btn-danger"
                 style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '2px solid #ef4444',
-                  borderRadius: '8px',
-                  padding: '10px',
-                  cursor: 'pointer',
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.375rem',
+                  fontSize: '0.75rem',
+                  padding: '0.5rem 0.75rem',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Trash2 size={18} color="#ef4444" />
-              </button>
+                <Trash2 size={14} />
+                Smazat
+              </motion.button>
             </div>
           </motion.div>
         ))}
 
         {chords.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <Music size={64} color="var(--color-primary)" style={{ opacity: 0.3 }} />
-            <p style={{ marginTop: '20px', color: 'var(--text-secondary)', fontSize: '18px' }}>
+          <div style={{ textAlign: 'center', padding: '3rem 1.25rem' }}>
+            <Music size={48} color="var(--color-primary)" style={{ opacity: 0.3, margin: '0 auto 1rem' }} />
+            <p style={{ marginTop: '1.25rem', color: '#64748b', fontSize: '1rem' }}>
               Zatím nejsou žádné akordy. Přidejte první akord pro kvíz!
             </p>
           </div>
