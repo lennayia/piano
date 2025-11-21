@@ -173,7 +173,7 @@ function HarmonizationTemplates() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <h2 className="card-title" style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div style={{
           width: '48px',
           height: '48px',

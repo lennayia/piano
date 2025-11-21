@@ -10,6 +10,13 @@ import useUserStore from '../store/useUserStore';
 
 function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeCategory, setActiveCategory] = useState('lidovky');
+
+  const songCategories = [
+    { id: 'lidovky', label: 'Lidovky', icon: Music },
+    { id: 'uzskorolidovky', label: 'Užskorolidovky', icon: Music },
+    { id: 'detske', label: 'Dětské', icon: Music }
+  ];
   const currentUser = useUserStore((state) => state.currentUser);
   const getAllUsers = useUserStore((state) => state.getAllUsers);
 
@@ -82,7 +89,6 @@ function Admin() {
         onTabChange={setActiveTab}
         options={{
           size: 'md',
-          variant: 'primary',
           style: { marginBottom: '2rem' }
         }}
       />
@@ -99,7 +105,20 @@ function Admin() {
               Upravujte melodie lidových písní a přidávejte nové skladby
             </p>
           </div>
-          <SongLibrary />
+          <div style={{ marginBottom: '1.5rem' }}>
+            <TabButtons
+              tabs={songCategories}
+              activeTab={activeCategory}
+              onTabChange={setActiveCategory}
+              options={{ layout: 'pill' }}
+            />
+          </div>
+          <div style={{
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(45, 91, 120, 0.2), rgba(45, 91, 120, 0.3), rgba(45, 91, 120, 0.2), transparent)',
+            marginBottom: '1.5rem'
+          }} />
+          <SongLibrary activeCategory={activeCategory} showHeader={false} />
         </>
       )}
     </div>

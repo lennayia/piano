@@ -145,9 +145,9 @@ function UserList() {
   return (
     <>
       <div className="card">
-        <h3 className="card-title" style={{ marginBottom: '1.5rem' }}>
+        <h2 className="card-title" style={{ marginBottom: '1.5rem' }}>
           Registrovaní uživatelé ({users.length})
-        </h3>
+        </h2>
 
         <div style={{
           overflowX: 'auto',

@@ -9,7 +9,8 @@ import { motion } from 'framer-motion';
  * @param {function} onTabChange - Callback při změně tabu
  * @param {object} options - Volitelné nastavení
  * @param {string} options.size - 'sm' | 'md' | 'lg' (default: 'md')
- * @param {string} options.variant - 'primary' | 'secondary' (default: 'primary')
+ * @param {string} options.variant - 'primary' | 'secondary' (default: 'secondary')
+ * @param {string} options.layout - 'default' | 'pill' (default: 'default')
  * @param {boolean} options.showShine - Zobrazit shine efekt (default: true)
  * @param {string} options.gap - Mezera mezi tlačítky (default: '0.5rem')
  * @param {object} options.style - Dodatečné styly pro kontejner
@@ -24,30 +25,33 @@ function TabButtons({
 
   const {
     size = 'md',
-    variant = 'primary',
+    variant = 'secondary',
+    layout = 'default',
     showShine = true,
     gap = '0.5rem',
     style = {}
   } = options;
 
+  const isPill = layout === 'pill';
+
   // Velikostní varianty
   const sizes = {
     sm: {
-      padding: '0.4rem 0.9rem',
-      fontSize: '0.75rem',
-      iconSize: 14,
+      padding: '0.5rem 1rem',
+      fontSize: '0.8rem',
+      iconSize: 16,
       borderRadius: '10px',
       gap: '0.4rem'
     },
     md: {
-      padding: '0.6rem 1.25rem',
-      fontSize: '0.875rem',
+      padding: '0.65rem 1.35rem',
+      fontSize: '0.9rem',
       iconSize: 18,
       borderRadius: '12px',
       gap: '0.5rem'
     },
     lg: {
-      padding: '0.8rem 1.5rem',
+      padding: '0.85rem 1.6rem',
       fontSize: '1rem',
       iconSize: 20,
       borderRadius: '14px',
@@ -64,7 +68,11 @@ function TabButtons({
       hoverShadow: '0 4px 12px rgba(181, 31, 101, 0.15)',
       activeColor: '#ffffff',
       hoverColor: 'var(--color-primary)',
-      inactiveColor: '#64748b'
+      inactiveColor: '#64748b',
+      // Pill - jemnější verze primary
+      pillActiveBackground: 'rgba(181, 31, 101, 0.85)',
+      pillActiveColor: '#ffffff',
+      pillHoverColor: 'var(--color-primary)'
     },
     secondary: {
       activeBackground: 'var(--color-secondary)',
@@ -73,13 +81,149 @@ function TabButtons({
       hoverShadow: '0 4px 12px rgba(45, 91, 120, 0.15)',
       activeColor: '#ffffff',
       hoverColor: 'var(--color-secondary)',
-      inactiveColor: '#64748b'
+      inactiveColor: '#64748b',
+      // Pill - jemnější verze secondary
+      pillActiveBackground: 'rgba(45, 91, 120, 0.85)',
+      pillActiveColor: '#ffffff',
+      pillHoverColor: 'var(--color-secondary)'
     }
   };
 
   const sizeConfig = sizes[size];
   const variantConfig = variants[variant];
 
+  // Renderování jednotlivých tlačítek
+  const renderButtons = () => tabs.map((tab, index) => {
+    const Icon = tab.icon;
+    const isActive = activeTab === tab.id;
+    const isHovered = hoveredTab === tab.id;
+
+    // Pill layout - kompaktnější styly s neutrálními barvami
+    const pillButtonStyle = {
+      padding: '0.4rem 1rem',
+      background: isActive
+        ? variantConfig.pillActiveBackground
+        : isHovered
+          ? 'rgba(0, 0, 0, 0.05)'
+          : 'transparent',
+      border: 'none',
+      borderRadius: '999px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.35rem',
+      transition: 'all 0.2s ease',
+      fontSize: '0.8rem',
+      fontWeight: isActive ? 600 : 500,
+      color: isActive
+        ? variantConfig.pillActiveColor
+        : isHovered
+          ? variantConfig.pillHoverColor
+          : variantConfig.inactiveColor,
+      boxShadow: isActive
+        ? '0 2px 8px rgba(0, 0, 0, 0.15)'
+        : 'none',
+      position: 'relative',
+      overflow: 'hidden'
+    };
+
+    // Default layout - původní styly
+    const defaultButtonStyle = {
+      padding: sizeConfig.padding,
+      background: isActive
+        ? variantConfig.activeBackground
+        : isHovered
+          ? variantConfig.hoverBackground
+          : 'rgba(255, 255, 255, 0.8)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+      border: 'none',
+      borderRadius: sizeConfig.borderRadius,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: sizeConfig.gap,
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      fontSize: sizeConfig.fontSize,
+      fontWeight: isActive ? 600 : 500,
+      color: isActive
+        ? variantConfig.activeColor
+        : isHovered
+          ? variantConfig.hoverColor
+          : variantConfig.inactiveColor,
+      boxShadow: isActive
+        ? variantConfig.activeShadow
+        : isHovered
+          ? variantConfig.hoverShadow
+          : '0 2px 8px rgba(0, 0, 0, 0.06)',
+      position: 'relative',
+      overflow: 'hidden'
+    };
+
+    return (
+      <motion.button
+        key={tab.id}
+        initial={isPill ? { opacity: 0 } : { opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={isPill
+          ? { delay: index * 0.03 }
+          : { delay: index * 0.05, type: 'spring', stiffness: 300 }
+        }
+        whileHover={isPill
+          ? { scale: 1.02 }
+          : { scale: 1.03, y: -2 }
+        }
+        whileTap={{ scale: 0.97 }}
+        onClick={() => onTabChange(tab.id)}
+        onMouseEnter={() => setHoveredTab(tab.id)}
+        onMouseLeave={() => setHoveredTab(null)}
+        style={isPill ? pillButtonStyle : defaultButtonStyle}
+      >
+        {/* Shine effect */}
+        {showShine && isActive && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: '200%' }}
+            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '50%',
+              height: '100%',
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+              pointerEvents: 'none'
+            }}
+          />
+        )}
+        {Icon && (
+          <Icon
+            size={isPill ? 14 : sizeConfig.iconSize}
+            color={isActive
+              ? (isPill ? variantConfig.pillActiveColor : variantConfig.activeColor)
+              : isHovered
+                ? (isPill ? variantConfig.pillHoverColor : variantConfig.hoverColor)
+                : variantConfig.inactiveColor}
+            style={{ transition: 'color 0.2s' }}
+          />
+        )}
+        {tab.label}
+      </motion.button>
+    );
+  });
+
+  // Pill layout - kompaktní lišta, responzivní zalamování přes CSS
+  if (isPill) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-start', ...style }}>
+        <div className="tab-pill-container">
+          {renderButtons()}
+        </div>
+      </div>
+    );
+  }
+
+  // Default layout
   return (
     <div style={{
       display: 'flex',
@@ -87,89 +231,7 @@ function TabButtons({
       flexWrap: 'wrap',
       ...style
     }}>
-      {tabs.map((tab, index) => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
-        const isHovered = hoveredTab === tab.id;
-
-        return (
-          <motion.button
-            key={tab.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, type: 'spring', stiffness: 300 }}
-            whileHover={{
-              scale: 1.03,
-              y: -2
-            }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onTabChange(tab.id)}
-            onMouseEnter={() => setHoveredTab(tab.id)}
-            onMouseLeave={() => setHoveredTab(null)}
-            style={{
-              padding: sizeConfig.padding,
-              background: isActive
-                ? variantConfig.activeBackground
-                : isHovered
-                  ? variantConfig.hoverBackground
-                  : 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: 'none',
-              borderRadius: sizeConfig.borderRadius,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: sizeConfig.gap,
-              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-              fontSize: sizeConfig.fontSize,
-              fontWeight: isActive ? 600 : 500,
-              color: isActive
-                ? variantConfig.activeColor
-                : isHovered
-                  ? variantConfig.hoverColor
-                  : variantConfig.inactiveColor,
-              boxShadow: isActive
-                ? variantConfig.activeShadow
-                : isHovered
-                  ? variantConfig.hoverShadow
-                  : '0 2px 8px rgba(0, 0, 0, 0.06)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            {/* Shine effect */}
-            {showShine && isActive && (
-              <motion.div
-                initial={{ x: '-100%' }}
-                animate={{ x: '200%' }}
-                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '50%',
-                  height: '100%',
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                  pointerEvents: 'none'
-                }}
-              />
-            )}
-            {Icon && (
-              <Icon
-                size={sizeConfig.iconSize}
-                color={isActive
-                  ? variantConfig.activeColor
-                  : isHovered
-                    ? variantConfig.hoverColor
-                    : variantConfig.inactiveColor}
-                style={{ transition: 'color 0.2s' }}
-              />
-            )}
-            {tab.label}
-          </motion.button>
-        );
-      })}
+      {renderButtons()}
     </div>
   );
 }

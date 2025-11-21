@@ -166,7 +166,7 @@ function Glossary() {
 
   return (
     <div>
-      <h2 style={{
+      <h2 className="card-title" style={{
         marginBottom: '1.5rem',
         color: '#1e293b',
         display: 'flex',

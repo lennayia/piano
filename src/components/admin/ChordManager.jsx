@@ -298,10 +298,10 @@ const ChordManager = () => {
         gap: '1rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <h3 className="card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h2 className="card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Music size={24} color="var(--color-primary)" />
             Správa akordů kvízu
-          </h3>
+          </h2>
 
           {/* Help Button */}
           <motion.button

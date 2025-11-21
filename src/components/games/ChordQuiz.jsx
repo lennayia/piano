@@ -252,7 +252,7 @@ function ChordQuiz() {
       {/* Confetti při dokončení kvízu */}
       <Confetti show={showCelebration} onComplete={() => setShowCelebration(false)} />
 
-      <h2 style={{
+      <h2 className="card-title" style={{
         marginBottom: '1.5rem',
         color: '#1e293b',
         display: 'flex',
