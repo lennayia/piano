@@ -5,8 +5,10 @@
 2. [Přihlášení a role](#přihlášení-a-role)
 3. [Notační systém](#notační-systém)
 4. [Správa obsahu (Admin)](#správa-obsahu-admin)
-5. [Databázová struktura](#databázová-struktura)
-6. [Technické informace](#technické-informace)
+5. [Cvičení akordů](#cvičení-akordů)
+6. [Databázová struktura](#databázová-struktura)
+7. [UI Komponenty](#ui-komponenty)
+8. [Technické informace](#technické-informace)
 
 ---
 
@@ -250,6 +252,53 @@ Jako admin vidíte u každé položky **ikonu se třemi vodorovnými čárami** 
 
 ---
 
+## Cvičení akordů
+
+Stránka `/cviceni` nabízí interaktivní procvičování akordů na klaviatuře.
+
+### Funkce
+
+- **Kvíz "Poznáte akord?"** - aplikace zobrazí název akordu a uživatel musí zahrát správné tóny
+- **Vizuální zpětná vazba** - zvýrazněné klávesy na klaviatuře
+- **Šipky u černých kláves** - vizuální indikátor pod černými klávesami pro snadnější orientaci
+
+### Filtrování obtížnosti
+
+Tlačítka pro výběr akordů:
+- **Základní akordy** - akordy bez křížků (C dur, F dur, G dur, D moll, E moll, A moll)
+- **Pokročilé akordy** - akordy s křížky (D dur, E dur, A dur, H dur, C moll, F moll, G moll, H moll)
+- **Všechny** - kombinace obou kategorií
+
+### Míchání akordů
+
+Tlačítko **"Míchat"** (ikona shuffle) náhodně zamíchá pořadí akordů pro pestřejší procvičování.
+
+### Seznam akordů
+
+**Základní (easy):**
+| Akord | Tóny |
+|-------|------|
+| C dur | C, E, G |
+| F dur | F, A, C' |
+| G dur | G, H, D' |
+| D moll | D, F, A |
+| E moll | E, G, H |
+| A moll | A, C', E' |
+
+**Pokročilé (medium):**
+| Akord | Tóny |
+|-------|------|
+| D dur | D, F#, A |
+| E dur | E, G#, H |
+| A dur | A, C#', E' |
+| H dur | H, D#', F#' |
+| C moll | C, D#, G |
+| F moll | F, G#, C' |
+| G moll | G, A#, D' |
+| H moll | H, D', F#' |
+
+---
+
 ## Databázová struktura
 
 ### Schéma: `piano`
@@ -332,6 +381,17 @@ current_streak          INTEGER DEFAULT 0
 last_practice_date      DATE
 ```
 
+#### Tabulka: `piano_quiz_chords`
+```sql
+id              SERIAL PRIMARY KEY
+name            TEXT NOT NULL          -- Název akordu (C dur, D moll, ...)
+notes           TEXT[] NOT NULL        -- Pole tónů (ARRAY['C', 'E', 'G'])
+difficulty      TEXT DEFAULT 'easy'    -- 'easy' nebo 'medium'
+is_active       BOOLEAN DEFAULT TRUE   -- Aktivní pro zobrazení
+display_order   INTEGER               -- Pořadí zobrazení
+created_at      TIMESTAMP
+```
+
 ### SQL Migrace
 
 Soubor pro přidání `lyrics` a `order_index`:
@@ -367,10 +427,12 @@ piano/
 │   └── audio/                    # Audio soubory (vltava.mp3)
 ├── src/
 │   ├── components/
+│   │   ├── admin/                # Admin komponenty (ChordManager, ...)
 │   │   ├── auth/                 # Přihlášení, registrace
 │   │   ├── dashboard/            # Dashboard komponenty
-│   │   ├── lessons/              # Lekce, klaviatura
-│   │   └── resources/            # Písničky, slovníček, šablony
+│   │   ├── lessons/              # Lekce, klaviatura (PianoKeyboard)
+│   │   ├── resources/            # Písničky, slovníček, šablony
+│   │   └── ui/                   # Znovupoužitelné UI komponenty (TabButtons)
 │   ├── lib/
 │   │   └── supabase.js          # Supabase klient
 │   ├── pages/
@@ -378,7 +440,8 @@ piano/
 │   │   ├── Login.jsx            # Přihlášení
 │   │   ├── PianoLogin.jsx       # Admin přihlášení
 │   │   ├── Registration.jsx     # Registrace
-│   │   └── Admin.jsx            # Admin panel
+│   │   ├── Admin.jsx            # Admin panel
+│   │   └── Cviceni.jsx          # Cvičení akordů
 │   ├── store/
 │   │   ├── useLessonStore.js    # State pro lekce
 │   │   ├── useSongStore.js      # State pro písničky
@@ -510,6 +573,48 @@ Podobná pravidla platí pro všechny ostatní tabulky.
 
 ---
 
+## UI Komponenty
+
+### TabButtons
+
+Znovupoužitelná komponenta pro moderní tab navigaci s animacemi.
+
+**Soubor**: `src/components/ui/TabButtons.jsx`
+
+**Použití:**
+```jsx
+import TabButtons from '../components/ui/TabButtons';
+import { Music, Users } from 'lucide-react';
+
+const tabs = [
+  { id: 'songs', label: 'Písně', icon: Music },
+  { id: 'users', label: 'Uživatelé', icon: Users }
+];
+
+<TabButtons
+  tabs={tabs}
+  activeTab={activeTab}
+  onTabChange={setActiveTab}
+  options={{
+    size: 'md',           // 'sm' | 'md' | 'lg'
+    variant: 'primary',   // 'primary' | 'secondary'
+    showShine: true,      // Animovaný shine efekt
+    gap: '0.5rem',        // Mezera mezi tlačítky
+    style: {}             // Dodatečné CSS styly
+  }}
+/>
+```
+
+**Vlastnosti:**
+- Framer Motion animace (hover, tap, vstup)
+- Shine efekt na aktivním tabu
+- Podpora ikon (Lucide React)
+- Dvě barevné varianty (primary/secondary)
+- Tři velikostní varianty (sm/md/lg)
+- Responzivní design s flex-wrap
+
+---
+
 ## FAQ
 
 ### Jak přidat administrátora?
@@ -549,5 +654,5 @@ supabase db dump -f backup.sql
 
 ---
 
-*Poslední aktualizace: 19. 11. 2025*
-*Verze: 1.0.0*
+*Poslední aktualizace: 20. 11. 2025*
+*Verze: 1.1.0*

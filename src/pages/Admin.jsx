@@ -76,7 +76,6 @@ function Admin() {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
       <TabButtons
         tabs={tabs}
         activeTab={activeTab}
@@ -88,33 +87,12 @@ function Admin() {
         }}
       />
 
-      {/* Tab Content */}
-      {activeTab === 'dashboard' && (
-        <div>
-          <AdminDashboard />
-        </div>
-      )}
-
-      {activeTab === 'users' && (
-        <div>
-          <UserList />
-        </div>
-      )}
-
-      {activeTab === 'achievements' && (
-        <div>
-          <AchievementManager />
-        </div>
-      )}
-
-      {activeTab === 'quizzes' && (
-        <div>
-          <ChordManager />
-        </div>
-      )}
-
+      {activeTab === 'dashboard' && <AdminDashboard />}
+      {activeTab === 'users' && <UserList />}
+      {activeTab === 'achievements' && <AchievementManager />}
+      {activeTab === 'quizzes' && <ChordManager />}
       {activeTab === 'songs' && (
-        <div>
+        <>
           <div style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>Správa písní</h2>
             <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
@@ -122,7 +100,7 @@ function Admin() {
             </p>
           </div>
           <SongLibrary />
-        </div>
+        </>
       )}
     </div>
   );
