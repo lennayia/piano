@@ -49,7 +49,7 @@ function Admin() {
     { id: 'users', label: 'Uživatelé', icon: Users },
     { id: 'achievements', label: 'Odměny', icon: Trophy },
     { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
-    { id: 'songs', label: 'Správa písní', icon: Music }
+    { id: 'songs', label: 'Písničky', icon: Music }
   ];
 
   return (

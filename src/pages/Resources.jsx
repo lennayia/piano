@@ -13,9 +13,9 @@ function Resources() {
 
   const tabs = [
     { id: 'quiz', label: 'Poznáte akord?', icon: Target },
-    { id: 'playlist', label: 'Písničky', icon: Music },
     { id: 'templates', label: 'Šablony harmonizace', icon: BookOpen },
-    { id: 'glossary', label: 'Slovníček', icon: Book }
+    { id: 'glossary', label: 'Slovníček', icon: Book },
+    { id: 'playlist', label: 'Písničky', icon: Music }
   ];
 
   const songCategories = [
