@@ -581,7 +581,7 @@ Znovupoužitelná komponenta pro moderní tab navigaci s animacemi.
 
 **Soubor**: `src/components/ui/TabButtons.jsx`
 
-**Použití:**
+**Použití - výchozí layout:**
 ```jsx
 import TabButtons from '../components/ui/TabButtons';
 import { Music, Users } from 'lucide-react';
@@ -597,11 +597,26 @@ const tabs = [
   onTabChange={setActiveTab}
   options={{
     size: 'md',           // 'sm' | 'md' | 'lg'
-    variant: 'primary',   // 'primary' | 'secondary'
+    variant: 'secondary', // 'primary' | 'secondary' (default: 'secondary')
     showShine: true,      // Animovaný shine efekt
     gap: '0.5rem',        // Mezera mezi tlačítky
     style: {}             // Dodatečné CSS styly
   }}
+/>
+```
+
+**Použití - pill layout (pro druhou úroveň navigace):**
+```jsx
+const categories = [
+  { id: 'lidovky', label: 'Lidovky', icon: Music },
+  { id: 'detske', label: 'Dětské', icon: Music }
+];
+
+<TabButtons
+  tabs={categories}
+  activeTab={activeCategory}
+  onTabChange={setActiveCategory}
+  options={{ layout: 'pill' }}
 />
 ```
 
@@ -612,6 +627,10 @@ const tabs = [
 - Dvě barevné varianty (primary/secondary)
 - Tři velikostní varianty (sm/md/lg)
 - Responzivní design s flex-wrap
+- **Pill layout** - kompaktní horizontální lišta pro sub-navigaci
+  - Menší tlačítka s kulatými rohy
+  - Poloprůhledné pozadí s blur efektem
+  - Vhodné pro kategorie a filtry
 
 ---
 
@@ -654,5 +673,5 @@ supabase db dump -f backup.sql
 
 ---
 
-*Poslední aktualizace: 20. 11. 2025*
-*Verze: 1.1.0*
+*Poslední aktualizace: 21. 11. 2025*
+*Verze: 1.2.0*
