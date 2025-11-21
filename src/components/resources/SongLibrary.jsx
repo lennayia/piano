@@ -1868,9 +1868,7 @@ function SongLibrary() {
                       exit={{ opacity: 0, height: 0 }}
                       style={{
                         marginTop: '1rem',
-                        marginBottom: '1rem',
-                        overflowX: 'auto',
-                        WebkitOverflowScrolling: 'touch'
+                        marginBottom: '1rem'
                       }}
                     >
                       <PianoKeyboard

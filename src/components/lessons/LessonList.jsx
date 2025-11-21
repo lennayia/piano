@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit3, Save, X, Trash2, GripVertical } from 'lucide-react';
 import {
@@ -48,6 +48,7 @@ function SortableLessonCard({ lesson, children }) {
 
 function LessonList() {
   const lessons = useLessonStore((state) => state.lessons);
+  const fetchLessons = useLessonStore((state) => state.fetchLessons);
   const addLesson = useLessonStore((state) => state.addLesson);
   const updateLesson = useLessonStore((state) => state.updateLesson);
   const deleteLesson = useLessonStore((state) => state.deleteLesson);
@@ -60,6 +61,11 @@ function LessonList() {
   const [editingLesson, setEditingLesson] = useState(null);
 
   const isAdmin = currentUser?.is_admin === true;
+
+  // Načíst lekce z databáze při načtení komponenty
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
 
   // Sensors pro drag and drop
   const sensors = useSensors(

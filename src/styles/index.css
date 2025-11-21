@@ -729,8 +729,8 @@ h3 {
   }
 }
 
-/* Under 667px - Stack controls above title */
-@media (max-width: 667px) {
+/* Under 900px - Stack controls above title */
+@media (max-width: 899px) {
   /* Wrapper stacks controls above content */
   .song-card-wrapper {
     display: flex;

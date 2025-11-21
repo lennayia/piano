@@ -57,8 +57,14 @@ function UserDashboard() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
   const lessons = useLessonStore((state) => state.lessons);
+  const fetchLessons = useLessonStore((state) => state.fetchLessons);
   const [recentActivities, setRecentActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
+
+  // Načíst lekce z databáze
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
 
   useEffect(() => {
     if (!currentUser) {

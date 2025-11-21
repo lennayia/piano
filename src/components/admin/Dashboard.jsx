@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Users, BookOpen, TrendingUp } from 'lucide-react';
 import useUserStore from '../../store/useUserStore';
 import useLessonStore from '../../store/useLessonStore';
@@ -5,6 +6,12 @@ import useLessonStore from '../../store/useLessonStore';
 function Dashboard() {
   const users = useUserStore((state) => state.users);
   const lessons = useLessonStore((state) => state.lessons);
+  const fetchLessons = useLessonStore((state) => state.fetchLessons);
+
+  // Načíst lekce z databáze
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
 
   const totalCompletedLessons = users.reduce((sum, user) =>
     sum + (user.progress?.length || 0), 0

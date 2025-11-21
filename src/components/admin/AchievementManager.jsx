@@ -40,13 +40,15 @@ function AchievementManager() {
     trigger_id: null
   });
   const lessons = useLessonStore((state) => state.lessons);
+  const fetchLessons = useLessonStore((state) => state.fetchLessons);
   const songs = useSongStore((state) => state.songs);
   const fetchSongs = useSongStore((state) => state.fetchSongs);
 
   useEffect(() => {
     fetchAchievements();
+    fetchLessons(); // Načíst lekce pro dropdown
     fetchSongs(); // Načíst písničky pro dropdown
-  }, [fetchSongs]);
+  }, [fetchLessons, fetchSongs]);
 
   const fetchAchievements = async () => {
     const { data, error } = await supabase

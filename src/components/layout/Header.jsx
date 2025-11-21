@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown, History } from 'lucide-react';
+import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown, History, Headphones } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import useUserStore from '../../store/useUserStore';
@@ -120,6 +120,22 @@ function Header() {
                 }}>
                   <BookOpen size={18} />
                   <span>Moje lekce</span>
+                </Link>
+
+                <Link to="/cviceni" onClick={handleNavClick} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  textDecoration: 'none',
+                  color: location.pathname === '/cviceni'
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-secondary)',
+                  fontSize: '0.875rem',
+                  fontWeight: location.pathname === '/cviceni' ? 600 : 500,
+                  transition: 'all 0.3s ease'
+                }}>
+                  <Headphones size={18} />
+                  <span>Cvičení</span>
                 </Link>
 
                 <Link to="/resources" onClick={handleNavClick} style={{
@@ -336,6 +352,26 @@ function Header() {
                     }}>
                       <BookOpen size={20} />
                       <span>Moje lekce</span>
+                    </Link>
+
+                    <Link to="/cviceni" onClick={handleNavClick} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      textDecoration: 'none',
+                      color: location.pathname === '/cviceni'
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                      fontSize: '1rem',
+                      fontWeight: location.pathname === '/cviceni' ? 600 : 500,
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius)',
+                      background: location.pathname === '/cviceni'
+                        ? 'rgba(181, 31, 101, 0.1)'
+                        : 'transparent'
+                    }}>
+                      <Headphones size={20} />
+                      <span>Cvičení</span>
                     </Link>
 
                     <Link to="/resources" onClick={handleNavClick} style={{

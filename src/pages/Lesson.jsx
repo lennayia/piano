@@ -20,8 +20,14 @@ function Lesson() {
   const lesson = useLessonStore((state) =>
     state.lessons.find(l => l.id === parseInt(id))
   );
+  const fetchLessons = useLessonStore((state) => state.fetchLessons);
 
   const currentUser = useUserStore((state) => state.currentUser);
+
+  // Načíst lekce z databáze
+  useEffect(() => {
+    fetchLessons();
+  }, [fetchLessons]);
 
   useEffect(() => {
     if (!lesson) {
