@@ -6,6 +6,7 @@ import SongLibrary from '../components/resources/SongLibrary';
 import AchievementManager from '../components/admin/AchievementManager';
 import ChordManager from '../components/admin/ChordManager';
 import TabButtons from '../components/ui/TabButtons';
+import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
 
 function Admin() {
@@ -53,7 +54,101 @@ function Admin() {
   ];
 
   return (
-    <div className="container">
+    <>
+      {/* Plovoucí nápověda - modulární komponenta */}
+      <FloatingHelpButton title="Nápověda - Admin panel">
+        <div style={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.7 }}>
+          <h4 style={{ color: '#1e293b', marginBottom: '0.75rem', fontSize: '1rem' }}>
+            Vítejte v admin panelu
+          </h4>
+          <p style={{ marginBottom: '1rem' }}>
+            Zde můžete spravovat veškerý obsah aplikace PianoPro.
+          </p>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Přehled</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Statistiky aplikace - počet uživatelů, aktivita, XP.
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Uživatelé</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Seznam všech registrovaných uživatelů a jejich statistiky.
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Odměny</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Správa achievementů a odměn pro uživatele.
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Kvízy</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Správa akordů pro kvíz "Poznáte akord?". Přidávejte nové akordy, upravujte možnosti odpovědí.
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Písničky</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Přidávejte a upravujte písničky. Používejte notační systém: D_E_F_G pro noty, - pro pauzy.
+            </p>
+          </div>
+
+          <h4 style={{ color: '#1e293b', marginTop: '1.5rem', marginBottom: '0.75rem', fontSize: '1rem' }}>
+            Tipy
+          </h4>
+
+          <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Drag & Drop:</strong> Přetahujte položky za ikonu ⋮⋮⋮ pro změnu pořadí
+            </li>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Duplikace:</strong> Tlačítko kopírování vytvoří kopii položky
+            </li>
+            <li>
+              <strong>Toto okno:</strong> Můžete ho přetáhnout kamkoliv nebo minimalizovat
+            </li>
+          </ul>
+        </div>
+      </FloatingHelpButton>
+
+      <div className="container">
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -122,6 +217,7 @@ function Admin() {
         </>
       )}
     </div>
+    </>
   );
 }
 
