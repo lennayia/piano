@@ -6,7 +6,7 @@ import {
   Settings, Save, HelpCircle, Crown,
   Zap, Music, BookOpen, Target
 } from 'lucide-react';
-import TabButtons from '../ui/TabButtons';
+import TabButtons, { HelpButton, HelpPanel } from '../ui/TabButtons';
 
 const GamificationManager = () => {
   const [activeTab, setActiveTab] = useState('xp-rules');
@@ -107,26 +107,7 @@ const GamificationManager = () => {
             Správa gamifikace
           </h2>
 
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowHelp(!showHelp)}
-            style={{
-              background: showHelp ? 'rgba(181, 31, 101, 0.1)' : 'rgba(45, 91, 120, 0.1)',
-              border: showHelp ? '2px solid rgba(181, 31, 101, 0.3)' : '2px solid rgba(45, 91, 120, 0.2)',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            title="Zobrazit nápovědu"
-          >
-            <HelpCircle size={18} color={showHelp ? 'var(--color-primary)' : 'var(--color-secondary)'} />
-          </motion.button>
+          <HelpButton onClick={() => setShowHelp(!showHelp)} isActive={showHelp} />
         </div>
       </div>
 
@@ -157,32 +138,18 @@ const GamificationManager = () => {
       </AnimatePresence>
 
       {/* Help Panel */}
-      <AnimatePresence>
-        {showHelp && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            style={{
-              background: 'rgba(45, 91, 120, 0.05)',
-              border: '1px solid rgba(45, 91, 120, 0.2)',
-              borderRadius: 'var(--radius)',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              fontSize: '0.875rem',
-              color: '#475569'
-            }}
-          >
-            <h4 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>Nápověda - Gamifikace</h4>
-            <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
-              <li><strong>XP Pravidla:</strong> Nastavte kolik bodů uživatel získá za různé aktivity</li>
-              <li><strong>Levely:</strong> Definujte prahy XP pro jednotlivé levely a jejich názvy</li>
-              <li><strong>Žebříček:</strong> Přehled TOP 50 uživatelů podle celkového XP</li>
-              <li><strong>Statistiky:</strong> Celkové statistiky gamifikace</li>
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <HelpPanel
+        isOpen={showHelp}
+        title="Nápověda - Gamifikace"
+        content={{
+          tips: [
+            'XP Pravidla: Nastavte kolik bodů uživatel získá za různé aktivity',
+            'Levely: Definujte prahy XP pro jednotlivé levely a jejich názvy',
+            'Žebříček: Přehled TOP 50 uživatelů podle celkového XP',
+            'Statistiky: Celkové statistiky gamifikace'
+          ]
+        }}
+      />
 
       {/* Tabs */}
       <div style={{ marginBottom: '2rem' }}>

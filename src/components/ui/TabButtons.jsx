@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Edit, Copy, Trash2, Plus, HelpCircle } from 'lucide-react';
 
 /**
@@ -501,7 +501,7 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
         cursor: 'pointer',
         transition: 'all 0.2s ease',
         background: isActive
-          ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(181, 31, 101, 0.2) 100%)'
+          ? 'linear-gradient(135deg, rgba(45, 91, 120, 0.15) 0%, rgba(45, 91, 120, 0.2) 100%)'
           : isHovered
             ? 'linear-gradient(135deg, rgba(45, 91, 120, 0.12) 0%, rgba(45, 91, 120, 0.18) 100%)'
             : 'rgba(45, 91, 120, 0.08)',
@@ -516,10 +516,96 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
     >
       <HelpCircle
         size={18}
-        color={isActive ? 'var(--color-primary)' : 'var(--color-secondary)'}
+        color="var(--color-secondary)"
         style={{ transition: 'color 0.2s' }}
       />
     </motion.button>
+  );
+}
+
+/**
+ * Moderní HelpPanel - rozbalovací panel s nápovědou
+ *
+ * @param {boolean} isOpen - Je panel otevřený?
+ * @param {string} title - Nadpis nápovědy
+ * @param {object} content - Obsah nápovědy { steps: [], tips: [] }
+ * @param {React.ReactNode} children - Custom obsah (pokud je zadán, content se ignoruje)
+ * @param {object} style - Dodatečné styly
+ */
+export function HelpPanel({ isOpen = false, title = "Nápověda", content, children, style = {}, ...props }) {
+  const { steps = [], tips = [] } = content || {};
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          style={{
+            marginBottom: '2rem',
+            padding: '1.5rem',
+            background: 'rgba(45, 91, 120, 0.04)',
+            borderRadius: '16px',
+            border: '1px solid rgba(45, 91, 120, 0.15)',
+            overflow: 'hidden',
+            ...style
+          }}
+          {...props}
+        >
+          <h4 style={{ marginBottom: '1rem', color: 'var(--color-secondary)', fontSize: '0.95rem', fontWeight: 600 }}>
+            {title}
+          </h4>
+
+          {children ? (
+            // Custom obsah
+            <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
+              {children}
+            </div>
+          ) : (
+            // Defaultní struktura se steps a tips
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1.5rem',
+              fontSize: '0.875rem',
+              color: '#64748b',
+              lineHeight: '1.6'
+            }}>
+              {steps.length > 0 && (
+                <div>
+                  <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                    Jak na to:
+                  </strong>
+                  <ol style={{ marginLeft: '1.25rem', marginBottom: '0' }}>
+                    {steps.map((step, index) => (
+                      <li key={index} style={{ marginBottom: '0.25rem' }}>
+                        {step.text || step}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {tips.length > 0 && (
+                <div>
+                  <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                    Tipy:
+                  </strong>
+                  <ul style={{ marginLeft: '1.25rem', marginBottom: '0' }}>
+                    {tips.map((tip, index) => (
+                      <li key={index} style={{ marginBottom: '0.25rem' }}>
+                        {tip.text || tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

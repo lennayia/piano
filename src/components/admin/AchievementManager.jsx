@@ -5,6 +5,8 @@ import { supabase } from '../../lib/supabase';
 import * as LucideIcons from 'lucide-react';
 import useLessonStore from '../../store/useLessonStore';
 import useSongStore from '../../store/useSongStore';
+import { HelpButton, HelpPanel } from '../ui/TabButtons';
+import { generateSound } from '../../utils/soundGenerator';
 
 // Dostupné ikony pro výběr
 const AVAILABLE_ICONS = [
@@ -239,26 +241,7 @@ function AchievementManager() {
           </h2>
 
           {/* Help Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowHelp(!showHelp)}
-            style={{
-              background: showHelp ? 'rgba(181, 31, 101, 0.1)' : 'rgba(45, 91, 120, 0.1)',
-              border: showHelp ? '2px solid rgba(181, 31, 101, 0.3)' : '2px solid rgba(45, 91, 120, 0.2)',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            title="Zobrazit nápovědu"
-          >
-            <HelpCircle size={18} color={showHelp ? 'var(--color-primary)' : 'var(--color-secondary)'} />
-          </motion.button>
+          <HelpButton onClick={() => setShowHelp(!showHelp)} isActive={showHelp} />
         </div>
 
         {!isEditing && (
@@ -281,117 +264,133 @@ function AchievementManager() {
       </div>
 
       {/* Help Panel */}
-      <AnimatePresence>
-        {showHelp && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            style={{
-              marginBottom: '2rem',
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.05) 0%, rgba(181, 31, 101, 0.05) 100%)',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(45, 91, 120, 0.2)',
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'start', gap: '1rem', marginBottom: '1rem' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                background: 'rgba(45, 91, 120, 0.1)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <HelpCircle size={20} color="var(--color-secondary)" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ marginBottom: '0.75rem', color: '#1e293b', fontSize: '1rem' }}>
-                  Jak spravovat odměny
-                </h4>
-                <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
-                  <p style={{ marginBottom: '0.75rem' }}>
-                    Zde můžete vytvářet a upravovat odměny pro studenty. Každá odměna má vlastní ikonu, barvu a zvuk oslavy.
-                  </p>
+      <HelpPanel
+        isOpen={showHelp}
+        title="Nápověda - Správa odměn"
+      >
+        <p style={{ marginBottom: '1rem' }}>
+          Zde můžete vytvářet a upravovat odměny pro studenty. Každá odměna má vlastní ikonu, barvu a zvuk oslavy.
+        </p>
 
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>📋 Typy odměn:</strong>
-                    <ul style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
-                      <li style={{ marginBottom: '0.25rem' }}><strong>Globální</strong> - přidělí se automaticky při splnění podmínky (XP, série, počet lekcí)</li>
-                      <li style={{ marginBottom: '0.25rem' }}><strong>Za lekci</strong> - přidělí se po dokončení konkrétní lekce</li>
-                      <li style={{ marginBottom: '0.25rem' }}><strong>Za kvíz</strong> - přidělí se po úspěšném splnění kvízu (např. Poznáte akord?)</li>
-                      <li><strong>Za materiál</strong> - přidělí se po dokončení konkrétní písničky, šablony nebo slovníčkového pojmu</li>
-                    </ul>
-                  </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+            Typy odměn:
+          </strong>
+          <ul style={{ marginLeft: '1.25rem', marginBottom: '0' }}>
+            <li style={{ marginBottom: '0.25rem' }}><strong>Globální</strong> - přidělí se automaticky při splnění podmínky (XP, série, počet lekcí)</li>
+            <li style={{ marginBottom: '0.25rem' }}><strong>Za lekci</strong> - přidělí se po dokončení konkrétní lekce</li>
+            <li style={{ marginBottom: '0.25rem' }}><strong>Za kvíz</strong> - přidělí se po úspěšném splnění kvízu (např. Poznáte akord?)</li>
+            <li><strong>Za materiál</strong> - přidělí se po dokončení konkrétní písničky, šablony nebo slovníčkového pojmu</li>
+          </ul>
+        </div>
 
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>🎨 Dostupné ikony:</strong>
-                    <div style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '0.5rem',
-                      padding: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.5)',
-                      borderRadius: 'var(--radius)'
-                    }}>
-                      {AVAILABLE_ICONS.map(icon => {
-                        const IconComponent = LucideIcons[icon];
-                        return IconComponent ? (
-                          <div
-                            key={icon}
-                            style={{
-                              padding: '0.5rem',
-                              background: 'rgba(255, 255, 255, 0.8)',
-                              borderRadius: 'var(--radius)',
-                              border: '1px solid rgba(181, 31, 101, 0.2)',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              fontSize: '0.625rem'
-                            }}
-                            title={icon}
-                          >
-                            <IconComponent size={20} color="var(--color-primary)" />
-                            <span style={{ color: '#64748b' }}>{icon}</span>
-                          </div>
-                        ) : null;
-                      })}
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>🎵 Zvuky oslavy:</strong>
-                    <ul style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
-                      {CELEBRATION_SOUNDS.map(sound => (
-                        <li key={sound.value} style={{ marginBottom: '0.25rem' }}>
-                          <strong>{sound.label}</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div style={{
-                    padding: '0.75rem',
-                    background: 'rgba(45, 91, 120, 0.1)',
-                    borderRadius: 'var(--radius)',
-                    borderLeft: '3px solid var(--color-secondary)'
-                  }}>
-                    <strong style={{ color: '#1e293b', fontSize: '0.8125rem' }}>💡 Tip:</strong>
-                    <span style={{ marginLeft: '0.5rem' }}>
-                      Použijte růžovou barvu pro důležité milníky a modrou pro běžné úspěchy. Střídejte barvy pro vizuální variety!
-                    </span>
-                  </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+            Dostupné ikony:
+          </strong>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            padding: '0.75rem',
+            background: 'rgba(255, 255, 255, 0.5)',
+            borderRadius: '12px'
+          }}>
+            {AVAILABLE_ICONS.map(icon => {
+              const IconComponent = LucideIcons[icon];
+              return IconComponent ? (
+                <div
+                  key={icon}
+                  style={{
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(45, 91, 120, 0.15)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    fontSize: '0.625rem'
+                  }}
+                  title={icon}
+                >
+                  <IconComponent size={20} color="var(--color-secondary)" />
+                  <span style={{ color: '#64748b' }}>{icon}</span>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              ) : null;
+            })}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+            Zvuky oslavy:
+          </strong>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '0.5rem'
+          }}>
+            {CELEBRATION_SOUNDS.map(sound => (
+              <button
+                key={sound.value}
+                onClick={() => {
+                  // Nejprve zkusíme načíst MP3 soubor
+                  const audio = new Audio(`/sounds/${sound.value}.mp3`);
+                  audio.volume = 0.5;
+
+                  audio.play().catch(err => {
+                    // Pokud MP3 neexistuje, použijeme syntetický zvuk
+                    console.log(`MP3 soubor nenalezen, používám syntetický zvuk`);
+                    try {
+                      generateSound(sound.value);
+                    } catch (synthErr) {
+                      console.log('Nepodařilo se přehrát zvuk:', synthErr);
+                    }
+                  });
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 0.75rem',
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  border: '1px solid rgba(45, 91, 120, 0.15)',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  fontSize: '0.8125rem',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'left'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(45, 91, 120, 0.1)';
+                  e.currentTarget.style.borderColor = 'var(--color-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)';
+                  e.currentTarget.style.borderColor = 'rgba(45, 91, 120, 0.15)';
+                }}
+              >
+                <Music size={16} color="var(--color-secondary)" />
+                <span style={{ flex: 1, color: '#1e293b', fontSize: '0.75rem' }}>{sound.label}</span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>▶</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{
+          padding: '0.75rem',
+          background: 'rgba(45, 91, 120, 0.08)',
+          borderRadius: '12px',
+          borderLeft: '3px solid var(--color-secondary)'
+        }}>
+          <strong style={{ color: 'var(--color-secondary)', fontSize: '0.8125rem' }}>Tip:</strong>
+          <span style={{ marginLeft: '0.5rem' }}>
+            Použijte růžovou barvu pro důležité milníky a modrou pro běžné úspěchy. Střídejte barvy pro vizuální variety!
+          </span>
+        </div>
+      </HelpPanel>
 
       {/* Formulář pro vytvoření/editaci */}
       <AnimatePresence>

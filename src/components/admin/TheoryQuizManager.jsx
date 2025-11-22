@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { BookOpen, Plus, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
-import { Chip, ActionButton, AddButton, HelpButton } from '../ui/TabButtons';
+import { Chip, ActionButton, AddButton, HelpButton, HelpPanel } from '../ui/TabButtons';
 
 const TheoryQuizManager = () => {
   const [questions, setQuestions] = useState([]);
@@ -325,7 +325,12 @@ const TheoryQuizManager = () => {
   }
 
   return (
-    <div className="card">
+    <div className="card" style={{
+      background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 30%, #e8f4f8 45%, #fef8fb 55%, #e8f4f8 65%, #f0f5f9 80%, #f8f9fa 100%)',
+      backgroundSize: '400% 400%',
+      animation: 'gradient-shift 45s ease-in-out infinite',
+      boxShadow: '0 8px 24px rgba(45, 91, 120, 0.08), 0 4px 12px rgba(45, 91, 120, 0.04)'
+    }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -404,67 +409,26 @@ const TheoryQuizManager = () => {
       </AnimatePresence>
 
       {/* Help Panel */}
-      <AnimatePresence>
-        {showHelp && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            style={{
-              marginBottom: '2rem',
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.05) 0%, rgba(181, 31, 101, 0.05) 100%)',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(45, 91, 120, 0.2)',
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'start', gap: '1rem', marginBottom: '1rem' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                background: 'rgba(45, 91, 120, 0.1)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <HelpCircle size={20} color="var(--color-secondary)" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ marginBottom: '0.75rem', color: '#1e293b', fontSize: '1rem' }}>
-                  Nápověda - Správa teoretického kvízu
-                </h4>
-
-                <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>📝 Jak přidat otázku:</strong>
-                    <ol style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
-                      <li style={{ marginBottom: '0.25rem' }}>Klikněte na "Přidat otázku"</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Zadejte text otázky</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Nastavte obtížnost (snadné/střední/těžké)</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Zadejte 4 možnosti odpovědí</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Označte správnou odpověď</li>
-                      <li>Uložte otázku</li>
-                    </ol>
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>💡 Tipy:</strong>
-                    <ul style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
-                      <li style={{ marginBottom: '0.25rem' }}>Vždy musí být právě jedna správná odpověď</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Všechny 4 možnosti musí mít vyplněný text</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Neaktivní otázky se nezobrazí v kvízu</li>
-                      <li>Pořadí zobrazení určuje pole "Pořadí"</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <HelpPanel
+        isOpen={showHelp}
+        title="Nápověda - Správa teoretického kvízu"
+        content={{
+          steps: [
+            { title: 'Jak přidat otázku:', text: 'Klikněte na "Přidat otázku"' },
+            'Zadejte text otázky',
+            'Nastavte obtížnost (snadné/střední/těžké)',
+            'Zadejte 4 možnosti odpovědí',
+            'Označte správnou odpověď',
+            'Uložte otázku'
+          ],
+          tips: [
+            'Vždy musí být právě jedna správná odpověď',
+            'Všechny 4 možnosti musí mít vyplněný text',
+            'Neaktivní otázky se nezobrazí v kvízu',
+            'Pořadí zobrazení určuje pole "Pořadí"'
+          ]
+        }}
+      />
 
       {/* Add/Edit Form */}
       <AnimatePresence mode="wait">
@@ -690,13 +654,13 @@ const TheoryQuizManager = () => {
                 ? 'rgba(255, 255, 255, 0.9)'
                 : 'rgba(200, 200, 200, 0.5)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(181, 31, 101, 0.2)',
+              border: '1px solid rgba(181, 31, 101, 0.1)',
               borderRadius: '18px',
               padding: '1.25rem',
               display: 'flex',
               alignItems: 'center',
               gap: '1.25rem',
-              boxShadow: '0 6px 24px rgba(181, 31, 101, 0.2), 0 2px 8px rgba(181, 31, 101, 0.1)'
+              boxShadow: '0 4px 16px rgba(181, 31, 101, 0.12), 0 2px 6px rgba(181, 31, 101, 0.08)'
             }}
           >
             <div style={{ flex: 1 }}>

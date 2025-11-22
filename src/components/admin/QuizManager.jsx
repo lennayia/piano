@@ -326,7 +326,11 @@ const QuizManager = () => {
   }
 
   return (
-    <div className="card">
+    <div className="card" style={{
+      background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 30%, #e8f4f8 45%, #fef8fb 55%, #e8f4f8 65%, #f0f5f9 80%, #f8f9fa 100%)',
+      backgroundSize: '400% 400%',
+      animation: 'gradient-shift 45s ease-in-out infinite'
+    }}>
       {/* Záložky pro typy kvízů */}
       <div style={{ marginBottom: '2rem' }}>
         <TabButtons

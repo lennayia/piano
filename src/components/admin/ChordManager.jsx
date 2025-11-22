@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { Music, BookOpen, Plus, Edit, Trash2, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import TabButtons from '../ui/TabButtons';
+import TabButtons, { HelpButton, HelpPanel } from '../ui/TabButtons';
 import TheoryQuizManager from './TheoryQuizManager';
 
 // Normalizace názvu akordu
@@ -636,26 +636,7 @@ const ChordManager = () => {
           </h2>
 
           {/* Help Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowHelp(!showHelp)}
-            style={{
-              background: showHelp ? 'rgba(181, 31, 101, 0.1)' : 'rgba(45, 91, 120, 0.1)',
-              border: showHelp ? '2px solid rgba(181, 31, 101, 0.3)' : '2px solid rgba(45, 91, 120, 0.2)',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            title="Zobrazit nápovědu"
-          >
-            <HelpCircle size={18} color={showHelp ? 'var(--color-primary)' : 'var(--color-secondary)'} />
-          </motion.button>
+          <HelpButton onClick={() => setShowHelp(!showHelp)} isActive={showHelp} />
         </div>
 
         {!showAddForm && (
@@ -732,88 +713,27 @@ const ChordManager = () => {
       </AnimatePresence>
 
       {/* Help Panel */}
-      <AnimatePresence>
-        {showHelp && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            style={{
-              marginBottom: '2rem',
-              padding: '1.5rem',
-              background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.05) 0%, rgba(181, 31, 101, 0.05) 100%)',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(45, 91, 120, 0.2)',
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'start', gap: '1rem', marginBottom: '1rem' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                background: 'rgba(45, 91, 120, 0.1)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <HelpCircle size={20} color="var(--color-secondary)" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ marginBottom: '0.75rem', color: '#1e293b', fontSize: '1rem' }}>
-                  Nápověda - Správa akordů
-                </h4>
-
-                <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>📝 Jak přidat akord:</strong>
-                    <ol style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
-                      <li style={{ marginBottom: '0.25rem' }}>Klikněte na "Přidat akord"</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Zadejte název akordu (např. "C dur", "Am", "F#m")</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Vyberte noty, které akord tvoří</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Nastavte obtížnost (snadné/střední/těžké)</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Zadejte 4 možnosti odpovědí a označte správnou</li>
-                      <li>Uložte akord</li>
-                    </ol>
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>💡 Tipy:</strong>
-                    <ul style={{ marginLeft: '1.5rem', marginBottom: '0' }}>
-                      <li style={{ marginBottom: '0.25rem' }}>Vždy musí být právě jedna správná odpověď</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Všechny 4 možnosti musí mít vyplněný název</li>
-                      <li style={{ marginBottom: '0.25rem' }}>Neaktivní akordy se nezobrazí v kvízu</li>
-                      <li>Pořadí zobrazení určuje pole "Pořadí"</li>
-                    </ul>
-                  </div>
-
-                  <div style={{ marginBottom: '1rem' }}>
-                    <strong style={{ color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>🎹 Rozsah klaviatury:</strong>
-                    <div style={{
-                      padding: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.5)',
-                      borderRadius: 'var(--radius)',
-                      fontSize: '0.875rem',
-                      color: '#64748b'
-                    }}>
-                      <p style={{ margin: '0 0 0.5rem 0' }}>
-                        <strong>Malá oktáva:</strong> pouze a - h (A., A#., H.)
-                      </p>
-                      <p style={{ margin: '0 0 0.5rem 0' }}>
-                        <strong>Oktáva 1:</strong> c1 - h1 (C, C#, D, D#, E, F, F#, G, G#, A, A#, H)
-                      </p>
-                      <p style={{ margin: 0 }}>
-                        <strong>Oktáva 2:</strong> pouze c2 - e2 (C², C#², D², D#², E²)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <HelpPanel
+        isOpen={showHelp}
+        title="Nápověda - Správa akordů"
+        content={{
+          steps: [
+            'Klikněte na "Přidat akord"',
+            'Zadejte název akordu (např. "C dur", "Am", "F#m")',
+            'Vyberte noty, které akord tvoří',
+            'Nastavte obtížnost (snadné/střední/těžké)',
+            'Zadejte 4 možnosti odpovědí a označte správnou',
+            'Uložte akord'
+          ],
+          tips: [
+            'Vždy musí být právě jedna správná odpověď',
+            'Všechny 4 možnosti musí mít vyplněný název',
+            'Neaktivní akordy se nezobrazí v kvízu',
+            'Pořadí zobrazení určuje pole "Pořadí"',
+            'Rozsah klaviatury: Malá oktáva (A., A#., H.) + Oktáva 1 (C-H) + Oktáva 2 (C²-E²)'
+          ]
+        }}
+      />
 
       {/* Add/Edit Form */}
       <AnimatePresence mode="wait">
