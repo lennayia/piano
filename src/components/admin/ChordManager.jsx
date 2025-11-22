@@ -19,6 +19,7 @@ const ChordManager = () => {
   const [formData, setFormData] = useState({
     name: '',
     quiz_type: 'chord',
+    questionText: '', // NOVÉ: volitelný text otázky pro vytvoření teoretického kvízu
     notes: [],
     category: '',
     difficulty: 'easy',
@@ -89,6 +90,7 @@ const ChordManager = () => {
     setFormData({
       name: '',
       quiz_type: activeQuizType,
+      questionText: '', // NOVÉ: prázdný text otázky
       notes: activeQuizType === 'chord' ? [] : null,
       category: '',
       difficulty: 'easy',
@@ -129,6 +131,7 @@ const ChordManager = () => {
     setFormData({
       name: chord.name,
       quiz_type: chord.quiz_type || 'chord',
+      questionText: '', // Při editaci ponecháme prázdné (nelze editovat párový teoretický kvíz)
       notes: chord.notes ? sortNotesByKeyboard(chord.notes) : [],
       category: chord.category || '',
       difficulty: chord.difficulty,
@@ -309,7 +312,44 @@ const ChordManager = () => {
           if (optionsError) throw optionsError;
         }
 
-        showSuccess('Akord byl úspěšně přidán');
+        // NOVÉ: Pokud je vyplněn text otázky, vytvoříme DRUHÝ záznam jako teoretický kvíz
+        if (formData.questionText && formData.questionText.trim() && filledOptions.length === 4) {
+          const theoryData_obj = {
+            name: formData.questionText.trim(), // Text otázky jako název
+            quiz_type: 'theory',
+            notes: null, // Teoretické otázky nemají noty
+            difficulty: formData.difficulty,
+            is_active: formData.is_active,
+            display_order: formData.display_order + 1000, // Vyšší pořadí než akordové kvízy
+            category: formData.category || null
+          };
+
+          const { data: theoryQuiz, error: theoryInsertError } = await supabase
+            .from('piano_quiz_chords')
+            .insert([theoryData_obj])
+            .select()
+            .single();
+
+          if (theoryInsertError) throw theoryInsertError;
+
+          // Přidáme stejné možnosti odpovědí pro teoretický kvíz
+          const theoryOptionsToInsert = filledOptions.map(opt => ({
+            chord_id: theoryQuiz.id,
+            option_name: opt.option_name,
+            is_correct: opt.is_correct,
+            display_order: opt.display_order
+          }));
+
+          const { error: theoryOptionsError } = await supabase
+            .from('piano_quiz_chord_options')
+            .insert(theoryOptionsToInsert);
+
+          if (theoryOptionsError) throw theoryOptionsError;
+
+          showSuccess('Akord i teoretický kvíz byly úspěšně přidány');
+        } else {
+          showSuccess('Akord byl úspěšně přidán');
+        }
       }
 
       setShowAddForm(false);
@@ -611,79 +651,51 @@ const ChordManager = () => {
               border: '2px solid rgba(181, 31, 101, 0.2)'
             }}
           >
-            <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
+            <h4 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>
               {editingChord
                 ? (activeQuizType === 'chord' ? 'Upravit akord' : 'Upravit otázku')
                 : (activeQuizType === 'chord' ? 'Přidat nový akord' : 'Přidat novou otázku')
               }
             </h4>
 
-            {/* Název/Otázka */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                {activeQuizType === 'chord' ? 'Název akordu *' : 'Text otázky *'}
-              </label>
-              {activeQuizType === 'chord' ? (
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="např. C dur, Am, F#m"
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    borderRadius: 'var(--radius)',
-                    border: '1px solid #ddd',
-                    fontSize: '0.875rem'
-                  }}
-                />
-              ) : (
-                <textarea
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Zadejte text otázky..."
-                  rows={3}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius)',
-                    border: '1px solid #ddd',
-                    fontSize: '0.875rem',
-                    fontFamily: 'inherit',
-                    resize: 'vertical'
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Kategorie (volitelná) */}
-            {activeQuizType !== 'chord' && (
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                  Kategorie (volitelná)
-                </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="např. Notová soustava, Hudební teorie..."
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    borderRadius: 'var(--radius)',
-                    border: '1px solid #ddd',
-                    fontSize: '0.875rem'
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Výběr not - pouze pro akordový kvíz */}
+            {/* SEKCE 1: Poslechový kvíz (primary barva) - pouze pro akordový typ */}
             {activeQuizType === 'chord' && (
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                  Noty akordu * (vyberte kliknutím)
-                </label>
+              <div style={{
+                padding: '1rem',
+                marginBottom: '1.5rem',
+                background: 'rgba(181, 31, 101, 0.08)',
+                border: '2px solid rgba(181, 31, 101, 0.3)',
+                borderRadius: 'var(--radius)'
+              }}>
+                <h5 style={{ margin: '0 0 1rem 0', color: 'var(--color-primary)', fontSize: '0.9375rem', fontWeight: 600 }}>
+                  🎵 Poslechový kvíz
+                </h5>
+
+                {/* Název akordu */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                    Název akordu *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="např. C dur, Am, F#m"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius)',
+                      border: '1px solid #ddd',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                {/* Výběr not */}
+                <div style={{ marginBottom: '0' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                    Noty akordu * (vyberte kliknutím)
+                  </label>
 
               {/* Malá oktáva - pouze a, ais, h */}
               <div style={{ marginBottom: '0.5rem' }}>
@@ -781,8 +793,56 @@ const ChordManager = () => {
                 <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
                   Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
                 </div>
+                </div>
               </div>
             )}
+
+            {/* Pro neakordové typy - zobrazit standardní název/otázku */}
+            {activeQuizType !== 'chord' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                  Text otázky *
+                </label>
+                <textarea
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Zadejte text otázky..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius)',
+                    border: '1px solid #ddd',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Kategorie (volitelná) */}
+            {activeQuizType !== 'chord' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                  Kategorie (volitelná)
+                </label>
+                <input
+                  type="text"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="např. Notová soustava, Hudební teorie..."
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    borderRadius: 'var(--radius)',
+                    border: '1px solid #ddd',
+                    fontSize: '0.875rem'
+                  }}
+                />
+              </div>
+            )}
+
 
             {/* Obtížnost a Pořadí */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
@@ -850,11 +910,49 @@ const ChordManager = () => {
               </div>
             </div>
 
-            {/* Možnosti odpovědí */}
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
-                Možnosti odpovědí (4 možnosti) *
-              </label>
+            {/* SEKCE 2: Teoretický kvíz (secondary barva) - pouze pro akordový typ */}
+            {activeQuizType === 'chord' && (
+              <div style={{
+                padding: '1rem',
+                marginBottom: '1.5rem',
+                background: 'rgba(45, 91, 120, 0.08)',
+                border: '2px solid rgba(45, 91, 120, 0.3)',
+                borderRadius: 'var(--radius)'
+              }}>
+                <h5 style={{ margin: '0 0 1rem 0', color: 'var(--color-secondary)', fontSize: '0.9375rem', fontWeight: 600 }}>
+                  📝 Teoretický kvíz (volitelné)
+                </h5>
+
+                {/* Text otázky */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                    Text otázky (volitelné)
+                  </label>
+                  <textarea
+                    value={formData.questionText}
+                    onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
+                    placeholder="např. Které tóny tvoří akord C dur?"
+                    rows={2}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius)',
+                      border: '1px solid #ddd',
+                      fontSize: '0.875rem',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem', marginBottom: 0 }}>
+                    💡 Pokud vyplníte text otázky, vytvoří se automaticky i teoretický kvíz se stejnými možnostmi odpovědí níže
+                  </p>
+                </div>
+
+                {/* Možnosti odpovědí */}
+                <div style={{ marginBottom: '0' }}>
+                  <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                    Možnosti odpovědí (4 možnosti) *
+                  </label>
               {formData.options.map((option, index) => (
                 <div
                   key={index}
@@ -910,7 +1008,73 @@ const ChordManager = () => {
                   </label>
                 </div>
               ))}
-            </div>
+                </div>
+              </div>
+            )}
+
+            {/* Pro neakordové typy - zobrazit možnosti odpovědí samostatně */}
+            {activeQuizType !== 'chord' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                  Možnosti odpovědí (4 možnosti) *
+                </label>
+                {formData.options.map((option, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      marginBottom: '0.5rem',
+                      alignItems: 'center',
+                      background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
+                      padding: '0.5rem',
+                      borderRadius: 'var(--radius)',
+                      border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
+                    <input
+                      type="text"
+                      value={option.option_name}
+                      onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
+                      placeholder={`Možnost ${index + 1}`}
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem',
+                        border: '1px solid #ddd',
+                        borderRadius: 'var(--radius)',
+                        fontSize: '0.875rem'
+                      }}
+                    />
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        cursor: 'pointer',
+                        padding: '0.5rem 0.75rem',
+                        background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
+                        borderRadius: 'var(--radius)',
+                        color: option.is_correct ? '#fff' : '#64748b',
+                        fontWeight: 500,
+                        minWidth: '110px',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="correct_answer"
+                        checked={option.is_correct}
+                        onChange={() => handleOptionChange(index, 'is_correct', true)}
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      Správná
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Tlačítka */}
             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
