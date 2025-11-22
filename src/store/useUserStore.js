@@ -622,12 +622,14 @@ const useUserStore = create(
         .from('piano_user_stats')
         .select('*')
         .eq('user_id', state.currentUser.id)
-        .single();
+        .maybeSingle();
 
       if (statsError) {
         console.error('Error fetching stats:', statsError);
         return;
       }
+
+      // If no stats exist yet, stats will be null - that's ok
 
       // Fetch fresh achievements
       const { data: userAchievements } = await supabase

@@ -698,9 +698,8 @@ const ChordManager = () => {
             style={{
               marginBottom: '2rem',
               padding: '1.5rem',
-              background: 'rgba(181, 31, 101, 0.05)',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(181, 31, 101, 0.2)'
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius)'
             }}
           >
             <h4 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>
@@ -711,7 +710,7 @@ const ChordManager = () => {
             </h4>
 
             {/* SEKCE 1: Poslechový kvíz (primary barva) - pouze pro akordový typ */}
-            {activeQuizType === 'chord' && (
+            {formData.quiz_type === 'chord' && (
               <div style={{
                 padding: '1rem',
                 marginBottom: '1.5rem',
@@ -845,12 +844,11 @@ const ChordManager = () => {
                 <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
                   Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
                 </div>
-                </div>
               </div>
             )}
 
             {/* Pro neakordové typy - zobrazit standardní název/otázku */}
-            {activeQuizType !== 'chord' && (
+            {formData.quiz_type !== 'chord' && (
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                   Text otázky *
@@ -874,7 +872,7 @@ const ChordManager = () => {
             )}
 
             {/* Kategorie (volitelná) */}
-            {activeQuizType !== 'chord' && (
+            {formData.quiz_type !== 'chord' && (
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                   Kategorie (volitelná)
@@ -963,7 +961,7 @@ const ChordManager = () => {
             </div>
 
             {/* SEKCE 2: Teoretický kvíz (secondary barva) - pouze pro akordový typ */}
-            {activeQuizType === 'chord' && (
+            {formData.quiz_type === 'chord' && (
               <div style={{
                 padding: '1rem',
                 marginBottom: '1.5rem',
@@ -1065,7 +1063,7 @@ const ChordManager = () => {
             )}
 
             {/* Pro neakordové typy - zobrazit možnosti odpovědí samostatně */}
-            {activeQuizType !== 'chord' && (
+            {formData.quiz_type !== 'chord' && (
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
                   Možnosti odpovědí (4 možnosti) *
