@@ -105,7 +105,7 @@ const ChordManager = () => {
     });
   };
 
-  const handleEditChord = (chord) => {
+  const handleEditChord = async (chord) => {
     setEditingChord(chord.id);
     setShowAddForm(false); // Formulář se zobrazí inline u akordu
 
@@ -128,10 +128,45 @@ const ChordManager = () => {
           { option_name: '', is_correct: false, display_order: 4 }
         ];
 
+    // Pro akordové kvízy zkusíme najít párový teoretický kvíz
+    let theoreticalQuestionText = '';
+    if (chord.quiz_type === 'chord' && formattedOptions.length === 4) {
+      try {
+        // Hledáme teoretický kvíz se stejným názvem akordu a stejnými možnostmi odpovědí
+        const { data: theoryQuizzes, error } = await supabase
+          .from('piano_quiz_chords')
+          .select(`
+            *,
+            piano_quiz_chord_options (*)
+          `)
+          .eq('quiz_type', 'theory')
+          .ilike('name', `%${chord.name}%`); // Hledáme otázky obsahující název akordu
+
+        if (!error && theoryQuizzes && theoryQuizzes.length > 0) {
+          // Najdeme kvíz se stejnými možnostmi odpovědí
+          for (const theoryQuiz of theoryQuizzes) {
+            const theoryOptions = (theoryQuiz.piano_quiz_chord_options || [])
+              .sort((a, b) => a.display_order - b.display_order)
+              .map(opt => opt.option_name);
+
+            const currentOptions = formattedOptions.map(opt => opt.option_name);
+
+            // Porovnáme možnosti odpovědí
+            if (JSON.stringify(theoryOptions) === JSON.stringify(currentOptions)) {
+              theoreticalQuestionText = theoryQuiz.name;
+              break;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error finding paired theory quiz:', err);
+      }
+    }
+
     setFormData({
       name: chord.name,
       quiz_type: chord.quiz_type || 'chord',
-      questionText: '', // Při editaci ponecháme prázdné (nelze editovat párový teoretický kvíz)
+      questionText: theoreticalQuestionText, // Načteme text z párového teoretického kvízu
       notes: chord.notes ? sortNotesByKeyboard(chord.notes) : [],
       category: chord.category || '',
       difficulty: chord.difficulty,
