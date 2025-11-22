@@ -41,13 +41,14 @@ const TheoryQuizManager = () => {
       setLoading(true);
       setError(null);
 
-      // Načteme otázky s jejich možnostmi
+      // Načteme otázky s jejich možnostmi (používáme piano_quiz_chords s filtrem quiz_type='theory')
       const { data: questionsData, error: questionsError } = await supabase
-        .from('piano_quiz_theory')
+        .from('piano_quiz_chords')
         .select(`
           *,
-          piano_quiz_theory_options (*)
+          piano_quiz_chord_options (*)
         `)
+        .eq('quiz_type', 'theory')
         .order('display_order');
 
       if (questionsError) throw questionsError;
@@ -82,15 +83,15 @@ const TheoryQuizManager = () => {
     setEditingQuestion(question.id);
     setShowAddForm(false);
 
-    // Seřadíme možnosti podle display_order
-    const sortedOptions = [...(question.piano_quiz_theory_options || [])].sort(
+    // Seřadíme možnosti podle display_order (používáme piano_quiz_chord_options)
+    const sortedOptions = [...(question.piano_quiz_chord_options || [])].sort(
       (a, b) => a.display_order - b.display_order
     );
 
-    // Převedeme možnosti na správný formát
+    // Převedeme možnosti na správný formát (option_name místo option_text)
     const formattedOptions = sortedOptions.length > 0
       ? sortedOptions.map(opt => ({
-          option_text: opt.option_text || '',
+          option_text: opt.option_name || '',
           is_correct: opt.is_correct || false,
           display_order: opt.display_order || 1
         }))
@@ -102,7 +103,7 @@ const TheoryQuizManager = () => {
         ];
 
     setFormData({
-      question: question.question,
+      question: question.name, // V piano_quiz_chords je otázka v poli 'name'
       difficulty: question.difficulty,
       is_active: question.is_active,
       display_order: question.display_order,
@@ -117,7 +118,7 @@ const TheoryQuizManager = () => {
 
     try {
       const { error } = await supabase
-        .from('piano_quiz_theory')
+        .from('piano_quiz_chords')
         .delete()
         .eq('id', questionId);
 
@@ -159,12 +160,13 @@ const TheoryQuizManager = () => {
       if (editingQuestion) {
         // UPDATE existující otázky
         const { data: updateData, error: updateError } = await supabase
-          .from('piano_quiz_theory')
+          .from('piano_quiz_chords')
           .update({
-            question: formData.question,
+            name: formData.question, // Otázka je v poli 'name'
             difficulty: formData.difficulty,
             is_active: formData.is_active,
-            display_order: formData.display_order
+            display_order: formData.display_order,
+            quiz_type: 'theory' // Důležité: nastavit quiz_type
           })
           .eq('id', editingQuestion)
           .select();
@@ -177,19 +179,19 @@ const TheoryQuizManager = () => {
 
         // Smažeme staré možnosti a vytvoříme nové
         await supabase
-          .from('piano_quiz_theory_options')
+          .from('piano_quiz_chord_options')
           .delete()
-          .eq('question_id', editingQuestion);
+          .eq('chord_id', editingQuestion);
 
         const optionsToInsert = filledOptions.map(opt => ({
-          question_id: editingQuestion,
-          option_text: opt.option_text,
+          chord_id: editingQuestion, // V této tabulce je to 'chord_id'
+          option_name: opt.option_text, // V této tabulce je to 'option_name'
           is_correct: opt.is_correct,
           display_order: opt.display_order
         }));
 
         const { error: optionsError } = await supabase
-          .from('piano_quiz_theory_options')
+          .from('piano_quiz_chord_options')
           .insert(optionsToInsert);
 
         if (optionsError) throw optionsError;
@@ -198,12 +200,14 @@ const TheoryQuizManager = () => {
       } else {
         // INSERT nové otázky
         const { data: newQuestion, error: insertError } = await supabase
-          .from('piano_quiz_theory')
+          .from('piano_quiz_chords')
           .insert([{
-            question: formData.question,
+            name: formData.question, // Otázka je v poli 'name'
             difficulty: formData.difficulty,
             is_active: formData.is_active,
-            display_order: formData.display_order
+            display_order: formData.display_order,
+            quiz_type: 'theory', // Důležité: nastavit quiz_type
+            notes: null // Pro teoretické otázky není potřeba
           }])
           .select()
           .single();
@@ -211,14 +215,14 @@ const TheoryQuizManager = () => {
         if (insertError) throw insertError;
 
         const optionsToInsert = filledOptions.map(opt => ({
-          question_id: newQuestion.id,
-          option_text: opt.option_text,
+          chord_id: newQuestion.id, // V této tabulce je to 'chord_id'
+          option_name: opt.option_text, // V této tabulce je to 'option_name'
           is_correct: opt.is_correct,
           display_order: opt.display_order
         }));
 
         const { error: optionsError } = await supabase
-          .from('piano_quiz_theory_options')
+          .from('piano_quiz_chord_options')
           .insert(optionsToInsert);
 
         if (optionsError) throw optionsError;
@@ -238,7 +242,7 @@ const TheoryQuizManager = () => {
   const handleToggleActive = async (questionId, currentStatus) => {
     try {
       const { error } = await supabase
-        .from('piano_quiz_theory')
+        .from('piano_quiz_chords')
         .update({ is_active: !currentStatus })
         .eq('id', questionId);
 
@@ -693,7 +697,7 @@ const TheoryQuizManager = () => {
           >
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
-                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{question.question}</h3>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{question.name}</h3>
                 <span style={{
                   background: question.difficulty === 'easy' ? 'var(--color-secondary)' :
                              question.difficulty === 'medium' ? 'var(--color-primary)' : '#1e293b',
@@ -723,7 +727,7 @@ const TheoryQuizManager = () => {
               <div style={{ fontSize: '0.875rem' }}>
                 <strong style={{ color: '#64748b' }}>Možnosti odpovědí:</strong>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
-                  {question.piano_quiz_theory_options
+                  {question.piano_quiz_chord_options
                     ?.sort((a, b) => a.display_order - b.display_order)
                     .map((opt, idx) => (
                       <span
@@ -737,7 +741,7 @@ const TheoryQuizManager = () => {
                           fontWeight: opt.is_correct ? '600' : '400'
                         }}
                       >
-                        {opt.option_text}
+                        {opt.option_name}
                         {opt.is_correct && ' ✓'}
                       </span>
                     ))}
