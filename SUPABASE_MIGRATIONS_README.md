@@ -2,33 +2,37 @@
 
 Tento soubor obsahuje instrukce pro spuštění SQL migrací v Supabase.
 
-## 📋 Seznam migrací
+## ⚠️ DŮLEŽITÉ UPOZORNĚNÍ
 
-### 1. `supabase_migration_all_completions_rls.sql` ⭐ DOPORUČENO
-**Popis**: Kompletní RLS policies pro všechny completion tabulky (song, lesson, quiz)
+**Migrace níže NEJSOU POTŘEBA!** ❌
 
-**Co dělá**:
-- Zapne Row Level Security (RLS) na všech completion tabulkách
-- Umožní uživatelům vkládat a číst pouze své vlastní dokončené aktivity
-- Dá adminům plný přístup ke všem záznamům
+RLS policies pro completion tabulky **již existují** v databázi a byly spuštěny dříve pomocí:
+- `supabase_fix_song_completions_rls.sql` (song + quiz completions)
+- `supabase_migration_lesson_completions.sql` (lesson completions)
 
-**Tabulky**:
-- `piano_song_completions`
-- `piano_lesson_completions`
-- `piano_quiz_completions`
-
-**Kdy spustit**: HNED - to je klíčové pro bezpečnost aplikace!
+Níže uvedené migrace jsou **duplicitní** a byly vytvořeny omylem. Ponecháváme je pouze pro referenci.
 
 ---
 
-### 2. `supabase_migration_song_completions_rls.sql`
+## 📋 Seznam migrací (NEPOUŽITÉ)
+
+### 1. `supabase_migration_all_completions_rls.sql` ❌ NEPOUŽITO
+**Status**: DUPLICITNÍ - RLS policies již existují v databázi
+
+**Popis**: Kompletní RLS policies pro všechny completion tabulky (song, lesson, quiz)
+
+**Poznámka**: Tato migrace je duplicitní. Použité migrace jsou:
+- `supabase_fix_song_completions_rls.sql`
+- `supabase_migration_lesson_completions.sql`
+
+---
+
+### 2. `supabase_migration_song_completions_rls.sql` ❌ NEPOUŽITO
+**Status**: DUPLICITNÍ - RLS policies již existují v databázi
+
 **Popis**: RLS policies pouze pro piano_song_completions
 
-**Co dělá**:
-- Zapne RLS na `piano_song_completions`
-- Umožní uživatelům vkládat a číst pouze své vlastní dokončené písně
-
-**Poznámka**: Toto je podmnožina migrace #1. Pokud spustíte migraci #1, tuto nepotřebujete.
+**Poznámka**: Tato migrace je duplicitní. Použitá migrace: `supabase_fix_song_completions_rls.sql`
 
 ---
 
@@ -56,53 +60,24 @@ Tento soubor obsahuje instrukce pro spuštění SQL migrací v Supabase.
 
 ---
 
-## 🚀 Jak spustit migrace
+## ✅ Skutečně použité migrace
 
-### Metoda 1: Supabase Dashboard (Doporučeno)
+Tyto migrace **JIŽ BYLY SPUŠTĚNY** v databázi a fungují:
 
-1. Přihlaste se do Supabase Dashboard: https://supabase.com/dashboard
-2. Vyberte svůj projekt "PianoPro"
-3. V levém menu klikněte na **SQL Editor**
-4. Klikněte na **New Query**
-5. Zkopírujte obsah SQL souboru (např. `supabase_migration_all_completions_rls.sql`)
-6. Vložte do editoru
-7. Klikněte na **Run** (nebo Ctrl/Cmd + Enter)
-8. Zkontrolujte výsledek ve spodní části - měli byste vidět úspěšný výsledek
+1. ✅ `supabase_fix_song_completions_rls.sql` - RLS pro song_completions + quiz_completions
+2. ✅ `supabase_migration_lesson_completions.sql` - RLS pro lesson_completions
+3. ✅ `supabase_migration_user_stats_rls.sql` - RLS pro user_stats (žebříček)
 
-### Metoda 2: Supabase CLI
-
-```bash
-# Přihlášení
-supabase login
-
-# Link projekt
-supabase link --project-ref YOUR_PROJECT_REF
-
-# Spuštění migrace
-supabase db execute --file supabase_migration_all_completions_rls.sql
-```
+**Není potřeba spouštět žádné další RLS migrace!**
 
 ---
 
-## ✅ Doporučené pořadí spuštění
+## 🔍 Jak ověřit, že RLS policies fungují
 
-1. **NYNÍ**: `supabase_migration_all_completions_rls.sql`
-   - Kritické pro bezpečnost - uživatelé mohou vkládat completion záznamy
-
-2. **Zkontrolovat**: `supabase_migration_user_stats_rls.sql`
-   - Pokud žebříček nefunguje, spusťte tuto migraci
-
-3. **Budoucnost**: `supabase_migration_theory_quiz.sql`
-   - Až budete implementovat teoretický kvíz
-
----
-
-## 🔍 Verifikace
-
-Po spuštění migrace zkontrolujte, že policies existují:
+Spusťte v SQL Editoru v Supabase:
 
 ```sql
--- Spusťte v SQL Editoru
+-- Zkontrolujte existující RLS policies
 SELECT
   schemaname,
   tablename,
@@ -114,39 +89,16 @@ WHERE schemaname = 'piano'
 ORDER BY tablename, policyname;
 ```
 
-Měli byste vidět 3 policies pro každou completion tabulku:
-- `Users can view own X completions` (SELECT)
-- `Users can insert own X completions` (INSERT)
-- `Admins can do anything with X completions` (ALL)
+Měli byste vidět policies pro:
+- `piano_song_completions`
+- `piano_lesson_completions`
+- `piano_quiz_completions`
 
 ---
 
-## ⚠️ Důležité poznámky
+## 📝 Reference
 
-1. **Bezpečnost**: RLS policies chrání data uživatelů - nikdy je nesmažte!
-2. **Admin přístup**: Admin účet (lenkaroubalka@seznam.cz) má vždy plný přístup
-3. **Backup**: Před spuštěním migrace si můžete udělat snapshot v Supabase Dashboard
-4. **Testing**: Po migraci otestujte:
-   - Dokončení písně v režimu Výzva
-   - Dokončení lekce
-   - Dokončení kvízu
-   - Žebříček (leaderboard)
-
----
-
-## 🆘 Řešení problémů
-
-### Problém: "permission denied for table piano_song_completions"
-**Řešení**: Spusťte RLS migration pro completion tabulky
-
-### Problém: "new row violates row-level security policy"
-**Řešení**:
-1. Zkontrolujte, že uživatel je přihlášen (auth.uid() není null)
-2. Zkontrolujte, že user_id v záznamu odpovídá auth.uid()
-3. Pro admin: Zkontrolujte is_admin flag v piano_users tabulce
-
-### Problém: Žebříček se nezobrazuje
-**Řešení**: Spusťte `supabase_migration_user_stats_rls.sql`
+Ponecháváme duplicitní migrace v repozitáři pouze pro referenci a dokumentaci. Neměly by být spouštěny v databázi.
 
 ---
 
