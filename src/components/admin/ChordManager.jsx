@@ -104,10 +104,6 @@ const ChordManager = () => {
   };
 
   const handleEditChord = (chord) => {
-    console.log('=== handleEditChord ===');
-    console.log('chord:', chord);
-    console.log('chord.piano_quiz_chord_options:', chord.piano_quiz_chord_options);
-
     setEditingChord(chord.id);
     setShowAddForm(false); // Formulář se zobrazí inline u akordu
 
@@ -115,7 +111,6 @@ const ChordManager = () => {
     const sortedOptions = [...(chord.piano_quiz_chord_options || [])].sort(
       (a, b) => a.display_order - b.display_order
     );
-    console.log('sortedOptions:', sortedOptions);
 
     // Převedeme možnosti na správný formát s option_name
     const formattedOptions = sortedOptions.length > 0
@@ -165,16 +160,8 @@ const ChordManager = () => {
   };
 
   const handleSaveChord = async () => {
-    console.log('=== handleSaveChord ===');
-    console.log('editingChord:', editingChord);
-    console.log('formData:', JSON.stringify(formData, null, 2));
-
     // Zkontrolujeme session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    console.log('Current session:', sessionData);
-    console.log('Session error:', sessionError);
-    console.log('User ID:', sessionData?.session?.user?.id);
-    console.log('User email:', sessionData?.session?.user?.email);
 
     // Ověříme, že máme platnou session
     if (!sessionData?.session) {
@@ -188,9 +175,6 @@ const ChordManager = () => {
       .select('id, email, is_admin')
       .eq('id', sessionData.session.user.id)
       .single();
-
-    console.log('User data from piano_users:', userData);
-    console.log('User error:', userError);
 
     if (!userData?.is_admin) {
       setError('Nemáte oprávnění administrátora');
@@ -231,15 +215,6 @@ const ChordManager = () => {
 
       if (editingChord) {
         // UPDATE existujícího akordu
-        console.log('Updating chord with ID:', editingChord);
-        console.log('Update data:', {
-          name: formData.name,
-          notes: formData.notes,
-          difficulty: formData.difficulty,
-          is_active: formData.is_active,
-          display_order: formData.display_order
-        });
-
         const updateData_obj = {
           name: formData.name,
           quiz_type: formData.quiz_type,
@@ -256,13 +231,11 @@ const ChordManager = () => {
           updateData_obj.notes = null;
         }
 
-        const { data: updateData, error: updateError, count, status, statusText } = await supabase
+        const { data: updateData, error: updateError } = await supabase
           .from('piano_quiz_chords')
           .update(updateData_obj)
           .eq('id', editingChord)
           .select();
-
-        console.log('Update result:', updateData, 'error:', updateError, 'count:', count, 'status:', status, 'statusText:', statusText);
 
         // Pokud se nic neaktualizovalo, je problém s RLS
         if (!updateData || updateData.length === 0) {

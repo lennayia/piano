@@ -21,16 +21,12 @@ function History() {
     try {
       const allActivities = [];
 
-      console.log('Načítám historii pro uživatele:', currentUser.id);
-
       // Fetch song completions
       const { data: songs, error: songsError } = await supabase
         .from('piano_song_completions')
         .select('*')
         .eq('user_id', currentUser.id)
         .order('completed_at', { ascending: false });
-
-      console.log('Songs:', songs, 'Error:', songsError);
 
       if (!songsError && songs) {
         songs.forEach(song => {
@@ -53,8 +49,6 @@ function History() {
         .select('*')
         .eq('user_id', currentUser.id)
         .order('completed_at', { ascending: false });
-
-      console.log('Quizzes:', quizzes, 'Error:', quizzesError);
 
       if (!quizzesError && quizzes) {
         quizzes.forEach(quiz => {
@@ -93,9 +87,6 @@ function History() {
 
       // Sort by date (newest first)
       allActivities.sort((a, b) => b.date - a.date);
-
-      console.log('Celkem aktivit:', allActivities.length);
-      console.log('Aktivity:', allActivities);
 
       setActivities(allActivities);
     } catch (error) {
