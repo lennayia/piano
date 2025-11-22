@@ -31,13 +31,14 @@ function TheoryQuiz() {
       setLoading(true);
       setError(null);
 
-      // Načteme aktivní otázky s jejich možnostmi
+      // Načteme aktivní otázky typu 'theory' s jejich možnostmi
       const { data: questionsData, error: questionsError } = await supabase
-        .from('piano_quiz_theory')
+        .from('piano_quiz_chords')
         .select(`
           *,
-          piano_quiz_theory_options (*)
+          piano_quiz_chord_options (*)
         `)
+        .eq('quiz_type', 'theory')
         .eq('is_active', true)
         .order('display_order');
 
@@ -52,7 +53,7 @@ function TheoryQuiz() {
       // Transformujeme data z databáze do formátu, který kvíz očekává
       const transformedQuestions = questionsData.map((question, index) => {
         // Seřadíme možnosti podle display_order
-        const sortedOptions = [...(question.piano_quiz_theory_options || [])].sort(
+        const sortedOptions = [...(question.piano_quiz_chord_options || [])].sort(
           (a, b) => a.display_order - b.display_order
         );
 
@@ -64,14 +65,14 @@ function TheoryQuiz() {
 
         return {
           id: question.id,
-          question: question.question,
+          question: question.name, // V piano_quiz_chords je otázka uložená jako 'name'
           difficulty: question.difficulty,
           options: sortedOptions.map(opt => ({
             id: opt.id,
-            text: opt.option_text,
+            text: opt.option_name, // V piano_quiz_chord_options je text jako 'option_name'
             isCorrect: opt.is_correct
           })),
-          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_text || '',
+          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_name || '',
           color: colors[index % 2]
         };
       });
