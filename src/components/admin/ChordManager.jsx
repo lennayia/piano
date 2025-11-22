@@ -5,6 +5,58 @@ import { Music, BookOpen, Plus, Edit, Trash2, Save, X, HelpCircle, CheckCircle, 
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
 import TabButtons from '../ui/TabButtons';
 
+// Normalizace názvu akordu
+const normalizeChordName = (name) => {
+  if (!name) return '';
+
+  // Převedeme na string a trimujeme
+  let normalized = name.toString().trim();
+
+  // Nahradíme pomlčky a podtržítka mezerou
+  normalized = normalized.replace(/[-_]/g, ' ');
+
+  // Převedeme na správný formát: první písmeno velké
+  normalized = normalized.charAt(0).toUpperCase() + normalized.slice(1).toLowerCase();
+
+  // Opravy pro běžné varianty
+  normalized = normalized
+    .replace(/\bmoll\b/gi, 'moll')
+    .replace(/\bdur\b/gi, 'dur')
+    .replace(/\bm\b/gi, 'moll') // "Am" -> "A moll"
+    .replace(/([A-H])(is|es)?\s*(moll|dur)/gi, (match, note, accidental, type) => {
+      // Formátujeme: "C dur", "Fis moll", "Des dur"
+      const acc = accidental ? accidental.toLowerCase() : '';
+      return `${note.toUpperCase()}${acc} ${type.toLowerCase()}`;
+    });
+
+  // Ošetříme mezery (max 1 mezera mezi slovy)
+  normalized = normalized.replace(/\s+/g, ' ').trim();
+
+  return normalized;
+};
+
+// Normalizace tónů (přidání mezer mezi tóny)
+const normalizeNotes = (notesString) => {
+  if (!notesString) return '';
+
+  // Odstraníme čárky, pomlčky, dvojité mezery
+  let normalized = notesString.toString().trim()
+    .replace(/[,\-_]/g, ' ')
+    .replace(/\s+/g, ' ');
+
+  // Rozdělíme na jednotlivé tóny a normalizujeme
+  const notes = normalized.split(' ')
+    .map(note => note.trim())
+    .filter(note => note.length > 0)
+    .map(note => {
+      // Převedeme první písmeno na velké
+      return note.charAt(0).toUpperCase() + note.slice(1);
+    });
+
+  // Spojíme zpět s mezerou
+  return notes.join(' ');
+};
+
 const ChordManager = () => {
   const [chords, setChords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +157,7 @@ const ChordManager = () => {
     });
   };
 
-  const handleEditChord = async (chord) => {
+  const handleEditChord = (chord) => {
     setEditingChord(chord.id);
     setShowAddForm(false); // Formulář se zobrazí inline u akordu
 
@@ -128,45 +180,10 @@ const ChordManager = () => {
           { option_name: '', is_correct: false, display_order: 4 }
         ];
 
-    // Pro akordové kvízy zkusíme najít párový teoretický kvíz
-    let theoreticalQuestionText = '';
-    if (chord.quiz_type === 'chord' && formattedOptions.length === 4) {
-      try {
-        // Hledáme teoretický kvíz se stejným názvem akordu a stejnými možnostmi odpovědí
-        const { data: theoryQuizzes, error } = await supabase
-          .from('piano_quiz_chords')
-          .select(`
-            *,
-            piano_quiz_chord_options (*)
-          `)
-          .eq('quiz_type', 'theory')
-          .ilike('name', `%${chord.name}%`); // Hledáme otázky obsahující název akordu
-
-        if (!error && theoryQuizzes && theoryQuizzes.length > 0) {
-          // Najdeme kvíz se stejnými možnostmi odpovědí
-          for (const theoryQuiz of theoryQuizzes) {
-            const theoryOptions = (theoryQuiz.piano_quiz_chord_options || [])
-              .sort((a, b) => a.display_order - b.display_order)
-              .map(opt => opt.option_name);
-
-            const currentOptions = formattedOptions.map(opt => opt.option_name);
-
-            // Porovnáme možnosti odpovědí
-            if (JSON.stringify(theoryOptions) === JSON.stringify(currentOptions)) {
-              theoreticalQuestionText = theoryQuiz.name;
-              break;
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error finding paired theory quiz:', err);
-      }
-    }
-
     setFormData({
       name: chord.name,
       quiz_type: chord.quiz_type || 'chord',
-      questionText: theoreticalQuestionText, // Načteme text z párového teoretického kvízu
+      questionText: '', // Při editaci je pole pro otázku prázdné (uživatel může doplnit novou)
       notes: chord.notes ? sortNotesByKeyboard(chord.notes) : [],
       category: chord.category || '',
       difficulty: chord.difficulty,
@@ -254,7 +271,7 @@ const ChordManager = () => {
       if (editingChord) {
         // UPDATE existujícího akordu
         const updateData_obj = {
-          name: formData.name,
+          name: normalizeChordName(formData.name), // Normalizujeme název
           quiz_type: formData.quiz_type,
           difficulty: formData.difficulty,
           is_active: formData.is_active,
@@ -292,7 +309,7 @@ const ChordManager = () => {
 
           const optionsToInsert = filledOptions.map(opt => ({
             chord_id: editingChord,
-            option_name: opt.option_name,
+            option_name: normalizeNotes(opt.option_name), // Normalizujeme tóny
             is_correct: opt.is_correct,
             display_order: opt.display_order
           }));
@@ -308,7 +325,7 @@ const ChordManager = () => {
       } else {
         // INSERT nového kvízu
         const insertData_obj = {
-          name: formData.name,
+          name: normalizeChordName(formData.name), // Normalizujeme název
           quiz_type: formData.quiz_type,
           difficulty: formData.difficulty,
           is_active: formData.is_active,
@@ -335,7 +352,7 @@ const ChordManager = () => {
         if (filledOptions.length === 4) {
           const optionsToInsert = filledOptions.map(opt => ({
             chord_id: newChord.id,
-            option_name: opt.option_name,
+            option_name: normalizeNotes(opt.option_name), // Normalizujeme tóny
             is_correct: opt.is_correct,
             display_order: opt.display_order
           }));
@@ -370,7 +387,7 @@ const ChordManager = () => {
           // Přidáme stejné možnosti odpovědí pro teoretický kvíz
           const theoryOptionsToInsert = filledOptions.map(opt => ({
             chord_id: theoryQuiz.id,
-            option_name: opt.option_name,
+            option_name: normalizeNotes(opt.option_name), // Normalizujeme tóny
             is_correct: opt.is_correct,
             display_order: opt.display_order
           }));
@@ -715,7 +732,7 @@ const ChordManager = () => {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="např. C dur, Am, F#m"
+                    placeholder="např. C dur, A moll, Fis moll"
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -1182,7 +1199,7 @@ const ChordManager = () => {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="např. C dur, Am, F#m"
+                    placeholder="např. C dur, A moll, Fis moll"
                     style={{
                       width: '100%',
                       padding: '0.5rem',
