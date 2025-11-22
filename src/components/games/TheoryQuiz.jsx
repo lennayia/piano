@@ -31,14 +31,13 @@ function TheoryQuiz() {
       setLoading(true);
       setError(null);
 
-      // Načteme aktivní otázky typu 'theory' s jejich možnostmi
+      // Načteme aktivní otázky z piano_quiz_theory s jejich možnostmi
       const { data: questionsData, error: questionsError } = await supabase
-        .from('piano_quiz_chords')
+        .from('piano_quiz_theory')
         .select(`
           *,
-          piano_quiz_chord_options (*)
+          piano_quiz_theory_options (*)
         `)
-        .eq('quiz_type', 'theory')
         .eq('is_active', true)
         .order('display_order');
 
@@ -53,7 +52,7 @@ function TheoryQuiz() {
       // Transformujeme data z databáze do formátu, který kvíz očekává
       const transformedQuestions = questionsData.map((question, index) => {
         // Seřadíme možnosti podle display_order
-        const sortedOptions = [...(question.piano_quiz_chord_options || [])].sort(
+        const sortedOptions = [...(question.piano_quiz_theory_options || [])].sort(
           (a, b) => a.display_order - b.display_order
         );
 
@@ -65,14 +64,14 @@ function TheoryQuiz() {
 
         return {
           id: question.id,
-          question: question.name, // V piano_quiz_chords je otázka uložená jako 'name'
+          question: question.question, // V piano_quiz_theory je otázka uložená jako 'question'
           difficulty: question.difficulty,
           options: sortedOptions.map(opt => ({
             id: opt.id,
-            text: opt.option_name, // V piano_quiz_chord_options je text jako 'option_name'
+            text: opt.option_text, // V piano_quiz_theory_options je text jako 'option_text'
             isCorrect: opt.is_correct
           })),
-          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_name || '',
+          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_text || '',
           color: colors[index % 2]
         };
       });
@@ -101,7 +100,7 @@ function TheoryQuiz() {
           .from('piano_quiz_theory_completions')
           .insert({
             user_id: currentUser.id,
-            question_id: currentQuestionData.id,
+            theory_question_id: currentQuestionData.id,
             selected_option_id: selectedOption.id,
             is_correct: selectedOption.isCorrect
           });

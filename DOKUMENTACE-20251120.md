@@ -726,5 +726,68 @@ supabase db dump -f backup.sql
 
 ---
 
+## 📅 Historie změn - 22. 11. 2025 (pokračování)
+
+### Akordový kvíz - Admin rozhraní
+
+#### 1. Vylepšení formuláře pro správu akordů
+- **Přidána 2 sekce v editačním formuláři**:
+  - 🎵 **Poslechový kvíz** (růžová sekce) - výběr not akordu, název akordu
+  - 📝 **Teoretický kvíz (volitelné)** (modrá sekce) - textová otázka o akordu
+
+- **Možnost uložení 2 záznamů jedním formulářem**:
+  - Poslechový kvíz: `piano_quiz_chords` s quiz_type='chord' (s notami)
+  - Teoretická otázka: `piano_quiz_chords` s quiz_type='theory' (bez not, s textem otázky)
+  - Obě sdílí stejné 4 odpovědi
+
+#### 2. Sjednocení formulářů
+- **Problém**: Existovaly 2 různé formuláře - jeden pro přidávání, druhý pro editaci
+- **Řešení**: Smazán starý inline editační formulář (356 řádků), nyní se používá jeden univerzální formulář
+- **Benefit**: Konzistentní UX, méně duplicitního kódu
+
+#### 3. Normalizace notace
+- **Funkce `normalizeChordName()`**: Převádí Cis → C# a Fis → F#
+- **Funkce `normalizeNotes()`**: Normalizuje jednotlivé tóny v odpovědích
+- **Důvod**: Konzistentní zobrazování napříč aplikací
+
+#### 4. Oprava RLS policies
+- **Problém**: INSERT selhal s chybou 403
+- **Příčina**: Chyběla INSERT policy pro authenticated adminy
+- **Řešení**: Přidány správné RLS policies:
+  - SELECT - PUBLIC (i nepřihlášení uživatelé vidí otázky)
+  - INSERT/UPDATE/DELETE - AUTHENTICATED admins only
+
+### Teoretický kvíz - Oddělení tabulek
+
+#### 1. Struktura databáze
+- **`piano_quiz_chords`** - POUZE akordy:
+  - Poslechové kvízy (s notami, quiz_type='chord')
+  - Teoretické otázky O AKORDECH (bez not, quiz_type='theory')
+
+- **`piano_quiz_theory`** - Obecné teoretické otázky:
+  - Otázky z hudební teorie (notová osnova, tempo, stupnice, intervaly)
+  - Vlastní tabulka `piano_quiz_theory` + `piano_quiz_theory_options`
+
+#### 2. Oprava načítání v TheoryQuiz.jsx
+- **Problém**: Teoretický kvíz načítal data z `piano_quiz_chords` místo `piano_quiz_theory`
+- **Řešení**:
+  - Změna dotazu z `piano_quiz_chords` na `piano_quiz_theory`
+  - Aktualizace názvů sloupců (`question`, `option_text`, `theory_question_id`)
+  - Oprava ukládání completions
+
+**Soubory změněny**:
+- `src/components/admin/ChordManager.jsx` - sjednocený formulář, teoretické otázky k akordům
+- `src/components/games/TheoryQuiz.jsx` - načítání z piano_quiz_theory
+- `RESTORE_THEORY_QUESTIONS.sql` - SQL migrace pro obnovení teoretických otázek
+
+**Databáze**:
+- Tabulka `piano_quiz_theory` - obecné teoretické otázky (5 otázek)
+- Tabulka `piano_quiz_theory_options` - odpovědi k teoretickým otázkám
+- Tabulka `piano_quiz_theory_completions` - dokončení teoretických kvízů
+
+**Poznámka**: Teoretický kvíz v aplikaci má potíže s načítáním aktualizované verze kvůli cache, je potřeba vyřešit.
+
+---
+
 *Poslední aktualizace: 22. 11. 2025*
 *Verze: 1.3.0*

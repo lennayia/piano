@@ -108,6 +108,9 @@ const ChordManager = () => {
 
   useEffect(() => {
     fetchChords();
+    // Reset formulář při změně tabu
+    setShowAddForm(false);
+    setEditingChord(null);
   }, [activeQuizType]);
 
   const fetchChords = async () => {
@@ -157,9 +160,9 @@ const ChordManager = () => {
     });
   };
 
-  const handleEditChord = (chord) => {
+  const handleEditChord = async (chord) => {
     setEditingChord(chord.id);
-    setShowAddForm(false); // Formulář se zobrazí inline u akordu
+    setShowAddForm(true); // Zobrazíme hlavní formulář
 
     // Seřadíme možnosti podle display_order
     const sortedOptions = [...(chord.piano_quiz_chord_options || [])].sort(
@@ -180,10 +183,42 @@ const ChordManager = () => {
           { option_name: '', is_correct: false, display_order: 4 }
         ];
 
+    // Pokud editujeme poslechový kvíz (chord), zkusíme najít existující teoretickou otázku
+    let theoryQuestionText = '';
+    if (chord.quiz_type === 'chord') {
+      try {
+        let query = supabase
+          .from('piano_quiz_chords')
+          .select('name')
+          .eq('quiz_type', 'theory');
+
+        // Správné porovnání s NULL
+        if (chord.category) {
+          query = query.eq('category', chord.category);
+        } else {
+          query = query.is('category', null);
+        }
+
+        const { data: theoryQuizzes } = await query;
+
+        // Najdeme teoretickou otázku, která obsahuje název akordu
+        if (theoryQuizzes && theoryQuizzes.length > 0) {
+          const matching = theoryQuizzes.find(q =>
+            q.name && q.name.toLowerCase().includes(chord.name.toLowerCase())
+          );
+          if (matching) {
+            theoryQuestionText = matching.name;
+          }
+        }
+      } catch (err) {
+        console.error('Error loading theory question:', err);
+      }
+    }
+
     setFormData({
       name: chord.name,
       quiz_type: chord.quiz_type || 'chord',
-      questionText: '', // Při editaci je pole pro otázku prázdné (uživatel může doplnit novou)
+      questionText: theoryQuestionText, // Načteme text teoretické otázky, pokud existuje
       notes: chord.notes ? sortNotesByKeyboard(chord.notes) : [],
       category: chord.category || '',
       difficulty: chord.difficulty,
@@ -215,26 +250,8 @@ const ChordManager = () => {
   };
 
   const handleSaveChord = async () => {
-    // Zkontrolujeme session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-    // Ověříme, že máme platnou session
-    if (!sessionData?.session) {
-      setError('Nejste přihlášen. Obnovte stránku a přihlaste se znovu.');
-      return;
-    }
-
-    // Zkontrolujeme admin status v databázi
-    const { data: userData, error: userError } = await supabase
-      .from('piano_users')
-      .select('id, email, is_admin')
-      .eq('id', sessionData.session.user.id)
-      .single();
-
-    if (!userData?.is_admin) {
-      setError('Nemáte oprávnění administrátora');
-      return;
-    }
+    console.log('🔵 handleSaveChord called');
+    console.log('formData:', formData);
 
     try {
       // Validace
@@ -321,7 +338,96 @@ const ChordManager = () => {
           if (optionsError) throw optionsError;
         }
 
-        showSuccess('Akord byl úspěšně aktualizován');
+        // NOVÉ: Pokud je vyplněn text otázky, vytvoříme DRUHÝ záznam jako teoretický kvíz
+        if (formData.questionText && formData.questionText.trim() && filledOptions.length === 4) {
+          // Nejprve zkontrolujeme, jestli už teoretický kvíz pro tento akord existuje
+          let theoryQuery = supabase
+            .from('piano_quiz_chords')
+            .select('id, name')
+            .eq('quiz_type', 'theory');
+
+          // Správné porovnání s NULL
+          if (formData.category) {
+            theoryQuery = theoryQuery.eq('category', formData.category);
+          } else {
+            theoryQuery = theoryQuery.is('category', null);
+          }
+
+          const { data: allTheoryQuizzes } = await theoryQuery;
+
+          // Najdeme teoretickou otázku, která obsahuje název akordu
+          const existingTheory = allTheoryQuizzes?.find(q =>
+            q.name && q.name.toLowerCase().includes(formData.name.toLowerCase())
+          );
+
+          if (existingTheory) {
+            // Aktualizujeme existující teoretický kvíz
+            const theoryUpdateData = {
+              name: formData.questionText.trim(),
+              difficulty: formData.difficulty,
+              is_active: formData.is_active,
+              display_order: formData.display_order + 1000
+            };
+
+            await supabase
+              .from('piano_quiz_chords')
+              .update(theoryUpdateData)
+              .eq('id', existingTheory.id);
+
+            // Aktualizujeme odpovědi
+            await supabase
+              .from('piano_quiz_chord_options')
+              .delete()
+              .eq('chord_id', existingTheory.id);
+
+            const theoryOptionsToInsert = filledOptions.map(opt => ({
+              chord_id: existingTheory.id,
+              option_name: normalizeNotes(opt.option_name),
+              is_correct: opt.is_correct,
+              display_order: opt.display_order
+            }));
+
+            await supabase
+              .from('piano_quiz_chord_options')
+              .insert(theoryOptionsToInsert);
+
+            showSuccess('Akord i teoretický kvíz byly úspěšně aktualizovány');
+          } else {
+            // Vytvoříme nový teoretický kvíz
+            const theoryData_obj = {
+              name: formData.questionText.trim(),
+              quiz_type: 'theory',
+              notes: null,
+              difficulty: formData.difficulty,
+              is_active: formData.is_active,
+              display_order: formData.display_order + 1000,
+              category: formData.category || null
+            };
+
+            const { data: theoryQuiz, error: theoryInsertError } = await supabase
+              .from('piano_quiz_chords')
+              .insert([theoryData_obj])
+              .select()
+              .single();
+
+            if (theoryInsertError) throw theoryInsertError;
+
+            const theoryOptionsToInsert = filledOptions.map(opt => ({
+              chord_id: theoryQuiz.id,
+              option_name: normalizeNotes(opt.option_name),
+              is_correct: opt.is_correct,
+              display_order: opt.display_order
+            }));
+
+            await supabase
+              .from('piano_quiz_chord_options')
+              .insert(theoryOptionsToInsert);
+
+            showSuccess('Akord byl úspěšně aktualizován a teoretický kvíz byl přidán');
+          }
+        } else {
+          showSuccess('Akord byl úspěšně aktualizován');
+        }
       } else {
         // INSERT nového kvízu
         const insertData_obj = {
@@ -844,6 +950,7 @@ const ChordManager = () => {
                 <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
                   Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
                 </div>
+                </div>
               </div>
             )}
 
@@ -892,7 +999,6 @@ const ChordManager = () => {
                 />
               </div>
             )}
-
 
             {/* Obtížnost a Pořadí */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
@@ -1003,61 +1109,61 @@ const ChordManager = () => {
                   <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
                     Možnosti odpovědí (4 možnosti) *
                   </label>
-              {formData.options.map((option, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    gap: '0.5rem',
-                    marginBottom: '0.5rem',
-                    alignItems: 'center',
-                    background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
-                    padding: '0.5rem',
-                    borderRadius: 'var(--radius)',
-                    border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
-                  }}
-                >
-                  <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
-                  <input
-                    type="text"
-                    value={option.option_name}
-                    onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
-                    placeholder={`Možnost ${index + 1}`}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem',
-                      border: '1px solid #ddd',
-                      borderRadius: 'var(--radius)',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.375rem',
-                      cursor: 'pointer',
-                      padding: '0.5rem 0.75rem',
-                      background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
-                      borderRadius: 'var(--radius)',
-                      color: option.is_correct ? '#fff' : '#64748b',
-                      fontWeight: 500,
-                      minWidth: '110px',
-                      justifyContent: 'center',
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="correct_answer"
-                      checked={option.is_correct}
-                      onChange={() => handleOptionChange(index, 'is_correct', true)}
-                      style={{ width: '16px', height: '16px' }}
-                    />
-                    Správná
-                  </label>
-                </div>
-              ))}
+                  {formData.options.map((option, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        marginBottom: '0.5rem',
+                        alignItems: 'center',
+                        background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
+                        padding: '0.5rem',
+                        borderRadius: 'var(--radius)',
+                        border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
+                      <input
+                        type="text"
+                        value={option.option_name}
+                        onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
+                        placeholder={`Možnost ${index + 1}`}
+                        style={{
+                          flex: 1,
+                          padding: '0.5rem',
+                          border: '1px solid #ddd',
+                          borderRadius: 'var(--radius)',
+                          fontSize: '0.875rem'
+                        }}
+                      />
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.375rem',
+                          cursor: 'pointer',
+                          padding: '0.5rem 0.75rem',
+                          background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
+                          borderRadius: 'var(--radius)',
+                          color: option.is_correct ? '#fff' : '#64748b',
+                          fontWeight: 500,
+                          minWidth: '110px',
+                          justifyContent: 'center',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name="correct_answer"
+                          checked={option.is_correct}
+                          onChange={() => handleOptionChange(index, 'is_correct', true)}
+                          style={{ width: '16px', height: '16px' }}
+                        />
+                        Správná
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -1171,313 +1277,8 @@ const ChordManager = () => {
       <div style={{ display: 'grid', gap: '1rem' }}>
         {chords.map((chord) => (
           <div key={chord.id}>
-            {/* Zobrazení akordu nebo inline editace */}
-            {editingChord === chord.id ? (
-              /* Inline editační formulář */
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                style={{
-                  padding: '1.5rem',
-                  background: 'rgba(181, 31, 101, 0.05)',
-                  borderRadius: 'var(--radius)',
-                  border: '2px solid rgba(181, 31, 101, 0.3)'
-                }}
-              >
-                <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
-                  Upravit akord: {chord.name}
-                </h4>
-
-                {/* Název akordu */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                    Název akordu *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="např. C dur, A moll, Fis moll"
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      borderRadius: 'var(--radius)',
-                      border: '1px solid #ddd',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                </div>
-
-                {/* Výběr not */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                    Noty akordu * (vyberte kliknutím)
-                  </label>
-
-                  {/* Malá oktáva */}
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
-                      Malá oktáva (c - h, náš rozsah pouze a - h):
-                    </span>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {NOTES_MALA_OKTAVA.map(note => (
-                        <motion.button
-                          key={note}
-                          type="button"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleNoteToggle(note)}
-                          style={{
-                            background: formData.notes.includes(note) ? 'var(--color-secondary)' : 'rgba(255, 255, 255, 0.9)',
-                            border: `2px solid ${formData.notes.includes(note) ? 'var(--color-secondary)' : '#ddd'}`,
-                            borderRadius: 'var(--radius)',
-                            padding: '0.5rem 0.75rem',
-                            cursor: 'pointer',
-                            color: formData.notes.includes(note) ? '#fff' : '#1e293b',
-                            fontWeight: '600',
-                            fontSize: '0.875rem',
-                            minWidth: '50px'
-                          }}
-                        >
-                          {note.replace('.', '')}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Oktáva 1 */}
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
-                      Oktáva 1 (c1 - h1):
-                    </span>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {NOTES_OKTAVA_1.map(note => (
-                        <motion.button
-                          key={note}
-                          type="button"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleNoteToggle(note)}
-                          style={{
-                            background: formData.notes.includes(note) ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.9)',
-                            border: `2px solid ${formData.notes.includes(note) ? 'var(--color-primary)' : '#ddd'}`,
-                            borderRadius: 'var(--radius)',
-                            padding: '0.5rem 0.75rem',
-                            cursor: 'pointer',
-                            color: formData.notes.includes(note) ? '#fff' : '#1e293b',
-                            fontWeight: '600',
-                            fontSize: '0.875rem',
-                            minWidth: '50px'
-                          }}
-                        >
-                          {note}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Oktáva 2 */}
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
-                      Oktáva 2 (c2 - h2, náš rozsah pouze c2 - e2):
-                    </span>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {NOTES_OKTAVA_2.map(note => (
-                        <motion.button
-                          key={note}
-                          type="button"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleNoteToggle(note)}
-                          style={{
-                            background: formData.notes.includes(note) ? 'var(--color-secondary)' : 'rgba(255, 255, 255, 0.9)',
-                            border: `2px solid ${formData.notes.includes(note) ? 'var(--color-secondary)' : '#ddd'}`,
-                            borderRadius: 'var(--radius)',
-                            padding: '0.5rem 0.75rem',
-                            cursor: 'pointer',
-                            color: formData.notes.includes(note) ? '#fff' : '#1e293b',
-                            fontWeight: '600',
-                            fontSize: '0.875rem',
-                            minWidth: '50px'
-                          }}
-                        >
-                          {note.replace("''", "²")}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
-                    Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
-                  </div>
-                </div>
-
-                {/* Obtížnost a Pořadí */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                      Obtížnost
-                    </label>
-                    <select
-                      value={formData.difficulty}
-                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        borderRadius: 'var(--radius)',
-                        border: '1px solid #ddd',
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      {DIFFICULTY_LEVELS.map(level => (
-                        <option key={level.value} value={level.value}>
-                          {level.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                      Pořadí
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.display_order}
-                      onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        borderRadius: 'var(--radius)',
-                        border: '1px solid #ddd',
-                        fontSize: '0.875rem'
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: 'pointer',
-                      padding: '0.5rem',
-                      background: 'rgba(255, 255, 255, 0.5)',
-                      borderRadius: 'var(--radius)',
-                      width: '100%',
-                      fontSize: '0.875rem'
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={formData.is_active}
-                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                        style={{ width: '18px', height: '18px' }}
-                      />
-                      <span style={{ fontWeight: 500 }}>Aktivní</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Možnosti odpovědí */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500, fontSize: '0.875rem' }}>
-                    Možnosti odpovědí (4 možnosti) *
-                  </label>
-                  {formData.options.map((option, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        marginBottom: '0.5rem',
-                        alignItems: 'center',
-                        background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
-                        padding: '0.5rem',
-                        borderRadius: 'var(--radius)',
-                        border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
-                      }}
-                    >
-                      <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
-                      <input
-                        type="text"
-                        value={option.option_name}
-                        onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
-                        placeholder={`Možnost ${index + 1}`}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem',
-                          border: '1px solid #ddd',
-                          borderRadius: 'var(--radius)',
-                          fontSize: '0.875rem'
-                        }}
-                      />
-                      <label
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.375rem',
-                          cursor: 'pointer',
-                          padding: '0.5rem 0.75rem',
-                          background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
-                          borderRadius: 'var(--radius)',
-                          color: option.is_correct ? '#fff' : '#64748b',
-                          fontWeight: 500,
-                          minWidth: '110px',
-                          justifyContent: 'center',
-                          fontSize: '0.75rem'
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name={`correct_answer_${chord.id}`}
-                          checked={option.is_correct}
-                          onChange={() => handleOptionChange(index, 'is_correct', true)}
-                          style={{ width: '16px', height: '16px' }}
-                        />
-                        Správná
-                      </label>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Tlačítka */}
-                <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setEditingChord(null);
-                      setError(null);
-                    }}
-                    className="btn btn-secondary"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    <X size={16} />
-                    Zrušit
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleSaveChord}
-                    className="btn btn-primary"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    <Save size={16} />
-                    Uložit
-                  </motion.button>
-                </div>
-              </motion.div>
-            ) : (
+            {/* Zobrazení akordu - při editaci se zobrazuje formulář nahoře */}
+            {editingChord === chord.id ? null : (
               /* Normální zobrazení akordu */
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
