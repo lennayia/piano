@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Play, RotateCcw, CheckCircle, ChevronRight, Volume2, Headphones, Shuffle, Piano, Target } from 'lucide-react';
+import { Music, Play, RotateCcw, CheckCircle, ChevronRight, Volume2, Headphones, Shuffle, Piano, Target, Brain } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
 import TabButtons from '../components/ui/TabButtons';
 import SongLibrary from '../components/resources/SongLibrary';
 import ChordQuiz from '../components/games/ChordQuiz';
+import TheoryQuiz from '../components/games/TheoryQuiz';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import audioEngine from '../utils/audio';
 import { getChordNotesWithOctaves, shuffleArray } from '../utils/noteUtils';
@@ -24,7 +25,7 @@ function Cviceni() {
   const [loading, setLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all'); // 'all', 'easy', 'medium'
   const [isShuffled, setIsShuffled] = useState(false);
-  const [activeSection, setActiveSection] = useState('chords'); // 'chords', 'quiz', 'songs'
+  const [activeSection, setActiveSection] = useState('chords'); // 'chords', 'quiz', 'theory', 'songs'
   const [activeSongCategory, setActiveSongCategory] = useState('lidovky');
 
   useEffect(() => {
@@ -260,11 +261,12 @@ function Cviceni() {
         </p>
       </motion.div>
 
-      {/* Hlavní navigace - Akordy / Poznáte akord? / Písničky */}
+      {/* Hlavní navigace - Akordy / Poznáte akord? / Hudební teorie / Písničky */}
       <TabButtons
         tabs={[
           { id: 'chords', label: 'Akordy', icon: Piano },
           { id: 'quiz', label: 'Poznáte akord?', icon: Target },
+          { id: 'theory', label: 'Hudební teorie', icon: Brain },
           { id: 'songs', label: 'Písničky', icon: Music }
         ]}
         activeTab={activeSection}
@@ -632,6 +634,11 @@ function Cviceni() {
       {/* Sekce Poznáte akord? */}
       {activeSection === 'quiz' && (
         <ChordQuiz />
+      )}
+
+      {/* Sekce Hudební teorie */}
+      {activeSection === 'theory' && (
+        <TheoryQuiz />
       )}
 
       {/* Sekce Písničky */}
