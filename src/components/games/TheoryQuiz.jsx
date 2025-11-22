@@ -64,14 +64,14 @@ function TheoryQuiz() {
 
         return {
           id: question.id,
-          question: question.question, // V piano_quiz_theory je otázka uložená jako 'question'
+          question: question.name, // V piano_quiz_theory je otázka uložená jako 'name'
           difficulty: question.difficulty,
           options: sortedOptions.map(opt => ({
             id: opt.id,
-            text: opt.option_text, // V piano_quiz_theory_options je text jako 'option_text'
+            text: opt.option_name, // V piano_quiz_theory_options je text jako 'option_name'
             isCorrect: opt.is_correct
           })),
-          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_text || '',
+          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_name || '',
           color: colors[index % 2]
         };
       });

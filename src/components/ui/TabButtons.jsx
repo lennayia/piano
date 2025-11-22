@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 /**
@@ -243,6 +243,152 @@ function TabButtons({
     }}>
       {renderButtons()}
     </div>
+  );
+}
+
+/**
+ * Moderní Chip komponent pro zobrazení obtížnosti a odpovědí
+ *
+ * @param {string|number} text - Text nebo číslo chipu
+ * @param {string} variant - 'difficulty' | 'answer' | 'inactive'
+ * @param {number} level - Úroveň obtížnosti 1-3 (pro variant='difficulty')
+ * @param {boolean} isCorrect - Je odpověď správná? (pro variant='answer')
+ * @param {object} style - Dodatečné styly
+ */
+export function Chip({ text, variant = 'answer', level = 1, isCorrect = false, style = {}, ...props }) {
+  // Definice barev pro různé varianty
+  const variants = {
+    // Obtížnost - jednotná barva, číslo určuje level
+    difficulty: {
+      background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.08) 0%, rgba(181, 31, 101, 0.12) 100%)',
+      color: 'rgba(181, 31, 101, 0.95)',
+      border: '1.5px solid rgba(181, 31, 101, 0.25)',
+      boxShadow: '0 2px 4px rgba(181, 31, 101, 0.08)'
+    },
+    // Odpovědi - jemný neutrální design
+    answer: {
+      background: 'linear-gradient(135deg, rgba(100, 116, 139, 0.05) 0%, rgba(100, 116, 139, 0.08) 100%)',
+      color: '#64748b',
+      border: '1.5px solid rgba(100, 116, 139, 0.15)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+    },
+    // Správná odpověď - vnitřní glow se secondary barvou
+    'answer-correct': {
+      background: 'rgba(255, 255, 255, 0.95)',
+      color: 'var(--color-secondary)',
+      border: 'none',
+      boxShadow: 'inset 0 0 16px rgba(45, 91, 120, 1), 0 1px 3px rgba(45, 91, 120, 0.15)'
+    },
+    // Neaktivní
+    inactive: {
+      background: 'rgba(0, 0, 0, 0.04)',
+      color: '#94a3b8',
+      border: '1.5px solid rgba(0, 0, 0, 0.08)',
+      boxShadow: 'none'
+    }
+  };
+
+  // Pokud je isCorrect=true, použijeme variantu answer-correct
+  const finalVariant = (variant === 'answer' && isCorrect) ? 'answer-correct' : variant;
+  const variantStyle = variants[finalVariant] || variants.answer;
+
+  // Pro obtížnost zobrazíme číslo v kruhu
+  const isDifficulty = variant === 'difficulty';
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: isDifficulty ? '0.2rem 0.4rem' : '0.25rem 0.5rem',
+        borderRadius: '10px',
+        fontSize: isDifficulty ? '0.6875rem' : '0.75rem',
+        fontWeight: isCorrect ? 600 : isDifficulty ? 700 : 400,
+        transition: 'all 0.2s ease',
+        minWidth: isDifficulty ? '26px' : 'auto',
+        ...variantStyle,
+        ...style
+      }}
+      {...props}
+    >
+      {text}
+      {isCorrect && ' ✓'}
+    </span>
+  );
+}
+
+/**
+ * Moderní ActionButton komponenty pro upravit/duplikovat/smazat
+ *
+ * @param {string} variant - 'edit' | 'duplicate' | 'delete'
+ * @param {function} onClick - Callback funkce
+ * @param {string} label - Text tlačítka (optional)
+ * @param {object} style - Dodatečné styly
+ */
+export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIcon, style = {}, ...props }) {
+  const { Edit: EditIcon, Copy: CopyIcon, Trash2: DeleteIcon } = require('lucide-react');
+
+  const variants = {
+    edit: {
+      background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.08) 0%, rgba(45, 91, 120, 0.12) 100%)',
+      hoverBackground: 'linear-gradient(135deg, rgba(45, 91, 120, 0.15) 0%, rgba(45, 91, 120, 0.2) 100%)',
+      color: 'var(--color-secondary)',
+      icon: EditIcon,
+      defaultLabel: 'Upravit'
+    },
+    duplicate: {
+      background: 'linear-gradient(135deg, rgba(100, 116, 139, 0.06) 0%, rgba(100, 116, 139, 0.1) 100%)',
+      hoverBackground: 'linear-gradient(135deg, rgba(100, 116, 139, 0.12) 0%, rgba(100, 116, 139, 0.16) 100%)',
+      color: '#64748b',
+      icon: CopyIcon,
+      defaultLabel: 'Duplikovat'
+    },
+    delete: {
+      background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.06) 0%, rgba(181, 31, 101, 0.1) 100%)',
+      hoverBackground: 'linear-gradient(135deg, rgba(181, 31, 101, 0.12) 0%, rgba(181, 31, 101, 0.16) 100%)',
+      color: 'var(--color-primary)',
+      icon: DeleteIcon,
+      defaultLabel: 'Smazat'
+    }
+  };
+
+  const config = variants[variant];
+  const Icon = CustomIcon || config.icon;
+  const buttonLabel = label || config.defaultLabel;
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.03, y: -1 }}
+      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.4rem',
+        padding: '0.5rem 0.875rem',
+        borderRadius: '10px',
+        fontSize: '0.8125rem',
+        fontWeight: 500,
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        background: isHovered ? config.hoverBackground : config.background,
+        color: config.color,
+        boxShadow: isHovered
+          ? '0 3px 8px rgba(0, 0, 0, 0.1)'
+          : '0 1px 3px rgba(0, 0, 0, 0.06)',
+        ...style
+      }}
+      {...props}
+    >
+      <Icon size={15} />
+      {buttonLabel}
+    </motion.button>
   );
 }
 

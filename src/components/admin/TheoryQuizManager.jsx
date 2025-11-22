@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
-import { BookOpen, Plus, Edit, Trash2, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { BookOpen, Plus, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Chip, ActionButton } from '../ui/TabButtons';
 
 const TheoryQuizManager = () => {
   const [questions, setQuestions] = useState([]);
@@ -19,10 +20,10 @@ const TheoryQuizManager = () => {
     is_active: true,
     display_order: 0,
     options: [
-      { option_text: '', is_correct: true, display_order: 1 },
-      { option_text: '', is_correct: false, display_order: 2 },
-      { option_text: '', is_correct: false, display_order: 3 },
-      { option_text: '', is_correct: false, display_order: 4 }
+      { option_name: '', is_correct: true, display_order: 1 },
+      { option_name: '', is_correct: false, display_order: 2 },
+      { option_name: '', is_correct: false, display_order: 3 },
+      { option_name: '', is_correct: false, display_order: 4 }
     ]
   });
 
@@ -41,14 +42,13 @@ const TheoryQuizManager = () => {
       setLoading(true);
       setError(null);
 
-      // Načteme otázky s jejich možnostmi (používáme piano_quiz_chords s filtrem quiz_type='theory')
+      // Načteme otázky s jejich možnostmi z piano_quiz_theory
       const { data: questionsData, error: questionsError } = await supabase
-        .from('piano_quiz_chords')
+        .from('piano_quiz_theory')
         .select(`
           *,
-          piano_quiz_chord_options (*)
+          piano_quiz_theory_options (*)
         `)
-        .eq('quiz_type', 'theory')
         .order('display_order');
 
       if (questionsError) throw questionsError;
@@ -71,10 +71,10 @@ const TheoryQuizManager = () => {
       is_active: true,
       display_order: questions.length + 1,
       options: [
-        { option_text: '', is_correct: true, display_order: 1 },
-        { option_text: '', is_correct: false, display_order: 2 },
-        { option_text: '', is_correct: false, display_order: 3 },
-        { option_text: '', is_correct: false, display_order: 4 }
+        { option_name: '', is_correct: true, display_order: 1 },
+        { option_name: '', is_correct: false, display_order: 2 },
+        { option_name: '', is_correct: false, display_order: 3 },
+        { option_name: '', is_correct: false, display_order: 4 }
       ]
     });
   };
@@ -83,27 +83,27 @@ const TheoryQuizManager = () => {
     setEditingQuestion(question.id);
     setShowAddForm(false);
 
-    // Seřadíme možnosti podle display_order (používáme piano_quiz_chord_options)
-    const sortedOptions = [...(question.piano_quiz_chord_options || [])].sort(
+    // Seřadíme možnosti podle display_order
+    const sortedOptions = [...(question.piano_quiz_theory_options || [])].sort(
       (a, b) => a.display_order - b.display_order
     );
 
-    // Převedeme možnosti na správný formát (option_name místo option_text)
+    // Převedeme možnosti na správný formát
     const formattedOptions = sortedOptions.length > 0
       ? sortedOptions.map(opt => ({
-          option_text: opt.option_name || '',
+          option_name: opt.option_name || '',
           is_correct: opt.is_correct || false,
           display_order: opt.display_order || 1
         }))
       : [
-          { option_text: '', is_correct: true, display_order: 1 },
-          { option_text: '', is_correct: false, display_order: 2 },
-          { option_text: '', is_correct: false, display_order: 3 },
-          { option_text: '', is_correct: false, display_order: 4 }
+          { option_name: '', is_correct: true, display_order: 1 },
+          { option_name: '', is_correct: false, display_order: 2 },
+          { option_name: '', is_correct: false, display_order: 3 },
+          { option_name: '', is_correct: false, display_order: 4 }
         ];
 
     setFormData({
-      question: question.name, // V piano_quiz_chords je otázka v poli 'name'
+      question: question.name, // V piano_quiz_theory je otázka v poli 'name'
       difficulty: question.difficulty,
       is_active: question.is_active,
       display_order: question.display_order,
@@ -118,7 +118,7 @@ const TheoryQuizManager = () => {
 
     try {
       const { error } = await supabase
-        .from('piano_quiz_chords')
+        .from('piano_quiz_theory')
         .delete()
         .eq('id', questionId);
 
@@ -132,6 +132,46 @@ const TheoryQuizManager = () => {
     }
   };
 
+  const handleDuplicateQuestion = async (question) => {
+    try {
+      // Vytvoříme kopii otázky
+      const { data: newQuestion, error: questionError } = await supabase
+        .from('piano_quiz_theory')
+        .insert([{
+          name: `${question.name} (kopie)`,
+          difficulty: question.difficulty,
+          is_active: question.is_active,
+          display_order: questions.length + 1
+        }])
+        .select()
+        .single();
+
+      if (questionError) throw questionError;
+
+      // Zkopírujeme i možnosti odpovědí
+      const optionsToCopy = question.piano_quiz_theory_options?.map(opt => ({
+        theory_question_id: newQuestion.id,
+        option_name: opt.option_name,
+        is_correct: opt.is_correct,
+        display_order: opt.display_order
+      })) || [];
+
+      if (optionsToCopy.length > 0) {
+        const { error: optionsError } = await supabase
+          .from('piano_quiz_theory_options')
+          .insert(optionsToCopy);
+
+        if (optionsError) throw optionsError;
+      }
+
+      showSuccess('Otázka byla úspěšně duplikována');
+      fetchQuestions();
+    } catch (err) {
+      console.error('Error duplicating question:', err);
+      setError('Nepodařilo se duplikovat otázku: ' + err.message);
+    }
+  };
+
   const handleSaveQuestion = async () => {
     try {
       // Validace
@@ -141,7 +181,7 @@ const TheoryQuizManager = () => {
       }
 
       // Zkontrolujeme jestli uživatel vyplnil všechny možnosti
-      const filledOptions = formData.options.filter(opt => opt.option_text && opt.option_text.trim());
+      const filledOptions = formData.options.filter(opt => opt.option_name && opt.option_name.trim());
 
       if (filledOptions.length !== 4) {
         setError('Vyplňte všechny 4 možnosti odpovědí');
@@ -160,13 +200,12 @@ const TheoryQuizManager = () => {
       if (editingQuestion) {
         // UPDATE existující otázky
         const { data: updateData, error: updateError } = await supabase
-          .from('piano_quiz_chords')
+          .from('piano_quiz_theory')
           .update({
-            name: formData.question, // Otázka je v poli 'name'
+            name: formData.question,
             difficulty: formData.difficulty,
             is_active: formData.is_active,
-            display_order: formData.display_order,
-            quiz_type: 'theory' // Důležité: nastavit quiz_type
+            display_order: formData.display_order
           })
           .eq('id', editingQuestion)
           .select();
@@ -179,19 +218,19 @@ const TheoryQuizManager = () => {
 
         // Smažeme staré možnosti a vytvoříme nové
         await supabase
-          .from('piano_quiz_chord_options')
+          .from('piano_quiz_theory_options')
           .delete()
-          .eq('chord_id', editingQuestion);
+          .eq('theory_question_id', editingQuestion);
 
         const optionsToInsert = filledOptions.map(opt => ({
-          chord_id: editingQuestion, // V této tabulce je to 'chord_id'
-          option_name: opt.option_text, // V této tabulce je to 'option_name'
+          theory_question_id: editingQuestion,
+          option_name: opt.option_name,
           is_correct: opt.is_correct,
           display_order: opt.display_order
         }));
 
         const { error: optionsError } = await supabase
-          .from('piano_quiz_chord_options')
+          .from('piano_quiz_theory_options')
           .insert(optionsToInsert);
 
         if (optionsError) throw optionsError;
@@ -200,14 +239,12 @@ const TheoryQuizManager = () => {
       } else {
         // INSERT nové otázky
         const { data: newQuestion, error: insertError } = await supabase
-          .from('piano_quiz_chords')
+          .from('piano_quiz_theory')
           .insert([{
-            name: formData.question, // Otázka je v poli 'name'
+            name: formData.question,
             difficulty: formData.difficulty,
             is_active: formData.is_active,
-            display_order: formData.display_order,
-            quiz_type: 'theory', // Důležité: nastavit quiz_type
-            notes: null // Pro teoretické otázky není potřeba
+            display_order: formData.display_order
           }])
           .select()
           .single();
@@ -215,14 +252,14 @@ const TheoryQuizManager = () => {
         if (insertError) throw insertError;
 
         const optionsToInsert = filledOptions.map(opt => ({
-          chord_id: newQuestion.id, // V této tabulce je to 'chord_id'
-          option_name: opt.option_text, // V této tabulce je to 'option_name'
+          theory_question_id: newQuestion.id,
+          option_name: opt.option_name,
           is_correct: opt.is_correct,
           display_order: opt.display_order
         }));
 
         const { error: optionsError } = await supabase
-          .from('piano_quiz_chord_options')
+          .from('piano_quiz_theory_options')
           .insert(optionsToInsert);
 
         if (optionsError) throw optionsError;
@@ -242,7 +279,7 @@ const TheoryQuizManager = () => {
   const handleToggleActive = async (questionId, currentStatus) => {
     try {
       const { error } = await supabase
-        .from('piano_quiz_chords')
+        .from('piano_quiz_theory')
         .update({ is_active: !currentStatus })
         .eq('id', questionId);
 
@@ -592,8 +629,8 @@ const TheoryQuizManager = () => {
                   <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
                   <input
                     type="text"
-                    value={option.option_text}
-                    onChange={(e) => handleOptionChange(index, 'option_text', e.target.value)}
+                    value={option.option_name}
+                    onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
                     placeholder={`Možnost ${index + 1}`}
                     style={{
                       flex: 1,
@@ -696,97 +733,47 @@ const TheoryQuizManager = () => {
             }}
           >
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
+              {/* Řádek 1: Otázka + chip obtížnosti */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
                 <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{question.name}</h3>
-                <span style={{
-                  background: question.difficulty === 'easy' ? 'var(--color-secondary)' :
-                             question.difficulty === 'medium' ? 'var(--color-primary)' : '#1e293b',
-                  color: '#fff',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: 'var(--radius)',
-                  fontSize: '0.75rem',
-                  fontWeight: '600'
-                }}>
-                  {question.difficulty === 'easy' ? 'Snadné' :
-                   question.difficulty === 'medium' ? 'Střední' : 'Těžké'}
-                </span>
+                <Chip
+                  text={question.difficulty === 'easy' ? '1' : question.difficulty === 'medium' ? '2' : '3'}
+                  variant="difficulty"
+                  level={question.difficulty === 'easy' ? 1 : question.difficulty === 'medium' ? 2 : 3}
+                />
                 {!question.is_active && (
-                  <span style={{
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    color: '#fff',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: 'var(--radius)',
-                    fontSize: '0.75rem',
-                    fontWeight: '600'
-                  }}>
-                    Neaktivní
-                  </span>
+                  <Chip text="Neaktivní" variant="inactive" />
                 )}
               </div>
 
-              <div style={{ fontSize: '0.875rem' }}>
-                <strong style={{ color: '#64748b' }}>Možnosti odpovědí:</strong>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
-                  {question.piano_quiz_chord_options
-                    ?.sort((a, b) => a.display_order - b.display_order)
-                    .map((opt, idx) => (
-                      <span
-                        key={idx}
-                        style={{
-                          background: opt.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.1)',
-                          color: opt.is_correct ? '#fff' : '#64748b',
-                          padding: '0.25rem 0.625rem',
-                          borderRadius: 'var(--radius)',
-                          fontSize: '0.8125rem',
-                          fontWeight: opt.is_correct ? '600' : '400'
-                        }}
-                      >
-                        {opt.option_name}
-                        {opt.is_correct && ' ✓'}
-                      </span>
-                    ))}
-                </div>
+              {/* Řádek 2: Chipy odpovědí */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {question.piano_quiz_theory_options
+                  ?.sort((a, b) => a.display_order - b.display_order)
+                  .map((opt, idx) => (
+                    <Chip
+                      key={idx}
+                      text={opt.option_name}
+                      variant="answer"
+                      isCorrect={opt.is_correct}
+                    />
+                  ))}
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <ActionButton
+                variant="edit"
                 onClick={() => handleEditQuestion(question)}
-                className="btn btn-primary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.375rem',
-                  fontSize: '0.75rem',
-                  padding: '0.5rem 0.75rem',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <Edit size={14} />
-                Upravit
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              />
+              <ActionButton
+                variant="duplicate"
+                onClick={() => handleDuplicateQuestion(question)}
+              />
+              <ActionButton
+                variant="delete"
                 onClick={() => handleDeleteQuestion(question.id)}
-                className="btn btn-danger"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.375rem',
-                  fontSize: '0.75rem',
-                  padding: '0.5rem 0.75rem',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <Trash2 size={14} />
-                Smazat
-              </motion.button>
+              />
             </div>
           </motion.div>
         ))}
