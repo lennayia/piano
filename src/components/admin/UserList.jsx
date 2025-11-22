@@ -761,7 +761,7 @@ function UserList() {
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.8125rem', color: '#64748b' }}>Celková cvičebná doba</span>
+                      <span style={{ fontSize: '0.8125rem', color: '#64748b' }}>Celková cvičební doba</span>
                       <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>
                         {Math.floor((selectedUser.stats?.total_practice_time || 0) / 60)} min
                       </span>

@@ -232,20 +232,22 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
                   }}
                 />
               )}
-              {/* Šipka dolů těsně pod černou klávesou */}
+              {/* Svislá čára od kolečka dolů mezi bílé klávesy */}
               {isHighlighted(key.note) && (
                 <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ delay: 0.15 }}
                   style={{
                     position: 'absolute',
-                    bottom: keyWidth < 30 ? '-8px' : '-12px',
-                    left: `${blackKeyWidth / 2 - (keyWidth < 30 ? 5 : 8)}px`,
-                    width: '0',
-                    height: '0',
-                    borderLeft: `${keyWidth < 30 ? 5 : 8}px solid transparent`,
-                    borderRight: `${keyWidth < 30 ? 5 : 8}px solid transparent`,
-                    borderTop: `${keyWidth < 30 ? 6 : 10}px solid #2d5b78`
+                    top: `${blackKeyHeight - (keyWidth < 30 ? 2 : keyWidth < 40 ? 4 : 6)}px`,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '3px',
+                    height: `${keyWidth < 30 ? '34px' : keyWidth < 40 ? '56px' : '78px'}`,
+                    background: '#2d5b78',
+                    transformOrigin: 'top',
+                    zIndex: 1
                   }}
                 />
               )}

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Shield, BarChart3, Users, Music, Trophy, Gamepad2 } from 'lucide-react';
+import { Shield, BarChart3, Users, Music, Trophy, Gamepad2, Zap } from 'lucide-react';
 import AdminDashboard from '../components/admin/Dashboard';
 import UserList from '../components/admin/UserList';
 import SongLibrary from '../components/resources/SongLibrary';
 import AchievementManager from '../components/admin/AchievementManager';
 import ChordManager from '../components/admin/ChordManager';
+import GamificationManager from '../components/admin/GamificationManager';
 import TabButtons from '../components/ui/TabButtons';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
@@ -48,6 +49,7 @@ function Admin() {
   const tabs = [
     { id: 'dashboard', label: 'Přehled', icon: BarChart3 },
     { id: 'users', label: 'Uživatelé', icon: Users },
+    { id: 'gamification', label: 'Gamifikace', icon: Zap },
     { id: 'achievements', label: 'Odměny', icon: Trophy },
     { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
     { id: 'songs', label: 'Písničky', icon: Music }
@@ -190,6 +192,7 @@ function Admin() {
 
       {activeTab === 'dashboard' && <AdminDashboard />}
       {activeTab === 'users' && <UserList />}
+      {activeTab === 'gamification' && <GamificationManager />}
       {activeTab === 'achievements' && <AchievementManager />}
       {activeTab === 'quizzes' && <ChordManager />}
       {activeTab === 'songs' && (

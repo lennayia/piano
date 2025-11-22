@@ -74,7 +74,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
   // Practice mode states
   const [hideNotes, setHideNotes] = useState({}); // {songId: boolean}
-  const [practicingMode, setPracticingMode] = useState(null); // songId když je v practice režimu
+  const [practicingMode, setPracticingMode] = useState(null); // songId - režim procvičování S nápovědou
+  const [challengeMode, setChallengeMode] = useState(null); // songId - režim výzvy BEZ nápovědy (pro odměny)
   const [practiceProgress, setPracticeProgress] = useState([]); // [{note, correct}]
   const [practiceErrors, setPracticeErrors] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -197,7 +198,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
       // Ignorovat text (slova bez notového formátu) - například text v závorkách nebo běžná slova
       // Text se pozná podle toho, že obsahuje víc než 2 malá písmena za sebou nebo speciální znaky
-      if (/[a-zčďěňřšťůžá]{3,}/.test(element.toLowerCase()) && !/^[a-h]+\.?'?$/.test(element.toLowerCase())) {
+      // Ale povolit noty s křížky (is) a béčky (es)
+      if (/[a-zčďěňřšťůžá]{3,}/.test(element.toLowerCase()) && !/^[a-h]+(is|es)?\.?'?$/.test(element.toLowerCase())) {
         continue; // Přeskočit text
       }
 
@@ -240,6 +242,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
       // Extrahovat suffix (is nebo es)
       let suffix = '';
+      const originalElement = element;
       if (element.toLowerCase().endsWith('is')) {
         suffix = 'is';
         element = element.slice(0, -2);
@@ -248,7 +251,9 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
         element = element.slice(0, -2);
       }
 
-      if (!element) continue;
+      if (!element) {
+        continue;
+      }
 
       // Rozpoznat typ noty podle vzoru
       let noteType = '';
@@ -352,16 +357,27 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     }));
   };
 
+  // Procvičování S nápovědou (zobrazené noty, zvýrazněná klaviatura) - BEZ ukládání
   const startPractice = (song) => {
     setPracticingMode(song.id);
     setPracticeProgress([]);
     setPracticeErrors(0);
-    setHideNotes(prev => ({ ...prev, [song.id]: true }));
+    setHideNotes(prev => ({ ...prev, [song.id]: false })); // Zobrazit noty
+    setShowKeyboard(song.id);
+  };
+
+  // Výzva BEZ nápovědy (skryté noty, bez zvýraznění) - S ukládáním odměn
+  const startChallenge = (song) => {
+    setChallengeMode(song.id);
+    setPracticeProgress([]);
+    setPracticeErrors(0);
+    setHideNotes(prev => ({ ...prev, [song.id]: true })); // Skrýt noty
     setShowKeyboard(song.id);
   };
 
   const stopPractice = () => {
     setPracticingMode(null);
+    setChallengeMode(null);
     setPracticeProgress([]);
     setPracticeErrors(0);
   };
@@ -407,7 +423,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
   };
 
   const handleNotePlay = (playedNote, song) => {
-    if (practicingMode !== song.id) return;
+    // Funguje jak pro procvičování, tak pro výzvu
+    if (practicingMode !== song.id && challengeMode !== song.id) return;
 
     // Získat pole not písně a filtrovat jen platné noty
     let notesArray;
@@ -426,16 +443,13 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
     const isCorrect = normalizedPlayedNote === expectedNote;
 
-    console.log(`[${currentIndex + 1}/${validNotes.length}] Hráno: "${normalizedPlayedNote}" | Očekáváno: "${expectedNote}" | Správně:`, isCorrect);
-
     setPracticeProgress(prev => [...prev, { note: playedNote, correct: isCorrect }]);
 
     if (!isCorrect) {
       setPracticeErrors(prev => prev + 1);
       audioEngine.playError();
-    } else {
-      audioEngine.playSuccess();
     }
+    // Správná nota - vizuální feedback je poskytnut přes progress bar a barevné označení
 
     // Zkontrolovat, zda byla dokončena celá skladba
     if (currentIndex + 1 === validNotes.length) {
@@ -445,14 +459,15 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
   const checkSongCompletion = async (song, totalNotes) => {
     const isPerfect = practiceErrors === 0;
+    const isChallenge = challengeMode === song.id;
 
-    if (isPerfect) {
-      // Celebrace!
+    if (isPerfect && isChallenge) {
+      // VÝZVA: Perfektní zahrání BEZ nápovědy - Celebrace a odměny!
       setShowCelebration(true);
       audioEngine.playFanfare();
       setTimeout(() => audioEngine.playApplause(), 500);
 
-      // Uložit do databáze
+      // Uložit do databáze pouze při challenge mode
       await saveSongCompletion(song, totalNotes);
 
       // Uložit název písně a zobrazit success modal
@@ -463,9 +478,14 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
         setShowSuccessModal(true);
         stopPractice();
       }, 3000);
+    } else if (isPerfect && !isChallenge) {
+      // PROCVIČOVÁNÍ: Perfektní zahrání S nápovědou - jen gratulace, bez odměn
+      alert(`Skvělé! Perfektní zahrání! 🎉\n\nChcete získat odměny? Zkuste režim "Výzva" bez nápovědy!`);
+      stopPractice();
     } else {
       // Není perfektní - zobrazit počet chyb a nabídnout opakování
-      alert(`Skladba dokončena s ${practiceErrors} chybami. Zkuste to znovu pro perfektní zahrání!`);
+      const mode = isChallenge ? 'výzvu' : 'procvičování';
+      alert(`Skladba dokončena s ${practiceErrors} chybami. Zkuste ${mode} znovu pro perfektní zahrání!`);
       stopPractice();
     }
   };
@@ -1650,7 +1670,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                       return notesArray;
                     })().map((note, noteIndex) => {
                       const isCurrent = playingSong === song.id && currentNoteIndex === noteIndex;
-                      const isNext = playingSong === song.id && currentNoteIndex + 1 === noteIndex;
+                      // Odstranit zvýraznění následující noty - mate to vizuálně
+                      const isNext = false;
 
                       return (
                         <motion.div
@@ -1707,21 +1728,21 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => toggleHideNotes(song.id)}
-                          disabled={practicingMode === song.id}
+                          disabled={practicingMode === song.id || challengeMode === song.id}
                           className="btn btn-secondary"
                           style={{
                             fontSize: '0.875rem',
                             padding: '0.5rem 1rem',
-                            opacity: practicingMode === song.id ? 0.5 : 1,
-                            cursor: practicingMode === song.id ? 'not-allowed' : 'pointer'
+                            opacity: (practicingMode === song.id || challengeMode === song.id) ? 0.5 : 1,
+                            cursor: (practicingMode === song.id || challengeMode === song.id) ? 'not-allowed' : 'pointer'
                           }}
                         >
                           {hideNotes[song.id] ? <Eye size={16} /> : <EyeOff size={16} />}
                           {hideNotes[song.id] ? 'Zobrazit noty' : 'Skrýt noty'}
                         </motion.button>
 
-                        {/* Tlačítko Procvičovat / Ukončit */}
-                        {practicingMode === song.id ? (
+                        {/* Tlačítka Procvičovat / Výzva / Ukončit */}
+                        {(practicingMode === song.id || challengeMode === song.id) ? (
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -1735,22 +1756,39 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                             }}
                           >
                             <X size={16} />
-                            Ukončit procvičování
+                            Ukončit {practicingMode === song.id ? 'procvičování' : 'výzvu'}
                           </motion.button>
                         ) : (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => startPractice(song)}
-                            className="btn btn-primary"
-                            style={{
-                              fontSize: '0.875rem',
-                              padding: '0.5rem 1rem'
-                            }}
-                          >
-                            <Target size={16} />
-                            Procvičovat
-                          </motion.button>
+                          <>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => startPractice(song)}
+                              className="btn btn-secondary"
+                              style={{
+                                fontSize: '0.875rem',
+                                padding: '0.5rem 1rem'
+                              }}
+                            >
+                              <Target size={16} />
+                              Procvičovat
+                            </motion.button>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => startChallenge(song)}
+                              className="btn btn-primary"
+                              style={{
+                                fontSize: '0.875rem',
+                                padding: '0.5rem 1rem',
+                                background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                                border: 'none'
+                              }}
+                            >
+                              <Trophy size={16} />
+                              Výzva
+                            </motion.button>
+                          </>
                         )}
 
                         {/* Klavír toggle */}
@@ -1769,27 +1807,34 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                         </motion.button>
                       </div>
 
-                      {/* Zobrazit progress při procvičování */}
-                      {practicingMode === song.id && (
+                      {/* Zobrazit progress při procvičování nebo výzvě */}
+                      {(practicingMode === song.id || challengeMode === song.id) && (
                         <motion.div
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           style={{
                             padding: '1rem',
-                            background: 'rgba(181, 31, 101, 0.1)',
+                            background: challengeMode === song.id
+                              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(181, 31, 101, 0.15))'
+                              : 'rgba(181, 31, 101, 0.1)',
                             borderRadius: 'var(--radius)',
                             marginBottom: '0.75rem',
-                            border: '2px solid var(--color-primary)'
+                            border: challengeMode === song.id
+                              ? '2px solid #FFD700'
+                              : '2px solid var(--color-primary)'
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                            <Trophy size={20} color="var(--color-primary)" />
-                            <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>
-                              Režim procvičování
+                            {challengeMode === song.id ? <Trophy size={20} color="#FFD700" /> : <Target size={20} color="var(--color-primary)" />}
+                            <span style={{ fontWeight: 600, color: challengeMode === song.id ? '#FFD700' : 'var(--color-primary)' }}>
+                              {challengeMode === song.id ? 'Režim výzvy - Hraj bez nápovědy!' : 'Režim procvičování - S nápovědou'}
                             </span>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                            Postupně zahrajte všechny noty správně. Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
+                            {challengeMode === song.id
+                              ? 'Zahrajte všechny noty bez chyb pro získání odměn!'
+                              : 'Procvičujte si s nápovědou. Odměny získáte v režimu Výzva.'
+                            } Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                             Postup: <strong>{practiceProgress.length}</strong> / <strong>
@@ -1811,7 +1856,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                 </div>
 
                 <AnimatePresence>
-                  {showKeyboard === song.id && (
+                  {(showKeyboard === song.id || practicingMode === song.id || challengeMode === song.id || playingSong === song.id) && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -1823,9 +1868,32 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                     >
                       <PianoKeyboard
                         highlightedNotes={
-                          Array.isArray(song.notes)
-                            ? song.notes
-                            : song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n)
+                          practicingMode === song.id
+                            ? (() => {
+                                // PROCVIČOVÁNÍ: Zvýraznit aktuální notu - nápověda pro uživatele
+                                const notesArray = Array.isArray(song.notes)
+                                  ? song.notes
+                                  : song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                                const currentIndex = practiceProgress.length;
+                                const currentNote = currentIndex < notesArray.length ? notesArray[currentIndex] : null;
+                                const normalized = currentNote ? normalizeNote(currentNote) : null;
+                                return normalized ? [normalized] : [];
+                              })()
+                            : challengeMode === song.id
+                            ? [] // VÝZVA: Žádné zvýraznění - bez nápovědy!
+                            : playingSong === song.id
+                            ? (() => {
+                                // PŘEHRÁVÁNÍ: Zvýraznit aktuálně hranou notu
+                                const notesArray = Array.isArray(song.notes)
+                                  ? song.notes
+                                  : song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                                const currentNote = currentNoteIndex >= 0 && currentNoteIndex < notesArray.length
+                                  ? notesArray[currentNoteIndex]
+                                  : null;
+                                const normalized = currentNote ? normalizeNote(currentNote) : null;
+                                return normalized ? [normalized] : [];
+                              })()
+                            : []
                         }
                         onNoteClick={(note) => handleNotePlay(note, song)}
                       />

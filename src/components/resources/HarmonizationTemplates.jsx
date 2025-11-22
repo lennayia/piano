@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Download, Eye, EyeOff, Sparkles, Plus, Edit3, Save, X, Trash2, GripVertical, Copy } from 'lucide-react';
+import { FileText, Eye, EyeOff, Sparkles, Plus, Edit3, Save, X, Trash2, GripVertical, Copy, Play, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -19,6 +19,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import useHarmonizationTemplatesStore from '../../store/useHarmonizationTemplatesStore';
 import useUserStore from '../../store/useUserStore';
+import audioEngine from '../../utils/audio';
+import { getChordNotesWithOctaves } from '../../utils/noteUtils';
 
 // Sortable wrapper component for drag and drop
 function SortableTemplate({ template, children }) {
@@ -49,6 +51,7 @@ function HarmonizationTemplates() {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [playingTemplate, setPlayingTemplate] = useState(null);
   const [newTemplateForm, setNewTemplateForm] = useState({
     title: '',
     description: '',
@@ -158,6 +161,43 @@ function HarmonizationTemplates() {
 
   const toggleTemplate = (id) => {
     setExpandedTemplate(expandedTemplate === id ? null : id);
+  };
+
+  // Přehrát celou kadenci (všechny akordy za sebou)
+  const playCadence = async (template) => {
+    if (playingTemplate === template.id) return; // Už se přehrává
+
+    setPlayingTemplate(template.id);
+
+    const chordDelay = 1200; // Pauza mezi akordy
+
+    for (let i = 0; i < template.chords.length; i++) {
+      const chord = template.chords[i];
+      const notes = getChordNotesWithOctaves(chord.notes);
+
+      // Přehrát všechny noty akordu najednou
+      notes.forEach((note, idx) => {
+        setTimeout(() => {
+          audioEngine.playNote(note, 1.0);
+        }, idx * 30); // Malé zpoždění pro "rozložený" zvuk
+      });
+
+      // Počkat před dalším akordem
+      if (i < template.chords.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, chordDelay));
+      }
+    }
+
+    // Na konec ještě jednou první akord (tónika)
+    await new Promise(resolve => setTimeout(resolve, chordDelay));
+    const tonicaNotes = getChordNotesWithOctaves(template.chords[0].notes);
+    tonicaNotes.forEach((note, idx) => {
+      setTimeout(() => {
+        audioEngine.playNote(note, 1.0);
+      }, idx * 30);
+    });
+
+    setTimeout(() => setPlayingTemplate(null), 800);
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -481,7 +521,10 @@ function HarmonizationTemplates() {
                 background: 'rgba(45, 91, 120, 0.08)',
                 borderRadius: 'var(--radius)',
                 marginTop: '0.75rem',
-                border: '1px solid rgba(45, 91, 120, 0.15)'
+                border: '1px solid rgba(45, 91, 120, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Sparkles size={16} color="var(--color-secondary)" />
@@ -489,6 +532,44 @@ function HarmonizationTemplates() {
                     Postup: {template.progression}
                   </strong>
                 </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playCadence(template);
+                  }}
+                  disabled={playingTemplate !== null}
+                  style={{
+                    padding: '0.4rem 0.75rem',
+                    background: playingTemplate === template.id
+                      ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
+                      : 'linear-gradient(135deg, rgba(181, 31, 101, 0.9), rgba(45, 91, 120, 0.9))',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: playingTemplate !== null ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    boxShadow: '0 2px 8px rgba(181, 31, 101, 0.25)',
+                    opacity: playingTemplate !== null && playingTemplate !== template.id ? 0.5 : 1
+                  }}
+                >
+                  {playingTemplate === template.id ? (
+                    <>
+                      <Volume2 size={14} />
+                      Hraje...
+                    </>
+                  ) : (
+                    <>
+                      <Play size={14} />
+                      Přehrát
+                    </>
+                  )}
+                </motion.button>
               </div>
             </div>
 

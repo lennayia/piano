@@ -316,18 +316,6 @@ h3 {
   color: var(--color-text);
 }
 
-/* TabButtons - pill layout */
-.tab-pill-container {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.3rem;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
 
 /* Grid */
 .grid {

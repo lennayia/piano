@@ -673,5 +673,58 @@ supabase db dump -f backup.sql
 
 ---
 
-*Poslední aktualizace: 21. 11. 2025*
-*Verze: 1.2.0*
+## 📝 Historie změn - 22. 11. 2025
+
+### Vylepšení písniček a notace
+
+#### 1. Oprava podpory křížků a béček v notaci
+- **Problém**: Noty s křížky (is) a béčky (es) jako `Ais`, `Des`, `Fis` byly filtrovány jako text
+- **Řešení**: Aktualizace regex patternu na `/^[a-h]+(is|es)?\.?'?$/` pro rozpoznání těchto not
+- **Dopad**: Všechny písně s modifikovanými tóny (A#, Db, F#, atd.) se nyní přehrávají správně
+
+#### 2. Optimalizace vizuálního zvýraznění
+- **Změna**: Při přehrávání písně se zvýrazňuje pouze aktuálně hraná nota
+- **Před**: Zvýrazňovala se aktuální nota + následující nota (matoucí)
+- **Nyní**: Pouze aktuální nota v textu i na klaviatuře
+- **Benefit**: Čistější vizuální feedback, méně rozptylování
+
+#### 3. Dva režimy hraní písní
+
+##### 🎯 Režim "Procvičovat" (S nápovědou)
+- Zobrazené noty písně
+- Zvýraznění aktuální klávesy na klaviatuře
+- Ideální pro učení nových písní
+- **Bez ukládání do databáze a odměn**
+- Fialový border s ikonou Target
+
+##### 🏆 Režim "Výzva" (Bez nápovědy)
+- Skryté noty písně
+- Žádné zvýraznění kláves
+- Hraní pouze podle paměti
+- **S ukládáním do databáze a odměnami** (XP, statistiky)
+- Zlatý border s ikonou Trophy
+
+**Motivace**: Odměny se nyní získávají pouze za skutečné zvládnutí písně bez pomoci, ne za procvičování s nápovědou.
+
+#### 4. UI vylepšení
+- Přidáno tlačítko "Výzva" vedle "Procvičovat"
+- Barevné rozlišení režimů (fialová vs zlatá)
+- Jasné informační zprávy o tom, ve kterém režimu uživatel hraje
+- Upravený text po dokončení: v režimu procvičování nabídka zkusit výzvu
+
+### Technické detaily
+
+**Soubory změněny**:
+- `src/components/resources/SongLibrary.jsx`
+  - Přidán state `challengeMode` vedle `practicingMode`
+  - Funkce `startChallenge()` pro zahájení výzvy
+  - Aktualizace `checkSongCompletion()` - ukládání pouze při challenge mode
+  - Úprava zvýraznění not na klaviatuře podle režimu
+  - Fix regex patternu pro rozpoznání is/es suffixů
+
+**Databáze**: Beze změn, využívá existující `piano_song_completions` tabulku
+
+---
+
+*Poslední aktualizace: 22. 11. 2025*
+*Verze: 1.3.0*

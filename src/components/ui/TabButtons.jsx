@@ -107,7 +107,7 @@ function TabButtons({
           ? 'rgba(0, 0, 0, 0.05)'
           : 'transparent',
       border: 'none',
-      borderRadius: '999px',
+      borderRadius: '10px',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
@@ -212,11 +212,21 @@ function TabButtons({
     );
   });
 
-  // Pill layout - kompaktní lišta, responzivní zalamování přes CSS
+  // Pill layout - kompaktní lišta
   if (isPill) {
     return (
       <div style={{ display: 'flex', justifyContent: 'flex-start', ...style }}>
-        <div className="tab-pill-container">
+        <div style={{
+          display: 'inline-flex',
+          flexWrap: 'wrap',
+          gap: '0.25rem',
+          padding: '0.3rem',
+          background: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: '14px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+        }}>
           {renderButtons()}
         </div>
       </div>

@@ -1,48 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Play, RotateCcw, CheckCircle, ChevronRight, Volume2, Headphones, Filter, Shuffle } from 'lucide-react';
+import { Music, Play, RotateCcw, CheckCircle, ChevronRight, Volume2, Headphones, Shuffle, Piano, Target } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
+import TabButtons from '../components/ui/TabButtons';
+import SongLibrary from '../components/resources/SongLibrary';
+import ChordQuiz from '../components/games/ChordQuiz';
+import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import audioEngine from '../utils/audio';
+import { getChordNotesWithOctaves, shuffleArray } from '../utils/noteUtils';
 import { supabase } from '../lib/supabase';
-
-// Pořadí not v oktávě (C=0, D=1, ... H=6)
-const NOTE_ORDER = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
-
-// Převede noty akordu na správné oktávy (respektuje přechod do vyšší oktávy)
-const getChordNotesWithOctaves = (notes) => {
-  if (!notes || notes.length === 0) return [];
-
-  const result = [];
-
-  // Normalizovat první notu pro určení oktávy
-  const normalizeNote = (n) => n.toUpperCase().replace('#', '');
-  const firstNote = normalizeNote(notes[0]);
-  const firstNoteIndex = NOTE_ORDER.indexOf(firstNote);
-
-  notes.forEach((note) => {
-    // Normalizovat notu na velká písmena
-    const upperNote = note.toUpperCase();
-    const baseNote = normalizeNote(note);
-    const isSharp = upperNote.includes('#');
-    const noteIndex = NOTE_ORDER.indexOf(baseNote);
-
-    // Pokud je nota "nižší" než první nota akordu, patří do oktávy 2
-    const isHigherOctave = noteIndex < firstNoteIndex;
-
-    // Vrátíme notu v interním formátu klaviatury
-    if (!isHigherOctave) {
-      // Oktáva 1: C, C#, D, D#, E, F, F#, G, G#, A, A#, H
-      result.push(isSharp ? `${baseNote}#` : baseNote);
-    } else {
-      // Oktáva 2: C'', C#'', D'', D#'', E''
-      result.push(isSharp ? `${baseNote}#''` : `${baseNote}''`);
-    }
-  });
-
-  return result;
-};
 
 function Cviceni() {
   const navigate = useNavigate();
@@ -56,6 +24,8 @@ function Cviceni() {
   const [loading, setLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all'); // 'all', 'easy', 'medium'
   const [isShuffled, setIsShuffled] = useState(false);
+  const [activeSection, setActiveSection] = useState('chords'); // 'chords', 'quiz', 'songs'
+  const [activeSongCategory, setActiveSongCategory] = useState('lidovky');
 
   useEffect(() => {
     if (!currentUser) {
@@ -83,16 +53,6 @@ function Cviceni() {
     }
   };
 
-  // Funkce pro zamíchání pole
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
-
   // Filtrování a míchání akordů
   useEffect(() => {
     let filtered = selectedDifficulty === 'all'
@@ -110,8 +70,9 @@ function Cviceni() {
 
   const currentChord = chords[currentChordIndex];
 
-  // Získat noty akordu se správnými oktávami
-  const chordNotesWithOctaves = currentChord ? getChordNotesWithOctaves(currentChord.notes) : [];
+  // Noty jsou už ve správném formátu v databázi (A., C#, H'', atd.)
+  // Použijeme je přímo pro zvýraznění na klaviatuře
+  const chordNotesWithOctaves = currentChord ? currentChord.notes : [];
 
   // Přehrát celý akord najednou
   const playFullChord = () => {
@@ -212,7 +173,73 @@ function Cviceni() {
   }
 
   return (
-    <div className="container">
+    <>
+      <FloatingHelpButton title="Nápověda - Cvičení">
+        <div style={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.7 }}>
+          <h4 style={{ color: '#1e293b', marginBottom: '0.75rem', fontSize: '1rem' }}>
+            Cvičení
+          </h4>
+          <p style={{ marginBottom: '1rem' }}>
+            Procvičujte si hru na klavír různými způsoby.
+          </p>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Akordy</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Procvičujte hraní akordů. Zobrazí se vám název akordu a tóny, které máte zahrát na klaviatuře. Můžete si akord přehrát postupně nebo najednou.
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Poznáte akord?</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Kvíz pro trénink sluchové analýzy. Přehrajte si akord a hádejte, který to je. Skvělé pro rozvoj hudebního sluchu.
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(45, 91, 120, 0.08)',
+            padding: '0.75rem',
+            borderRadius: 'var(--radius)',
+            marginBottom: '1rem',
+            borderLeft: '3px solid var(--color-secondary)'
+          }}>
+            <strong style={{ color: '#1e293b' }}>Písničky</strong>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+              Hrajte známé písničky podle not. Vyberte kategorii (Lidovky, Užskorolidovky, Dětské) a procvičujte melodie.
+            </p>
+          </div>
+
+          <h4 style={{ color: '#1e293b', marginTop: '1.5rem', marginBottom: '0.75rem', fontSize: '1rem' }}>
+            Tipy
+          </h4>
+          <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Míchání:</strong> Zapněte náhodné pořadí akordů pro lepší procvičení
+            </li>
+            <li style={{ marginBottom: '0.5rem' }}>
+              <strong>Obtížnost:</strong> Filtrujte akordy podle úrovně (Základní, Pokročilé)
+            </li>
+            <li>
+              <strong>Přehrávání:</strong> Klikněte na tóny pro náslech správného zvuku
+            </li>
+          </ul>
+        </div>
+      </FloatingHelpButton>
+
+      <div className="container">
       {/* Hlavička */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -226,14 +253,29 @@ function Cviceni() {
           marginBottom: '0.5rem'
         }}>
           <Headphones size={32} color="var(--color-primary)" />
-          Cvičení akordů
+          Cvičení
         </h1>
         <p style={{ color: '#64748b' }}>
-          Naučte se rozpoznávat a hrát akordy. Zahrajte postupně všechny tóny akordu a pak si poslechněte, jak zní dohromady.
+          Procvičujte akordy nebo si zahrajte písničky podle not.
         </p>
       </motion.div>
 
-      {/* Výběr obtížnosti */}
+      {/* Hlavní navigace - Akordy / Poznáte akord? / Písničky */}
+      <TabButtons
+        tabs={[
+          { id: 'chords', label: 'Akordy', icon: Piano },
+          { id: 'quiz', label: 'Poznáte akord?', icon: Target },
+          { id: 'songs', label: 'Písničky', icon: Music }
+        ]}
+        activeTab={activeSection}
+        onTabChange={setActiveSection}
+        options={{ size: 'md', style: { marginBottom: '1.5rem' } }}
+      />
+
+      {/* Sekce Akordy */}
+      {activeSection === 'chords' && (
+        <>
+          {/* Výběr obtížnosti */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,76 +288,45 @@ function Cviceni() {
           flexWrap: 'wrap'
         }}
       >
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          color: '#64748b',
-          fontSize: '0.875rem'
-        }}>
-          <Filter size={16} />
-          Vyberte úroveň:
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {[
-            { value: 'all', label: 'Všechny akordy' },
-            { value: 'easy', label: 'Základní akordy' },
-            { value: 'medium', label: 'Pokročilé akordy' }
-          ].map((option) => (
-            <motion.button
-              key={option.value}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setSelectedDifficulty(option.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
-                border: selectedDifficulty === option.value
-                  ? '2px solid var(--color-primary)'
-                  : '2px solid rgba(181, 31, 101, 0.2)',
-                background: selectedDifficulty === option.value
-                  ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
-                  : 'rgba(255, 255, 255, 0.7)',
-                color: selectedDifficulty === option.value ? 'white' : '#64748b',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: selectedDifficulty === option.value ? 600 : 400,
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {option.label}
-            </motion.button>
-          ))}
+        <TabButtons
+          tabs={[
+            { id: 'all', label: 'Všechny akordy' },
+            { id: 'easy', label: 'Základní' },
+            { id: 'medium', label: 'Pokročilé' }
+          ]}
+          activeTab={selectedDifficulty}
+          onTabChange={setSelectedDifficulty}
+          options={{ layout: 'pill' }}
+        />
 
-          {/* Tlačítko pro míchání */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsShuffled(!isShuffled)}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '20px',
-              border: isShuffled
-                ? '2px solid var(--color-secondary)'
-                : '2px solid rgba(45, 91, 120, 0.2)',
-              background: isShuffled
-                ? 'linear-gradient(135deg, var(--color-secondary), #4a7a9e)'
-                : 'rgba(255, 255, 255, 0.7)',
-              color: isShuffled ? 'white' : '#64748b',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: isShuffled ? 600 : 400,
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-            title={isShuffled ? 'Vypnout míchání' : 'Zamíchat akordy'}
-          >
-            <Shuffle size={16} />
-            Míchat
-          </motion.button>
-        </div>
+        {/* Tlačítko pro míchání */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsShuffled(!isShuffled)}
+          style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '20px',
+            border: isShuffled
+              ? '2px solid var(--color-secondary)'
+              : '2px solid rgba(45, 91, 120, 0.2)',
+            background: isShuffled
+              ? 'var(--color-secondary)'
+              : 'rgba(255, 255, 255, 0.7)',
+            color: isShuffled ? 'white' : '#64748b',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: isShuffled ? 600 : 400,
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+          title={isShuffled ? 'Vypnout míchání' : 'Zamíchat akordy'}
+        >
+          <Shuffle size={16} />
+          Míchat
+        </motion.button>
       </motion.div>
 
       {/* Progress bar */}
@@ -590,32 +601,59 @@ function Cviceni() {
         )}
       </motion.div>
 
-      {/* Navigace mezi akordy */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '1rem'
-      }}>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={prevChord}
-          className="btn btn-secondary"
-          style={{ flex: 1 }}
-        >
-          ← Předchozí
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={nextChord}
-          className="btn btn-secondary"
-          style={{ flex: 1 }}
-        >
-          Další →
-        </motion.button>
+          {/* Navigace mezi akordy */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '1rem'
+          }}>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={prevChord}
+              className="btn btn-secondary"
+              style={{ flex: 1 }}
+            >
+              ← Předchozí
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={nextChord}
+              className="btn btn-secondary"
+              style={{ flex: 1 }}
+            >
+              Další →
+            </motion.button>
+          </div>
+        </>
+      )}
+
+      {/* Sekce Poznáte akord? */}
+      {activeSection === 'quiz' && (
+        <ChordQuiz />
+      )}
+
+      {/* Sekce Písničky */}
+      {activeSection === 'songs' && (
+        <>
+          <div style={{ marginBottom: '1rem' }}>
+            <TabButtons
+              tabs={[
+                { id: 'lidovky', label: 'Lidovky', icon: Music },
+                { id: 'uzskorolidovky', label: 'Užskorolidovky', icon: Music },
+                { id: 'detske', label: 'Dětské', icon: Music }
+              ]}
+              activeTab={activeSongCategory}
+              onTabChange={setActiveSongCategory}
+              options={{ layout: 'pill' }}
+            />
+          </div>
+          <SongLibrary activeCategory={activeSongCategory} />
+        </>
+      )}
       </div>
-    </div>
+    </>
   );
 }
 

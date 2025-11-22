@@ -84,12 +84,10 @@ function FloatingHelp({ isOpen, onClose, title = 'Nápověda', children }) {
   // Reset pozice při otevření
   useEffect(() => {
     if (isOpen && !isMobile) {
-      // Pozice vpravo - nad FAB tlačítkem
-      const windowHeight = window.innerHeight;
-      const helpHeight = 500; // přibližná výška nápovědy
+      // Pozice vpravo nahoře - bezpečně uvnitř viewportu
       setPosition({
         x: window.innerWidth - 420,
-        y: Math.max(20, windowHeight - helpHeight - 120) // 120px = FAB + margin
+        y: 80 // pod navbar
       });
     }
   }, [isOpen, isMobile]);
@@ -251,7 +249,7 @@ function FloatingHelp({ isOpen, onClose, title = 'Nápověda', children }) {
         left: position.x,
         top: position.y,
         width: isMinimized ? '200px' : '400px',
-        maxHeight: isMinimized ? 'auto' : '70vh',
+        maxHeight: isMinimized ? 'auto' : 'calc(100vh - 160px)',
         background: 'rgba(255, 255, 255, 0.98)',
         borderRadius: 'var(--radius)',
         boxShadow: isDragging

@@ -12,6 +12,15 @@ const useUserStore = create(
 
       // Initialize - just set loading to false
       initAuth: async () => {
+        // Check if user is already logged in (from localStorage via persist)
+        const state = get();
+        if (state.currentUser) {
+          // Track daily login for already logged-in user
+          setTimeout(() => {
+            const trackDailyLogin = get().trackDailyLogin;
+            if (trackDailyLogin) trackDailyLogin();
+          }, 1000);
+        }
         set({ loading: false });
       },
 
@@ -73,6 +82,13 @@ const useUserStore = create(
 
             const userWithStats = { ...updatedUser, stats, achievements };
             set({ currentUser: userWithStats, loading: false });
+
+            // Track daily login for returning user
+            setTimeout(() => {
+              const trackDailyLogin = get().trackDailyLogin;
+              if (trackDailyLogin) trackDailyLogin();
+            }, 500);
+
             return userWithStats;
           } else {
             // Create new user
@@ -132,6 +148,13 @@ const useUserStore = create(
 
             const userWithStats = { ...newUser, stats, achievements };
             set({ currentUser: userWithStats, loading: false });
+
+            // Track daily login for new user (will set first login date and give 2 XP)
+            setTimeout(() => {
+              const trackDailyLogin = get().trackDailyLogin;
+              if (trackDailyLogin) trackDailyLogin();
+            }, 500);
+
             return userWithStats;
           }
         } catch (error) {
@@ -585,6 +608,125 @@ const useUserStore = create(
     } catch (error) {
       console.error('Error toggling admin role:', error);
       throw error;
+    }
+  },
+
+  // Update user stats (refresh after lesson/quiz/song completion)
+  updateUserStats: async () => {
+    try {
+      const state = get();
+      if (!state.currentUser) return;
+
+      // Fetch fresh stats from database
+      const { data: stats, error: statsError } = await supabase
+        .from('piano_user_stats')
+        .select('*')
+        .eq('user_id', state.currentUser.id)
+        .single();
+
+      if (statsError) {
+        console.error('Error fetching stats:', statsError);
+        return;
+      }
+
+      // Fetch fresh achievements
+      const { data: userAchievements } = await supabase
+        .from('piano_user_achievements')
+        .select(`
+          achievement_id,
+          earned_at,
+          piano_achievements (
+            id,
+            title,
+            description,
+            icon,
+            icon_type,
+            icon_color,
+            xp_reward
+          )
+        `)
+        .eq('user_id', state.currentUser.id);
+
+      const achievements = userAchievements?.map(a => ({
+        id: a.achievement_id,
+        earnedAt: a.earned_at,
+        ...a.piano_achievements
+      })) || [];
+
+      // Update current user in store
+      set({
+        currentUser: {
+          ...state.currentUser,
+          stats,
+          achievements
+        }
+      });
+
+      console.log('✅ User stats updated:', stats);
+    } catch (error) {
+      console.error('Error updating user stats:', error);
+    }
+  },
+
+  // Track daily login (call this when user logs in or loads the app)
+  trackDailyLogin: async () => {
+    try {
+      const state = get();
+      if (!state.currentUser) return;
+
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const lastActivityDate = state.currentUser.stats?.last_activity_date;
+
+      // If already logged in today, skip
+      if (lastActivityDate === today) {
+        console.log('✅ Already logged in today');
+        return;
+      }
+
+      // Calculate streak
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      let newStreak = 1;
+      let newBestStreak = state.currentUser.stats?.best_streak || 0;
+
+      if (lastActivityDate === yesterdayStr) {
+        // Continuing streak
+        newStreak = (state.currentUser.stats?.current_streak || 0) + 1;
+      }
+
+      // Update best streak if necessary
+      if (newStreak > newBestStreak) {
+        newBestStreak = newStreak;
+      }
+
+      // Update stats in database
+      const { error } = await supabase
+        .from('piano_user_stats')
+        .update({
+          last_activity_date: today,
+          current_streak: newStreak,
+          best_streak: newBestStreak,
+          total_xp: (state.currentUser.stats?.total_xp || 0) + 2, // 2 XP for daily login
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', state.currentUser.id);
+
+      if (error) {
+        console.error('Error tracking daily login:', error);
+        return;
+      }
+
+      console.log(`✅ Daily login tracked! Streak: ${newStreak} days, +2 XP`);
+
+      // Refresh user stats
+      const updateUserStats = get().updateUserStats;
+      if (updateUserStats) {
+        await updateUserStats();
+      }
+    } catch (error) {
+      console.error('Error in trackDailyLogin:', error);
     }
   },
 

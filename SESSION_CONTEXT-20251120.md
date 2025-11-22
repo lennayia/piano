@@ -1,8 +1,8 @@
 # PianoPro App - Session Context
 
-**Datum aktualizace**: 20. listopadu 2025
+**Datum aktualizace**: 22. listopadu 2025
 **Branch**: `main`
-**Poslední commit**: `9194992` - Změna textu kvízu z 'Poznáš akord?' na 'Poznáte akord?'
+**Poslední commit**: Vylepšení režimů hraní písní (Procvičovat vs Výzva)
 
 ## 📋 Aktuální stav projektu
 
@@ -279,6 +279,31 @@ Aplikace je **plně funkční** a připravená k použití. Možná vylepšení:
 
 ---
 
+## 🆕 Poslední změny (22. 11. 2025)
+
+### Vylepšení písniček - Dva režimy hraní
+
+**Nová funkce**: Rozdělení na Procvičování (s nápovědou) a Výzvu (bez nápovědy)
+
+#### Změny v SongLibrary.jsx:
+1. **Přidán `challengeMode` state** - pro režim bez nápovědy
+2. **Funkce `startChallenge()`** - zahájení výzvy
+3. **Upravena `checkSongCompletion()`** - ukládání pouze při challenge mode
+4. **Zvýraznění kláves** - funguje pouze v practice mode, ne v challenge mode
+5. **Fix regex** - podpora not s is/es (Ais, Des, Fis atd.)
+6. **Vizuální optimalizace** - zvýrazňování pouze aktuální noty, ne následující
+
+#### UI změny:
+- Nové tlačítko "Výzva" (🏆 Trophy, zlatý gradient)
+- Barevné rozlišení: fialová (procvičování) vs zlatá (výzva)
+- Informační progress bary s popisem režimu
+
+#### Logika odměn:
+- **Procvičovat**: S nápovědou, BEZ ukládání do DB
+- **Výzva**: Bez nápovědy, S ukládáním XP a statistik
+
+---
+
 **Status:** ✅ Projekt je kompletní, otestovaný a dokumentovaný.
-**Working tree:** Clean
-**Last update:** 20. listopadu 2025
+**Working tree:** Modified (ready to commit)
+**Last update:** 22. listopadu 2025

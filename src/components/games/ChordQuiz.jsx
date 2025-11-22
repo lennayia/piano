@@ -5,6 +5,7 @@ import audioEngine from '../../utils/audio';
 import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
+import { sortNotesByKeyboard } from '../../utils/noteUtils';
 
 function ChordQuiz() {
   const [score, setScore] = useState(0);
@@ -83,7 +84,9 @@ function ChordQuiz() {
 
   const playChord = async (notes) => {
     audioEngine.playClick();
-    for (const note of notes) {
+    // Seřadit noty podle pořadí na klaviatuře (odleva doprava)
+    const sortedNotes = sortNotesByKeyboard(notes);
+    for (const note of sortedNotes) {
       audioEngine.playNote(note, 0.8);
     }
   };

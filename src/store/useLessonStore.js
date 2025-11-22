@@ -48,6 +48,7 @@ const useLessonStore = create((set, get) => ({
           title: newLesson.title,
           description: newLesson.description,
           difficulty: newLesson.difficulty,
+          duration: newLesson.duration || '5 min',
           content: newLesson.content,
           xp_reward: newLesson.xp_reward || 50,
           is_published: true,
@@ -76,6 +77,7 @@ const useLessonStore = create((set, get) => ({
           title: updatedData.title,
           description: updatedData.description,
           difficulty: updatedData.difficulty,
+          duration: updatedData.duration,
           content: updatedData.content,
           xp_reward: updatedData.xp_reward
         })
@@ -129,6 +131,7 @@ const useLessonStore = create((set, get) => ({
           title: `${lessonToDuplicate.title} (kopie)`,
           description: lessonToDuplicate.description,
           difficulty: lessonToDuplicate.difficulty,
+          duration: lessonToDuplicate.duration || '5 min',
           content: lessonToDuplicate.content,
           xp_reward: lessonToDuplicate.xp_reward,
           is_published: true,

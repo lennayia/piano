@@ -6,6 +6,8 @@ import useUserStore from '../store/useUserStore';
 import useLessonStore from '../store/useLessonStore';
 import { supabase } from '../lib/supabase';
 import * as LucideIcons from 'lucide-react';
+import TabButtons from '../components/ui/TabButtons';
+import Leaderboard from '../components/dashboard/Leaderboard';
 
 // Dynamické renderování ikony odměny podle dat z databáze
 const getAchievementIcon = (achievement) => {
@@ -60,6 +62,7 @@ function UserDashboard() {
   const fetchLessons = useLessonStore((state) => state.fetchLessons);
   const [recentActivities, setRecentActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
+  const [activeTab, setActiveTab] = useState('achievements');
 
   // Načíst lekce z databáze
   useEffect(() => {
@@ -162,6 +165,8 @@ function UserDashboard() {
   const points = currentUser.stats?.total_xp || 0;
   const streak = currentUser.stats?.current_streak || 0;
   const achievements = currentUser.achievements || [];
+  const quizzesCompleted = currentUser.stats?.quizzes_completed || 0;
+  const songsCompleted = currentUser.stats?.songs_completed || 0;
 
   return (
     <div className="container">
@@ -182,7 +187,7 @@ function UserDashboard() {
           Těšíte se na svoje další pokroky? Pojďme na to! 
         </p>
 
-        <div style={{ display: 'flex', gap: '2rem', marginTop: '1.5rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1.5rem' }}>
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -330,79 +335,185 @@ function UserDashboard() {
               <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dní v řadě</div>
             </div>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          >
+            <motion.div
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 'var(--radius)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid rgba(181, 31, 101, 0.2)',
+                boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
+              }}
+            >
+              <Gamepad2 size={24} color="var(--color-primary)" />
+            </motion.div>
+            <div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.1, type: 'spring' }}
+                style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}
+              >
+                {quizzesCompleted}
+              </motion.div>
+              <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Dokončených kvízů</div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.2 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          >
+            <motion.div
+              whileHover={{ rotate: 360, scale: 1.1 }}
+              transition={{ duration: 0.5 }}
+              style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 'var(--radius)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid rgba(181, 31, 101, 0.2)',
+                boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
+              }}
+            >
+              <Music size={24} color="var(--color-primary)" />
+            </motion.div>
+            <div>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 1.3, type: 'spring' }}
+                style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b' }}
+              >
+                {songsCompleted}
+              </motion.div>
+              <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Zahraných písní</div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Achievements */}
-      {achievements.length > 0 && (
-        <motion.div
-          className="card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          style={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
-            marginBottom: '2rem'
-          }}
-        >
-          <h2 style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Trophy size={24} color="var(--color-primary)" />
-            Vaše odměny
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-            {achievements.map((achievement, index) => {
-              return (
-                <motion.div
-                  key={achievement.id}
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 1.1 + index * 0.1, type: 'spring' }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  style={{
-                    padding: '2rem 1.5rem',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)',
-                    borderRadius: 'var(--radius)',
-                    border: '2px solid rgba(181, 31, 101, 0.3)',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 8px 24px rgba(181, 31, 101, 0.2)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '1rem'
-                  }}
-                  title={achievement.description}
-                >
-                  <div style={{
-                    width: '72px',
-                    height: '72px',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid rgba(181, 31, 101, 0.2)',
-                    boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
-                  }}>
-                    {getAchievementIcon(achievement)}
-                  </div>
-                  <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
-                    {achievement.title}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                    +{achievement.xp_reward} XP
-                  </div>
-                </motion.div>
-              );
-            })}
+      {/* Achievements & Leaderboard Section */}
+      <motion.div
+        className="card"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1 }}
+        style={{
+          background: 'rgba(255, 255, 255, 0.8)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
+          marginBottom: '2rem'
+        }}
+      >
+        {/* Tabs */}
+        <div style={{ marginBottom: '2rem' }}>
+          <TabButtons
+            tabs={[
+              { id: 'achievements', label: 'Vaše odměny', icon: Trophy },
+              { id: 'leaderboard', label: 'Žebříček', icon: Target }
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            options={{ layout: 'pill', size: 'md' }}
+          />
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'achievements' && (
+          <div>
+            {achievements.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '3rem',
+                color: '#64748b',
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 'var(--radius)',
+                border: '1px solid rgba(45, 91, 120, 0.2)'
+              }}>
+                <Trophy size={48} color="var(--color-primary)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <p>Zatím nemáte žádné odměny.</p>
+                <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  Dokončujte lekce a získejte své první achievementy!
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {achievements.map((achievement, index) => {
+                  return (
+                    <motion.div
+                      key={achievement.id}
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: index * 0.1, type: 'spring' }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      style={{
+                        padding: '2rem 1.5rem',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)',
+                        borderRadius: 'var(--radius)',
+                        border: '2px solid rgba(181, 31, 101, 0.3)',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 8px 24px rgba(181, 31, 101, 0.2)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1rem'
+                      }}
+                      title={achievement.description}
+                    >
+                      <div style={{
+                        width: '72px',
+                        height: '72px',
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid rgba(181, 31, 101, 0.2)',
+                        boxShadow: '0 4px 16px rgba(181, 31, 101, 0.25)'
+                      }}>
+                        {getAchievementIcon(achievement)}
+                      </div>
+                      <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '1rem' }}>
+                        {achievement.title}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        +{achievement.xp_reward} XP
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </motion.div>
-      )}
+        )}
+
+        {activeTab === 'leaderboard' && <Leaderboard />}
+      </motion.div>
 
       {/* Recent Activity */}
       {!loadingActivities && recentActivities.length > 0 && (
