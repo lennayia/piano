@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Music, BookOpen, Plus, Edit, Trash2, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
 import TabButtons from '../ui/TabButtons';
+import TheoryQuizManager from './TheoryQuizManager';
 
 // Normalizace názvu akordu
 const normalizeChordName = (name) => {
@@ -587,6 +588,27 @@ const ChordManager = () => {
     return <Icon size={24} color="var(--color-primary)" />;
   };
 
+  // Pokud je vybraná záložka "Teorie", zobrazíme TheoryQuizManager
+  if (activeQuizType === 'theory') {
+    return (
+      <div className="card">
+        {/* Záložky pro typy kvízů */}
+        <div style={{ marginBottom: '2rem' }}>
+          <TabButtons
+            tabs={QUIZ_TYPES}
+            activeTab={activeQuizType}
+            onTabChange={setActiveQuizType}
+            options={{ layout: 'pill', size: 'sm' }}
+          />
+        </div>
+
+        {/* Samostatný modul pro správu teoretických otázek */}
+        <TheoryQuizManager />
+      </div>
+    );
+  }
+
+  // Pro ostatní typy zobrazíme původní ChordManager
   return (
     <div className="card">
       {/* Záložky pro typy kvízů */}

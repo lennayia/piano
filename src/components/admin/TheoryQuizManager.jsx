@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { BookOpen, Plus, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
-import { Chip, ActionButton } from '../ui/TabButtons';
+import { Chip, ActionButton, AddButton, HelpButton } from '../ui/TabButtons';
 
 const TheoryQuizManager = () => {
   const [questions, setQuestions] = useState([]);
@@ -341,44 +341,11 @@ const TheoryQuizManager = () => {
           </h2>
 
           {/* Help Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowHelp(!showHelp)}
-            style={{
-              background: showHelp ? 'rgba(181, 31, 101, 0.1)' : 'rgba(45, 91, 120, 0.1)',
-              border: showHelp ? '2px solid rgba(181, 31, 101, 0.3)' : '2px solid rgba(45, 91, 120, 0.2)',
-              borderRadius: '50%',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            title="Zobrazit nápovědu"
-          >
-            <HelpCircle size={18} color={showHelp ? 'var(--color-primary)' : 'var(--color-secondary)'} />
-          </motion.button>
+          <HelpButton onClick={() => setShowHelp(!showHelp)} isActive={showHelp} />
         </div>
 
         {!showAddForm && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleAddQuestion}
-            className="btn btn-primary"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            <Plus size={16} />
-            Přidat otázku
-          </motion.button>
+          <AddButton onClick={handleAddQuestion} iconOnly={true} />
         )}
       </div>
 
@@ -723,19 +690,19 @@ const TheoryQuizManager = () => {
                 ? 'rgba(255, 255, 255, 0.9)'
                 : 'rgba(200, 200, 200, 0.5)',
               backdropFilter: 'blur(20px)',
-              border: '2px solid rgba(181, 31, 101, 0.2)',
-              borderRadius: 'var(--radius)',
+              border: '1px solid rgba(181, 31, 101, 0.2)',
+              borderRadius: '18px',
               padding: '1.25rem',
               display: 'flex',
               alignItems: 'center',
               gap: '1.25rem',
-              boxShadow: '0 4px 15px rgba(181, 31, 101, 0.15)'
+              boxShadow: '0 6px 24px rgba(181, 31, 101, 0.2), 0 2px 8px rgba(181, 31, 101, 0.1)'
             }}
           >
             <div style={{ flex: 1 }}>
-              {/* Řádek 1: Otázka + chip obtížnosti */}
+              {/* Řádek 1: Otázka + chip obtížnosti a status vpravo */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{question.name}</h3>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>{question.name}</h3>
                 <Chip
                   text={question.difficulty === 'easy' ? '1' : question.difficulty === 'medium' ? '2' : '3'}
                   variant="difficulty"
@@ -746,8 +713,9 @@ const TheoryQuizManager = () => {
                 )}
               </div>
 
-              {/* Řádek 2: Chipy odpovědí */}
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* Chipy odpovědí - vodorovně vedle sebe */}
                 {question.piano_quiz_theory_options
                   ?.sort((a, b) => a.display_order - b.display_order)
                   .map((opt, idx) => (
@@ -758,22 +726,25 @@ const TheoryQuizManager = () => {
                       isCorrect={opt.is_correct}
                     />
                   ))}
+                {/* Action buttony - vpravo zarovnané */}
+                <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
+                  <ActionButton
+                    variant="edit"
+                    onClick={() => handleEditQuestion(question)}
+                    iconOnly={true}
+                  />
+                  <ActionButton
+                    variant="duplicate"
+                    onClick={() => handleDuplicateQuestion(question)}
+                    iconOnly={true}
+                  />
+                  <ActionButton
+                    variant="delete"
+                    onClick={() => handleDeleteQuestion(question.id)}
+                    iconOnly={true}
+                  />
+                </div>
               </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-              <ActionButton
-                variant="edit"
-                onClick={() => handleEditQuestion(question)}
-              />
-              <ActionButton
-                variant="duplicate"
-                onClick={() => handleDuplicateQuestion(question)}
-              />
-              <ActionButton
-                variant="delete"
-                onClick={() => handleDeleteQuestion(question.id)}
-              />
             </div>
           </motion.div>
         ))}
