@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit, Copy, Trash2, Plus, HelpCircle } from 'lucide-react';
+import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save } from 'lucide-react';
 
 /**
  * Moderní tab tlačítka s animacemi
@@ -325,11 +325,11 @@ export function Chip({ text, variant = 'answer', level = 1, isCorrect = false, s
  * @param {string} variant - 'edit' | 'duplicate' | 'delete'
  * @param {function} onClick - Callback funkce
  * @param {string} label - Text tlačítka (optional)
- * @param {boolean} iconOnly - Zobrazit jen ikonu bez textu (default: false)
- * @param {number} iconSize - Velikost ikony (default: 15 pro text, 18 pro iconOnly)
+ * @param {boolean} iconOnly - Zobrazit jen ikonu bez textu (default: true)
+ * @param {number} iconSize - Velikost ikony (default: 18)
  * @param {object} style - Dodatečné styly
  */
-export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIcon, iconOnly = false, iconSize, style = {}, ...props }) {
+export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIcon, iconOnly = true, iconSize, style = {}, ...props }) {
   const variants = {
     edit: {
       background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.08) 0%, rgba(45, 91, 120, 0.12) 100%)',
@@ -524,88 +524,383 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
 }
 
 /**
- * Moderní HelpPanel - rozbalovací panel s nápovědou
+ * HelpPanel - přesunuto do samostatného souboru HelpPanel.jsx
+ * Re-export pro zpětnou kompatibilitu
+ */
+export { HelpPanel } from './HelpPanel';
+
+/**
+ * CancelButton - tlačítko pro zrušení akce (secondary styl)
  *
- * @param {boolean} isOpen - Je panel otevřený?
- * @param {string} title - Nadpis nápovědy
- * @param {object} content - Obsah nápovědy { steps: [], tips: [] }
- * @param {React.ReactNode} children - Custom obsah (pokud je zadán, content se ignoruje)
+ * @param {function} onClick - Callback funkce
+ * @param {string} label - Text tlačítka (default: 'Zrušit')
  * @param {object} style - Dodatečné styly
  */
-export function HelpPanel({ isOpen = false, title = "Nápověda", content, children, style = {}, ...props }) {
-  const { steps = [], tips = [] } = content || {};
+export function CancelButton({ onClick, label = 'Zrušit', style = {}, ...props }) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        fontSize: '0.75rem',
+        padding: '0.3rem 0.6rem',
+        borderRadius: '10px',
+        border: '2px solid rgba(45, 91, 120, 0.2)',
+        background: 'rgba(45, 91, 120, 0.08)',
+        color: 'var(--color-secondary)',
+        fontWeight: 500,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        ...style
+      }}
+      {...props}
+    >
+      <X size={14} />
+      {label}
+    </motion.button>
+  );
+}
+
+/**
+ * SaveButton - tlačítko pro uložení (primary styl)
+ *
+ * @param {function} onClick - Callback funkce
+ * @param {string} label - Text tlačítka (default: 'Uložit')
+ * @param {object} style - Dodatečné styly
+ */
+export function SaveButton({ onClick, label = 'Uložit', style = {}, ...props }) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        fontSize: '0.75rem',
+        padding: '0.3rem 0.6rem',
+        borderRadius: '10px',
+        border: '2px solid var(--color-primary)',
+        background: 'var(--color-primary)',
+        color: '#fff',
+        fontWeight: 500,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        ...style
+      }}
+      {...props}
+    >
+      <Save size={14} />
+      {label}
+    </motion.button>
+  );
+}
+
+/**
+ * RadioLabel - stylizovaný label pro radio button (např. "Správná odpověď")
+ *
+ * @param {boolean} checked - Je radio button zaškrtnutý?
+ * @param {function} onChange - Callback funkce při změně
+ * @param {string} name - Name atribut pro radio input
+ * @param {string} label - Text labelu (default: 'Správná')
+ * @param {object} style - Dodatečné styly (přepíší defaultní styly)
+ */
+export function RadioLabel({ checked, onChange, name, label = 'Správná', style = {}, ...props }) {
+  // Defaultní styly pro RadioLabel
+  const defaultStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.375rem',
+    cursor: 'pointer',
+    padding: '0.35rem 0.6rem',
+    background: checked ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
+    borderRadius: '10px',
+    color: checked ? '#fff' : '#64748b',
+    fontWeight: 500,
+    minWidth: '95px',
+    justifyContent: 'center',
+    fontSize: '0.75rem',
+    transition: 'all 0.2s ease'
+  };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          style={{
-            marginBottom: '2rem',
-            padding: '1.5rem',
-            background: 'rgba(45, 91, 120, 0.04)',
-            borderRadius: '16px',
-            border: '1px solid rgba(45, 91, 120, 0.15)',
-            overflow: 'hidden',
-            ...style
-          }}
-          {...props}
-        >
-          <h4 style={{ marginBottom: '1rem', color: 'var(--color-secondary)', fontSize: '0.95rem', fontWeight: 600 }}>
-            {title}
-          </h4>
+    <label
+      style={{
+        ...defaultStyle,
+        ...style
+      }}
+      {...props}
+    >
+      <input
+        type="radio"
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        style={{ width: '16px', height: '16px' }}
+      />
+      {label}
+    </label>
+  );
+}
 
-          {children ? (
-            // Custom obsah
-            <div style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: '1.6' }}>
-              {children}
-            </div>
-          ) : (
-            // Defaultní struktura se steps a tips
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: '1.5rem',
-              fontSize: '0.875rem',
-              color: '#64748b',
-              lineHeight: '1.6'
-            }}>
-              {steps.length > 0 && (
-                <div>
-                  <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                    Jak na to:
-                  </strong>
-                  <ol style={{ marginLeft: '1.25rem', marginBottom: '0' }}>
-                    {steps.map((step, index) => (
-                      <li key={index} style={{ marginBottom: '0.25rem' }}>
-                        {step.text || step}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
+/**
+ * FormLabel - stylizovaný label pro formulářové prvky
+ *
+ * @param {string} text - Text labelu
+ * @param {boolean} required - Je pole povinné? (zobrazí *)
+ * @param {object} style - Dodatečné styly
+ */
+export function FormLabel({ text, required = false, style = {}, ...props }) {
+  return (
+    <label
+      style={{
+        display: 'block',
+        marginBottom: '0.5rem',
+        fontSize: '0.875rem',
+        fontWeight: 500,
+        color: '#374151',
+        ...style
+      }}
+      {...props}
+    >
+      {text}
+      {required && ' *'}
+    </label>
+  );
+}
 
-              {tips.length > 0 && (
-                <div>
-                  <strong style={{ color: 'var(--color-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                    Tipy:
-                  </strong>
-                  <ul style={{ marginLeft: '1.25rem', marginBottom: '0' }}>
-                    {tips.map((tip, index) => (
-                      <li key={index} style={{ marginBottom: '0.25rem' }}>
-                        {tip.text || tip}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </motion.div>
+/**
+ * FormTextarea - stylizovaný textarea pro formuláře
+ *
+ * @param {string} value - Hodnota textarea
+ * @param {function} onChange - Callback při změně
+ * @param {string} placeholder - Placeholder text
+ * @param {number} rows - Počet řádků (default: 3)
+ * @param {object} style - Dodatečné styly
+ */
+export function FormTextarea({ value, onChange, placeholder = '', rows = 3, style = {}, ...props }) {
+  return (
+    <textarea
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      rows={rows}
+      style={{
+        width: '100%',
+        padding: '0.75rem',
+        borderRadius: '16px',
+        border: '1px solid #ddd',
+        fontSize: '0.875rem',
+        fontFamily: 'inherit',
+        resize: 'vertical',
+        transition: 'border-color 0.2s ease',
+        ...style
+      }}
+      {...props}
+    />
+  );
+}
+
+/**
+ * FormSelect - stylizovaný select pro formuláře
+ *
+ * @param {string} value - Hodnota selectu
+ * @param {function} onChange - Callback při změně
+ * @param {array} options - Pole objektů { value, label }
+ * @param {object} style - Dodatečné styly
+ */
+export function FormSelect({ value, onChange, options = [], style = {}, ...props }) {
+  return (
+    <select
+      value={value}
+      onChange={onChange}
+      style={{
+        width: '100%',
+        padding: '0.5rem',
+        borderRadius: '10px',
+        border: '1px solid #ddd',
+        fontSize: '0.875rem',
+        cursor: 'pointer',
+        transition: 'border-color 0.2s ease',
+        ...style
+      }}
+      {...props}
+    >
+      {options.map(option => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
+ * FormInput - stylizovaný input pro formuláře
+ *
+ * @param {string} type - Typ inputu (text, number, atd.)
+ * @param {string|number} value - Hodnota inputu
+ * @param {function} onChange - Callback při změně
+ * @param {string} placeholder - Placeholder text
+ * @param {object} style - Dodatečné styly
+ */
+export function FormInput({ type = 'text', value, onChange, placeholder = '', style = {}, ...props }) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      style={{
+        width: '100%',
+        padding: '0.5rem',
+        borderRadius: '10px',
+        border: '1px solid #ddd',
+        fontSize: '0.875rem',
+        transition: 'border-color 0.2s ease',
+        ...style
+      }}
+      {...props}
+    />
+  );
+}
+
+/**
+ * CheckboxLabel - stylizovaný checkbox s labelem
+ *
+ * @param {boolean} checked - Je checkbox zaškrtnutý?
+ * @param {function} onChange - Callback při změně
+ * @param {string} label - Text labelu
+ * @param {object} style - Dodatečné styly pro label
+ */
+export function CheckboxLabel({ checked, onChange, label, style = {}, ...props }) {
+  return (
+    <label
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        cursor: 'pointer',
+        padding: '0.5rem',
+        background: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: '10px',
+        width: '100%',
+        fontSize: '0.875rem',
+        transition: 'background 0.2s ease',
+        ...style
+      }}
+      {...props}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        style={{ width: '18px', height: '18px' }}
+      />
+      {label}
+    </label>
+  );
+}
+
+/**
+ * FormContainer - hlavní kontejner pro formulář (22px border-radius)
+ *
+ * @param {React.ReactNode} children - Obsah formuláře
+ * @param {object} style - Dodatečné styly
+ * @param {React.ElementType} as - Vlastní element (default: 'div')
+ */
+export function FormContainer({ children, style = {}, as: Component = 'div', ...props }) {
+  return (
+    <Component
+      style={{
+        marginBottom: '2rem',
+        padding: '1.25rem',
+        background: 'rgba(181, 31, 101, 0.05)',
+        borderRadius: '22px',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+        ...style
+      }}
+      {...props}
+    >
+      {children}
+    </Component>
+  );
+}
+
+/**
+ * PageCard - hlavní card kontejner pro stránky
+ *
+ * @param {React.ReactNode} children - Obsah karty
+ * @param {object} style - Dodatečné styly
+ */
+export function PageCard({ children, style = {}, ...props }) {
+  return (
+    <div
+      style={{
+        background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 30%, #e8f4f8 45%, #fef8fb 55%, #e8f4f8 65%, #f0f5f9 80%, #f8f9fa 100%)',
+        backgroundSize: '400% 400%',
+        animation: 'gradient-shift 45s ease-in-out infinite',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+        borderRadius: '22px',
+        padding: '1.25rem',
+        marginBottom: '1.5rem',
+        ...style
+      }}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * FormSection - sekce uvnitř formuláře (12px border-radius)
+ *
+ * @param {string} title - Nadpis sekce
+ * @param {string} variant - 'primary' | 'secondary' (default: 'secondary')
+ * @param {React.ReactNode} children - Obsah sekce
+ * @param {object} style - Dodatečné styly
+ */
+export function FormSection({ title, variant = 'secondary', children, style = {}, ...props }) {
+  const variants = {
+    primary: {
+      background: 'rgba(181, 31, 101, 0.08)',
+      border: '2px solid rgba(181, 31, 101, 0.3)',
+      titleColor: 'var(--color-primary)'
+    },
+    secondary: {
+      background: 'rgba(45, 91, 120, 0.08)',
+      border: '2px solid rgba(45, 91, 120, 0.3)',
+      titleColor: 'var(--color-secondary)'
+    }
+  };
+
+  const variantStyle = variants[variant];
+
+  return (
+    <div
+      style={{
+        padding: '1rem',
+        marginBottom: '1.5rem',
+        background: variantStyle.background,
+        border: variantStyle.border,
+        borderRadius: '12px',
+        ...style
+      }}
+      {...props}
+    >
+      {title && (
+        <h5 style={{ margin: '0 0 1rem 0', color: variantStyle.titleColor, fontSize: '0.9375rem', fontWeight: 600 }}>
+          {title}
+        </h5>
       )}
-    </AnimatePresence>
+      {children}
+    </div>
   );
 }
 

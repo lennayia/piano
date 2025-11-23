@@ -4,7 +4,7 @@ import AdminDashboard from '../components/admin/Dashboard';
 import UserList from '../components/admin/UserList';
 import SongLibrary from '../components/resources/SongLibrary';
 import AchievementManager from '../components/admin/AchievementManager';
-import ChordManager from '../components/admin/ChordManager';
+import QuizManager from '../components/admin/QuizManager';
 import GamificationManager from '../components/admin/GamificationManager';
 import TabButtons from '../components/ui/TabButtons';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
@@ -194,7 +194,7 @@ function Admin() {
       {activeTab === 'users' && <UserList />}
       {activeTab === 'gamification' && <GamificationManager />}
       {activeTab === 'achievements' && <AchievementManager />}
-      {activeTab === 'quizzes' && <ChordManager />}
+      {activeTab === 'quizzes' && <QuizManager />}
       {activeTab === 'songs' && (
         <>
           <div style={{ marginBottom: '1.5rem' }}>

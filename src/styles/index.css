@@ -14,7 +14,13 @@
   --color-text: #1e293b;
   --color-text-secondary: #64748b;
 
-  --radius: 0.5rem;
+  /* Border Radius System */
+  --radius: 0.5rem;           /* 8px - deprecated, use specific values below */
+  --radius-sm: 0.625rem;      /* 10px - small elements (buttons, inputs, chips) */
+  --radius-md: 0.75rem;       /* 12px - medium elements (form container) */
+  --radius-lg: 1rem;          /* 16px - large elements (cards, panels) */
+  --radius-xl: 1.375rem;      /* 22px - extra large (main containers, question cards) */
+
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -177,7 +183,7 @@ h3 {
   font-size: 0.875rem;
   font-weight: 500;
   border: none;
-  border-radius: calc(var(--radius) * 2);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
@@ -288,7 +294,7 @@ h3 {
   border-radius: calc(var(--radius) * 2);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
-  padding: 1.5rem;
+  padding: 1.25rem;
   margin-bottom: 1.5rem;
   position: relative;
   z-index: 1;
