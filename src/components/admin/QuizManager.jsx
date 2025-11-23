@@ -193,8 +193,14 @@ const QuizManager = () => {
   };
 
   const handleEditChord = async (chord) => {
+    // Pokud už editujeme tento akord, zavřít editaci
+    if (editingChord === chord.id) {
+      setEditingChord(null);
+      return;
+    }
+
     setEditingChord(chord.id);
-    setShowAddForm(true); // Zobrazíme hlavní formulář
+    setShowAddForm(false); // NEzobrazíme horní formulář, ale inline
 
     // Seřadíme možnosti podle display_order
     const sortedOptions = [...(chord.piano_quiz_chord_options || [])].sort(
@@ -812,7 +818,7 @@ const QuizManager = () => {
 
       {/* Add/Edit Form */}
       <AnimatePresence mode="wait">
-        {showAddForm && (
+        {(showAddForm || editingChord) && (
           <FormContainer
             as={motion.div}
             key={editingChord || 'new'}
@@ -1088,59 +1094,99 @@ const QuizManager = () => {
       {/* Seznam akordů */}
       <div style={{ display: 'grid', gap: '1rem' }}>
         {chords.map((chord) => (
-          <QuestionCard
-            key={chord.id}
-            as={motion.div}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.01, y: -2 }}
-            isActive={chord.is_active}
-          >
-            <div style={{ flex: 1 }}>
-              {/* Řádek 1: Text otázky + chip obtížnosti a status vpravo */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>
-                  {chord.theoryQuestion?.name || chord.name}
-                </h3>
-                <Chip
-                  text={chord.difficulty === 'easy' ? '1' : chord.difficulty === 'medium' ? '2' : '3'}
-                  variant="difficulty"
-                  level={chord.difficulty === 'easy' ? 1 : chord.difficulty === 'medium' ? 2 : 3}
-                />
-                {!chord.is_active && (
-                  <Chip text="Neaktivní" variant="inactive" />
-                )}
-              </div>
-
-              {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                {chord.piano_quiz_chord_options
-                  ?.sort((a, b) => a.display_order - b.display_order)
-                  .map((opt, idx) => (
-                    <Chip
-                      key={idx}
-                      text={opt.option_name}
-                      variant="answer"
-                      isCorrect={opt.is_correct}
-                    />
-                  ))}
-                <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
-                  <ActionButton
-                    variant="edit"
-                    onClick={() => handleEditChord(chord)}
+          <React.Fragment key={chord.id}>
+            {editingChord === chord.id ? (
+              /* Inline editační formulář - zobrazí se celý formulář zde */
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.03) 0%, rgba(45, 91, 120, 0.03) 100%)',
+                borderRadius: RADIUS.xl,
+                padding: '1.25rem',
+                border: '2px solid var(--color-primary)'
+              }}>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem' }}>
+                  ⚠️ Inline editace pro chord kvízy je komplexnější - použij horní formulář kliknutím na Edit znovu, nebo zruš editaci kliknutím Cancel dole.
+                </p>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <CancelButton
+                    onClick={() => {
+                      setEditingChord(null);
+                      setError(null);
+                    }}
                   />
-                  <ActionButton
-                    variant="duplicate"
-                    onClick={() => handleDuplicateChord(chord)}
-                  />
-                  <ActionButton
-                    variant="delete"
-                    onClick={() => handleDeleteChord(chord.id)}
-                  />
+                  <button
+                    onClick={() => {
+                      setShowAddForm(true);
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: 'var(--color-secondary)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: RADIUS.sm,
+                      cursor: 'pointer',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Otevřít plný formulář
+                  </button>
                 </div>
               </div>
-            </div>
-          </QuestionCard>
+            ) : (
+              /* Normální karta akordu */
+              <QuestionCard
+                as={motion.div}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.01, y: -2 }}
+                isActive={chord.is_active}
+              >
+                <div style={{ flex: 1 }}>
+                  {/* Řádek 1: Text otázky + chip obtížnosti a status vpravo */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
+                    <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>
+                      {chord.theoryQuestion?.name || chord.name}
+                    </h3>
+                    <Chip
+                      text={chord.difficulty === 'easy' ? '1' : chord.difficulty === 'medium' ? '2' : '3'}
+                      variant="difficulty"
+                      level={chord.difficulty === 'easy' ? 1 : chord.difficulty === 'medium' ? 2 : 3}
+                    />
+                    {!chord.is_active && (
+                      <Chip text="Neaktivní" variant="inactive" />
+                    )}
+                  </div>
+
+                  {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {chord.piano_quiz_chord_options
+                      ?.sort((a, b) => a.display_order - b.display_order)
+                      .map((opt, idx) => (
+                        <Chip
+                          key={idx}
+                          text={opt.option_name}
+                          variant="answer"
+                          isCorrect={opt.is_correct}
+                        />
+                      ))}
+                    <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
+                      <ActionButton
+                        variant="edit"
+                        onClick={() => handleEditChord(chord)}
+                      />
+                      <ActionButton
+                        variant="duplicate"
+                        onClick={() => handleDuplicateChord(chord)}
+                      />
+                      <ActionButton
+                        variant="delete"
+                        onClick={() => handleDeleteChord(chord.id)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </QuestionCard>
+            )}
+          </React.Fragment>
         ))}
 
         {chords.length === 0 && (

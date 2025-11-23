@@ -32,14 +32,35 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
   };
 
   const getTableNames = () => {
-    if (quizType === 'theory') {
-      return {
+    const tableMap = {
+      theory: {
         mainTable: 'piano_quiz_theory',
         optionsTable: 'piano_quiz_theory_options',
         foreignKey: 'theory_question_id'
-      };
-    }
-    return {
+      },
+      interval: {
+        mainTable: 'piano_quiz_interval',
+        optionsTable: 'piano_quiz_interval_options',
+        foreignKey: 'interval_question_id'
+      },
+      scale: {
+        mainTable: 'piano_quiz_scale',
+        optionsTable: 'piano_quiz_scale_options',
+        foreignKey: 'scale_question_id'
+      },
+      rhythm: {
+        mainTable: 'piano_quiz_rhythm',
+        optionsTable: 'piano_quiz_rhythm_options',
+        foreignKey: 'rhythm_question_id'
+      },
+      mixed: {
+        mainTable: 'piano_quiz_mixed',
+        optionsTable: 'piano_quiz_mixed_options',
+        foreignKey: 'mixed_question_id'
+      }
+    };
+
+    return tableMap[quizType] || {
       mainTable: 'piano_quiz_chords',
       optionsTable: 'piano_quiz_chord_options',
       foreignKey: 'chord_id'
@@ -118,28 +139,24 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       setLoading(true);
       setError(null);
 
-      const tableName = quizType === 'theory' ? 'piano_quiz_theory' : 'piano_quiz_chords';
-      const optionsTable = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+      const { mainTable, optionsTable } = getTableNames();
 
-      let query;
-      if (quizType === 'theory') {
-        query = supabase
-          .from(tableName)
-          .select(`
-            *,
-            ${optionsTable} (*)
-          `)
-          .order('display_order');
-      } else {
-        query = supabase
-          .from(tableName)
-          .select(`
-            *,
-            ${optionsTable} (*)
-          `)
-          .eq('quiz_type', quizType)
-          .order('display_order');
+      // Pro nové typy (theory, interval, scale, rhythm, mixed) načítáme bez filtru
+      // Pro chord používáme filtr podle quiz_type
+      const useFilter = !['theory', 'interval', 'scale', 'rhythm', 'mixed'].includes(quizType);
+
+      let query = supabase
+        .from(mainTable)
+        .select(`
+          *,
+          ${optionsTable} (*)
+        `);
+
+      if (useFilter) {
+        query = query.eq('quiz_type', quizType);
       }
+
+      query = query.order('display_order');
 
       const { data: questionsData, error: questionsError } = await query;
 
@@ -167,11 +184,18 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
   };
 
   const handleEditQuestion = (question) => {
+    // Pokud už editujeme tuto otázku, zavřít editaci
+    if (editingQuestion === question.id) {
+      setEditingQuestion(null);
+      return;
+    }
+
     setEditingQuestion(question.id);
     setShowAddForm(false);
 
     // Název pole options závisí na typu tabulky
-    const optionsFieldName = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+    const { optionsTable } = getTableNames();
+    const optionsFieldName = optionsTable;
 
     const sortedOptions = [...(question[optionsFieldName] || [])].sort(
       (a, b) => a.display_order - b.display_order
@@ -228,12 +252,12 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         display_order: questions.length + 1,
       };
 
-      // Pro teorii přidáme question_text (povinné!) a category
-      if (quizType === 'theory') {
+      // Pro nové typy kvízů (theory, interval, scale, rhythm, mixed) přidáme question_text
+      if (['theory', 'interval', 'scale', 'rhythm', 'mixed'].includes(quizType)) {
         questionData.question_text = question.question_text || question.name;
         if (question.category) questionData.category = question.category;
       } else {
-        // Pro chord a ostatní přidáme quiz_type, notes a category
+        // Pro chord přidáme quiz_type, notes a category
         questionData.quiz_type = question.quiz_type;
         questionData.notes = null;
         questionData.category = null;
@@ -248,7 +272,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       if (questionError) throw questionError;
 
       // Zkopírujeme options - název pole v datech závisí na typu tabulky
-      const optionsFieldName = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+      const { optionsTable: optionsFieldName } = getTableNames();
       const optionsToCopy = question[optionsFieldName]?.map(opt => ({
         [foreignKey]: newQuestion.id,
         option_name: opt.option_name,
@@ -302,11 +326,12 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         display_order: formData.display_order,
       };
 
-      // Pro teorii přidáme question_text (povinné!)
-      if (quizType === 'theory') {
+      // Pro nové typy kvízů (theory, interval, scale, rhythm, mixed) přidáme question_text
+      if (['theory', 'interval', 'scale', 'rhythm', 'mixed'].includes(quizType)) {
         questionData.question_text = formData.name;
+        if (formData.category) questionData.category = formData.category;
       } else {
-        // Pro chord a ostatní přidáme quiz_type, notes a category
+        // Pro chord přidáme quiz_type, notes a category
         questionData.quiz_type = quizType;
         questionData.notes = null;
         questionData.category = null;
@@ -512,9 +537,9 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         content={helpContent}
       />
 
-      {/* Add/Edit Form */}
+      {/* Add Form (pouze pro přidání nové otázky) */}
       <AnimatePresence mode="wait">
-        {(showAddForm || editingQuestion) && (
+        {showAddForm && !editingQuestion && (
           <FormContainer
             as={motion.div}
             key={editingQuestion || 'new'}
@@ -618,60 +643,161 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       {/* Seznam otázek */}
       <div style={{ display: 'grid', gap: '1rem' }}>
         {questions.map((question) => (
-          <QuestionCard
-            key={question.id}
-            as={motion.div}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.01, y: -2 }}
-            isActive={question.is_active}
-          >
-            <div style={{ flex: 1 }}>
-              {/* Řádek 1: Otázka + chip obtížnosti a status vpravo */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>{question.name}</h3>
-                <Chip
-                  text={String(getDifficultyLevel(question.difficulty))}
-                  variant="difficulty"
-                  level={getDifficultyLevel(question.difficulty)}
-                />
-                {!question.is_active && (
-                  <Chip text="Neaktivní" variant="inactive" />
-                )}
-              </div>
+          <React.Fragment key={question.id}>
+            {editingQuestion === question.id ? (
+              /* Inline editační formulář */
+              <FormContainer
+                as={motion.div}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
+                  Upravit otázku
+                </h4>
 
-              {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                {(() => {
-                  const optionsFieldName = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
-                  return question[optionsFieldName]
-                    ?.sort((a, b) => a.display_order - b.display_order)
-                    .map((opt, idx) => (
-                      <Chip
-                        key={idx}
-                        text={opt.option_name}
-                        variant="answer"
-                        isCorrect={opt.is_correct}
-                      />
-                    ));
-                })()}
-                <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
-                  <ActionButton
-                    variant="edit"
-                    onClick={() => handleEditQuestion(question)}
-                  />
-                  <ActionButton
-                    variant="duplicate"
-                    onClick={() => handleDuplicateQuestion(question)}
-                  />
-                  <ActionButton
-                    variant="delete"
-                    onClick={() => handleDeleteQuestion(question.id)}
+                {/* Text otázky */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <FormLabel text="Text otázky" required />
+                  <FormTextarea
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Zadejte text otázky..."
+                    rows={3}
                   />
                 </div>
-              </div>
-            </div>
-          </QuestionCard>
+
+                {/* Obtížnost a Pořadí */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                  <div>
+                    <FormLabel text="Obtížnost" />
+                    <FormSelect
+                      value={formData.difficulty}
+                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                      options={DIFFICULTY_LEVELS}
+                    />
+                  </div>
+
+                  <div>
+                    <FormLabel text="Pořadí" />
+                    <FormInput
+                      type="number"
+                      value={formData.display_order}
+                      onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <CheckboxLabel
+                      checked={formData.is_active}
+                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                      label="Aktivní"
+                    />
+                  </div>
+                </div>
+
+                {/* Možnosti odpovědí */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <FormLabel text="Možnosti odpovědí (4 možnosti)" required />
+                  {formData.options.map((option, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        gap: '0.5rem',
+                        marginBottom: '0.5rem',
+                        alignItems: 'center',
+                        background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
+                        padding: '0.5rem',
+                        borderRadius: RADIUS.sm,
+                        border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
+                      <FormInput
+                        type="text"
+                        value={option.option_name}
+                        onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
+                        placeholder={`Možnost ${index + 1}`}
+                        style={{ flex: 1 }}
+                      />
+                      <RadioLabel
+                        checked={option.is_correct}
+                        onChange={() => handleOptionChange(index, 'is_correct', true)}
+                        name="correct_answer"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tlačítka */}
+                <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <CancelButton
+                    onClick={() => {
+                      setEditingQuestion(null);
+                      setError(null);
+                    }}
+                  />
+                  <SaveButton onClick={handleSaveQuestion} />
+                </div>
+              </FormContainer>
+            ) : (
+              /* Normální karta otázky */
+              <QuestionCard
+                as={motion.div}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.01, y: -2 }}
+                isActive={question.is_active}
+              >
+                <div style={{ flex: 1 }}>
+                  {/* Řádek 1: Otázka + chip obtížnosti a status vpravo */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
+                    <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>{question.name}</h3>
+                    <Chip
+                      text={String(getDifficultyLevel(question.difficulty))}
+                      variant="difficulty"
+                      level={getDifficultyLevel(question.difficulty)}
+                    />
+                    {!question.is_active && (
+                      <Chip text="Neaktivní" variant="inactive" />
+                    )}
+                  </div>
+
+                  {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {(() => {
+                      const { optionsTable } = getTableNames();
+                      return question[optionsTable]
+                        ?.sort((a, b) => a.display_order - b.display_order)
+                        .map((opt, idx) => (
+                          <Chip
+                            key={idx}
+                            text={opt.option_name}
+                            variant="answer"
+                            isCorrect={opt.is_correct}
+                          />
+                        ));
+                    })()}
+                    <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
+                      <ActionButton
+                        variant="edit"
+                        onClick={() => handleEditQuestion(question)}
+                      />
+                      <ActionButton
+                        variant="duplicate"
+                        onClick={() => handleDuplicateQuestion(question)}
+                      />
+                      <ActionButton
+                        variant="delete"
+                        onClick={() => handleDeleteQuestion(question.id)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </QuestionCard>
+            )}
+          </React.Fragment>
         ))}
 
         {questions.length === 0 && (
