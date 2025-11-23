@@ -818,7 +818,7 @@ const QuizManager = () => {
 
       {/* Add/Edit Form */}
       <AnimatePresence mode="wait">
-        {(showAddForm || editingChord) && (
+        {showAddForm && !editingChord && (
           <FormContainer
             as={motion.div}
             key={editingChord || 'new'}
@@ -1096,41 +1096,203 @@ const QuizManager = () => {
         {chords.map((chord) => (
           <React.Fragment key={chord.id}>
             {editingChord === chord.id ? (
-              /* Inline editační formulář - zobrazí se celý formulář zde */
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.03) 0%, rgba(45, 91, 120, 0.03) 100%)',
-                borderRadius: RADIUS.xl,
-                padding: '1.25rem',
-                border: '2px solid var(--color-primary)'
-              }}>
-                <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                  ⚠️ Inline editace pro chord kvízy je komplexnější - použij horní formulář kliknutím na Edit znovu, nebo zruš editaci kliknutím Cancel dole.
-                </p>
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              /* Inline editační formulář - plný formulář zobrazený přímo v kartě */
+              <FormContainer
+                as={motion.div}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
+                  Upravit akord
+                </h4>
+
+                {/* SEKCE 1: Poslechový kvíz (primary barva) */}
+                <FormSection
+                  title="🎵 Poslechový kvíz"
+                  variant="primary"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.65)',
+                    border: BORDER.none,
+                    boxShadow: SHADOW.default,
+                    borderRadius: RADIUS.lg
+                  }}
+                >
+                  {/* Název akordu */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <FormLabel text="Název akordu" required />
+                    <FormInput
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="např. C dur, A moll, Fis moll"
+                    />
+                  </div>
+
+                  {/* Výběr not */}
+                  <div style={{ marginBottom: '0' }}>
+                    <FormLabel text="Noty akordu (vyberte kliknutím)" required />
+
+                    {/* Malá oktáva - pouze a, ais, h */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
+                        Malá oktáva (c - h, náš rozsah pouze a - h):
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {NOTES_MALA_OKTAVA.map(note => (
+                          <NoteButton
+                            key={note}
+                            note={note.replace('.', '')}
+                            selected={formData.notes.includes(note)}
+                            onClick={() => handleNoteToggle(note)}
+                            variant="secondary"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Oktáva 1 (c1 - h1) */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
+                        Oktáva 1 (c1 - h1):
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {NOTES_OKTAVA_1.map(note => (
+                          <NoteButton
+                            key={note}
+                            note={note}
+                            selected={formData.notes.includes(note)}
+                            onClick={() => handleNoteToggle(note)}
+                            variant="primary"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Oktáva 2 - pouze c2 - e2 */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
+                        Oktáva 2 (c2 - h2, náš rozsah pouze c2 - e2):
+                      </span>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {NOTES_OKTAVA_2.map(note => (
+                          <NoteButton
+                            key={note}
+                            note={note.replace("''", "²")}
+                            selected={formData.notes.includes(note)}
+                            onClick={() => handleNoteToggle(note)}
+                            variant="secondary"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
+                    Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
+                  </div>
+                </FormSection>
+
+                {/* Obtížnost a Pořadí */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                  <div>
+                    <FormLabel text="Obtížnost" />
+                    <FormSelect
+                      value={formData.difficulty}
+                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                      options={DIFFICULTY_LEVELS}
+                    />
+                  </div>
+
+                  <div>
+                    <FormLabel text="Pořadí" />
+                    <FormInput
+                      type="number"
+                      value={formData.display_order}
+                      onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <CheckboxLabel
+                      checked={formData.is_active}
+                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                      label="Aktivní"
+                    />
+                  </div>
+                </div>
+
+                {/* SEKCE 2: Teoretický kvíz (secondary barva) */}
+                <FormSection
+                  title="📝 Teoretický kvíz (volitelné)"
+                  variant="secondary"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.65)',
+                    border: BORDER.none,
+                    boxShadow: SHADOW.default,
+                    borderRadius: RADIUS.lg
+                  }}
+                >
+                  {/* Text otázky */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <FormLabel text="Text otázky (volitelné)" />
+                    <FormTextarea
+                      value={formData.questionText}
+                      onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
+                      placeholder="např. Které tóny tvoří akord C dur?"
+                      rows={2}
+                    />
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem', marginBottom: 0 }}>
+                      💡 Pokud vyplníte text otázky, vytvoří se automaticky i teoretický kvíz se stejnými možnostmi odpovědí níže
+                    </p>
+                  </div>
+
+                  {/* Možnosti odpovědí */}
+                  <div style={{ marginBottom: '0' }}>
+                    <FormLabel text="Možnosti odpovědí (4 možnosti)" required />
+                    {formData.options.map((option, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          marginBottom: '0.5rem',
+                          alignItems: 'center',
+                          background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
+                          padding: '0.5rem',
+                          borderRadius: RADIUS.sm,
+                          border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
+                        <FormInput
+                          type="text"
+                          value={option.option_name}
+                          onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
+                          placeholder={`Možnost ${index + 1}`}
+                          style={{ flex: 1 }}
+                        />
+                        <RadioLabel
+                          checked={option.is_correct}
+                          onChange={() => handleOptionChange(index, 'is_correct', true)}
+                          name="correct_answer"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </FormSection>
+
+                {/* Tlačítka */}
+                <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                   <CancelButton
                     onClick={() => {
                       setEditingChord(null);
                       setError(null);
                     }}
                   />
-                  <button
-                    onClick={() => {
-                      setShowAddForm(true);
-                    }}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      background: 'var(--color-secondary)',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: RADIUS.sm,
-                      cursor: 'pointer',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Otevřít plný formulář
-                  </button>
+                  <SaveButton onClick={handleSaveChord} />
                 </div>
-              </div>
+              </FormContainer>
             ) : (
               /* Normální karta akordu */
               <QuestionCard
