@@ -14,6 +14,23 @@ export const RADIUS = {
 };
 
 /**
+ * Shadow System
+ * Centralizované hodnoty pro box-shadow
+ */
+export const SHADOW = {
+  default: '0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06)'
+};
+
+/**
+ * Border System
+ * Centralizované hodnoty pro border
+ */
+export const BORDER = {
+  none: 'none',
+  default: '1px solid #ddd'
+};
+
+/**
  * Moderní tab tlačítka s animacemi
  *
  * @param {Array} tabs - Pole objektů { id, label, icon? }
@@ -704,8 +721,9 @@ export function FormTextarea({ value, onChange, placeholder = '', rows = 3, styl
       style={{
         width: '100%',
         padding: '0.75rem',
-        borderRadius: '16px',
-        border: '1px solid #ddd',
+        borderRadius: RADIUS.lg,
+        border: BORDER.none,
+        boxShadow: SHADOW.default,
         fontSize: '0.875rem',
         fontFamily: 'inherit',
         resize: 'vertical',
@@ -733,8 +751,9 @@ export function FormSelect({ value, onChange, options = [], style = {}, ...props
       style={{
         width: '100%',
         padding: '0.5rem',
-        borderRadius: '10px',
-        border: '1px solid #ddd',
+        borderRadius: RADIUS.sm,
+        border: BORDER.none,
+        boxShadow: SHADOW.default,
         fontSize: '0.875rem',
         cursor: 'pointer',
         transition: 'border-color 0.2s ease',
@@ -770,8 +789,9 @@ export function FormInput({ type = 'text', value, onChange, placeholder = '', st
       style={{
         width: '100%',
         padding: '0.5rem',
-        borderRadius: '10px',
-        border: '1px solid #ddd',
+        borderRadius: RADIUS.sm,
+        border: BORDER.none,
+        boxShadow: SHADOW.default,
         fontSize: '0.875rem',
         transition: 'border-color 0.2s ease',
         ...style
@@ -831,9 +851,12 @@ export function FormContainer({ children, style = {}, as: Component = 'div', ...
       style={{
         marginBottom: '2rem',
         padding: '1.25rem',
-        background: 'rgba(181, 31, 101, 0.05)',
-        borderRadius: '22px',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+        background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 30%, #e8f4f8 45%, #fef8fb 55%, #e8f4f8 65%, #f0f5f9 80%, #f8f9fa 100%)',
+        backgroundSize: '400% 400%',
+        animation: 'gradient-shift 45s ease-in-out infinite',
+        borderRadius: RADIUS.xl,
+        border: BORDER.none,
+        boxShadow: SHADOW.default,
         ...style
       }}
       {...props}
@@ -844,7 +867,7 @@ export function FormContainer({ children, style = {}, as: Component = 'div', ...
 }
 
 /**
- * PageCard - hlavní card kontejner pro stránky
+ * PageCard - hlavní card kontejner pro stránky s animovaným gradientem
  *
  * @param {React.ReactNode} children - Obsah karty
  * @param {object} style - Dodatečné styly
@@ -853,11 +876,10 @@ export function PageCard({ children, style = {}, ...props }) {
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 30%, #e8f4f8 45%, #fef8fb 55%, #e8f4f8 65%, #f0f5f9 80%, #f8f9fa 100%)',
-        backgroundSize: '400% 400%',
-        animation: 'gradient-shift 45s ease-in-out infinite',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
-        borderRadius: '22px',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(10px)',
+        boxShadow: SHADOW.default,
+        borderRadius: RADIUS.xl,
         padding: '1.25rem',
         marginBottom: '1.5rem',
         ...style
@@ -880,13 +902,9 @@ export function PageCard({ children, style = {}, ...props }) {
 export function FormSection({ title, variant = 'secondary', children, style = {}, ...props }) {
   const variants = {
     primary: {
-      background: 'rgba(181, 31, 101, 0.08)',
-      border: '2px solid rgba(181, 31, 101, 0.3)',
       titleColor: 'var(--color-primary)'
     },
     secondary: {
-      background: 'rgba(45, 91, 120, 0.08)',
-      border: '2px solid rgba(45, 91, 120, 0.3)',
       titleColor: 'var(--color-secondary)'
     }
   };
@@ -898,9 +916,10 @@ export function FormSection({ title, variant = 'secondary', children, style = {}
       style={{
         padding: '1rem',
         marginBottom: '1.5rem',
-        background: variantStyle.background,
-        border: variantStyle.border,
-        borderRadius: '12px',
+        background: 'transparent',
+        border: BORDER.none,
+        borderRadius: RADIUS.md,
+        boxShadow: SHADOW.default,
         ...style
       }}
       {...props}
@@ -912,6 +931,75 @@ export function FormSection({ title, variant = 'secondary', children, style = {}
       )}
       {children}
     </div>
+  );
+}
+
+/**
+ * QuestionCard - karta pro zobrazení otázky v quiz manageru
+ *
+ * @param {React.ReactNode} children - Obsah karty
+ * @param {boolean} isActive - Je otázka aktivní?
+ * @param {React.ElementType} as - Vlastní element (default: 'div')
+ * @param {object} style - Dodatečné styly
+ */
+export function QuestionCard({ children, isActive = true, as: Component = 'div', style = {}, ...props }) {
+  return (
+    <Component
+      style={{
+        background: isActive
+          ? 'rgba(255, 255, 255, 0.8)'
+          : 'rgba(200, 200, 200, 0.5)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(181, 31, 101, 0.1)',
+        borderRadius: RADIUS.xl,
+        padding: '1.25rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1.25rem',
+        boxShadow: SHADOW.default,
+        ...style
+      }}
+      {...props}
+    >
+      {children}
+    </Component>
+  );
+}
+
+/**
+ * NoteButton - tlačítko pro výběr not v akordovém kvízu
+ *
+ * @param {string} note - Text noty (např. "C", "C#", "D")
+ * @param {boolean} selected - Je nota vybraná?
+ * @param {function} onClick - Callback při kliknutí
+ * @param {string} variant - Barva pro vybraný stav: 'primary' | 'secondary' (default: 'primary')
+ * @param {object} style - Dodatečné styly
+ */
+export function NoteButton({ note, selected = false, onClick, variant = 'primary', style = {}, ...props }) {
+  const color = variant === 'primary' ? 'var(--color-primary)' : 'var(--color-secondary)';
+
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      style={{
+        background: selected ? color : 'rgba(255, 255, 255, 0.9)',
+        border: `2px solid ${selected ? color : '#ddd'}`,
+        borderRadius: RADIUS.sm,
+        padding: '0.5rem 0.75rem',
+        cursor: 'pointer',
+        color: selected ? '#fff' : '#1e293b',
+        fontWeight: '600',
+        fontSize: '0.875rem',
+        minWidth: '50px',
+        ...style
+      }}
+      {...props}
+    >
+      {note}
+    </motion.button>
   );
 }
 

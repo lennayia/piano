@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { BookOpen, Plus, CheckCircle, AlertCircle, Music, X } from 'lucide-react';
-import { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, PageCard, RADIUS } from '../ui/TabButtons';
+import { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, QuestionCard, RADIUS } from '../ui/TabButtons';
 
 const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', icon: Icon = BookOpen }) => {
   const [questions, setQuestions] = useState([]);
@@ -428,7 +428,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
   const helpContent = getHelpContent();
 
   return (
-    <PageCard>
+    <>
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -521,7 +521,6 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            style={{ background: 'transparent' }}
           >
             <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
               {editingQuestion ? 'Upravit otázku' : 'Přidat novou otázku'}
@@ -619,24 +618,13 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       {/* Seznam otázek */}
       <div style={{ display: 'grid', gap: '1rem' }}>
         {questions.map((question) => (
-          <motion.div
+          <QuestionCard
             key={question.id}
+            as={motion.div}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.01, y: -2 }}
-            style={{
-              background: question.is_active
-                ? 'rgba(255, 255, 255, 0.9)'
-                : 'rgba(200, 200, 200, 0.5)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(181, 31, 101, 0.1)',
-              borderRadius: RADIUS.xl,
-              padding: '1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1.25rem',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
-            }}
+            isActive={question.is_active}
           >
             <div style={{ flex: 1 }}>
               {/* Řádek 1: Otázka + chip obtížnosti a status vpravo */}
@@ -683,7 +671,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
                 </div>
               </div>
             </div>
-          </motion.div>
+          </QuestionCard>
         ))}
 
         {questions.length === 0 && (
@@ -695,7 +683,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
           </div>
         )}
       </div>
-    </PageCard>
+    </>
   );
 };
 

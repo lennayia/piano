@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
-import { Music, BookOpen, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Music, BookOpen, HelpCircle, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import TabButtons, { HelpButton, HelpPanel, ActionButton, AddButton, Chip, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormSection, RADIUS } from '../ui/TabButtons';
+import TabButtons, { HelpButton, HelpPanel, ActionButton, AddButton, Chip, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormSection, FormContainer, PageCard, QuestionCard, NoteButton, RADIUS, SHADOW, BORDER } from '../ui/TabButtons';
 import UniversalQuizManager from './UniversalQuizManager';
 
 // Normalizace názvu akordu
@@ -601,7 +601,7 @@ const QuizManager = () => {
     const config = quizConfig[activeQuizType] || { title: 'Správa kvízů', icon: BookOpen };
 
     return (
-      <div className="card" style={{ borderRadius: RADIUS.xl }}>
+      <PageCard>
         {/* Záložky pro typy kvízů */}
         <div style={{ marginBottom: '2rem' }}>
           <TabButtons
@@ -618,13 +618,13 @@ const QuizManager = () => {
           title={config.title}
           icon={config.icon}
         />
-      </div>
+      </PageCard>
     );
   }
 
   // Pro ostatní typy zobrazíme původní ChordManager
   return (
-    <div className="card" style={{ borderRadius: RADIUS.xl }}>
+    <PageCard>
       {/* Záložky pro typy kvízů */}
       <div style={{ marginBottom: '2rem' }}>
         <TabButtons
@@ -738,19 +738,14 @@ const QuizManager = () => {
       {/* Add/Edit Form */}
       <AnimatePresence mode="wait">
         {showAddForm && (
-          <motion.div
+          <FormContainer
+            as={motion.div}
             key={editingChord || 'new'}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            style={{
-              marginBottom: '2rem',
-              padding: '1.5rem',
-              background: 'var(--bg-secondary)',
-              borderRadius: RADIUS.sm
-            }}
           >
-            <h4 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>
+            <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
               {editingChord
                 ? (activeQuizType === 'chord' ? 'Upravit akord' : 'Upravit otázku')
                 : (activeQuizType === 'chord' ? 'Přidat nový akord' : 'Přidat novou otázku')
@@ -759,7 +754,16 @@ const QuizManager = () => {
 
             {/* SEKCE 1: Poslechový kvíz (primary barva) - pouze pro akordový typ */}
             {formData.quiz_type === 'chord' && (
-              <FormSection title="🎵 Poslechový kvíz" variant="primary">
+              <FormSection
+                title="🎵 Poslechový kvíz"
+                variant="primary"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.65)',
+                  border: BORDER.none,
+                  boxShadow: SHADOW.default,
+                  borderRadius: RADIUS.lg
+                }}
+              >
 
                 {/* Název akordu */}
                 <div style={{ marginBottom: '1rem' }}>
@@ -783,26 +787,13 @@ const QuizManager = () => {
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {NOTES_MALA_OKTAVA.map(note => (
-                    <motion.button
+                    <NoteButton
                       key={note}
-                      type="button"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      note={note.replace('.', '')}
+                      selected={formData.notes.includes(note)}
                       onClick={() => handleNoteToggle(note)}
-                      style={{
-                        background: formData.notes.includes(note) ? 'var(--color-secondary)' : 'rgba(255, 255, 255, 0.9)',
-                        border: `2px solid ${formData.notes.includes(note) ? 'var(--color-secondary)' : '#ddd'}`,
-                        borderRadius: RADIUS.sm,
-                        padding: '0.5rem 0.75rem',
-                        cursor: 'pointer',
-                        color: formData.notes.includes(note) ? '#fff' : '#1e293b',
-                        fontWeight: '600',
-                        fontSize: '0.875rem',
-                        minWidth: '50px'
-                      }}
-                    >
-                      {note.replace('.', '')}
-                    </motion.button>
+                      variant="secondary"
+                    />
                   ))}
                 </div>
               </div>
@@ -814,26 +805,13 @@ const QuizManager = () => {
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {NOTES_OKTAVA_1.map(note => (
-                    <motion.button
+                    <NoteButton
                       key={note}
-                      type="button"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      note={note}
+                      selected={formData.notes.includes(note)}
                       onClick={() => handleNoteToggle(note)}
-                      style={{
-                        background: formData.notes.includes(note) ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.9)',
-                        border: `2px solid ${formData.notes.includes(note) ? 'var(--color-primary)' : '#ddd'}`,
-                        borderRadius: RADIUS.sm,
-                        padding: '0.5rem 0.75rem',
-                        cursor: 'pointer',
-                        color: formData.notes.includes(note) ? '#fff' : '#1e293b',
-                        fontWeight: '600',
-                        fontSize: '0.875rem',
-                        minWidth: '50px'
-                      }}
-                    >
-                      {note}
-                    </motion.button>
+                      variant="primary"
+                    />
                   ))}
                 </div>
               </div>
@@ -845,26 +823,13 @@ const QuizManager = () => {
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {NOTES_OKTAVA_2.map(note => (
-                    <motion.button
+                    <NoteButton
                       key={note}
-                      type="button"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      note={note.replace("''", "²")}
+                      selected={formData.notes.includes(note)}
                       onClick={() => handleNoteToggle(note)}
-                      style={{
-                        background: formData.notes.includes(note) ? 'var(--color-secondary)' : 'rgba(255, 255, 255, 0.9)',
-                        border: `2px solid ${formData.notes.includes(note) ? 'var(--color-secondary)' : '#ddd'}`,
-                        borderRadius: RADIUS.sm,
-                        padding: '0.5rem 0.75rem',
-                        cursor: 'pointer',
-                        color: formData.notes.includes(note) ? '#fff' : '#1e293b',
-                        fontWeight: '600',
-                        fontSize: '0.875rem',
-                        minWidth: '50px'
-                      }}
-                    >
-                      {note.replace("''", "²")}
-                    </motion.button>
+                      variant="secondary"
+                    />
                   ))}
                 </div>
               </div>
@@ -933,7 +898,16 @@ const QuizManager = () => {
 
             {/* SEKCE 2: Teoretický kvíz (secondary barva) - pouze pro akordový typ */}
             {formData.quiz_type === 'chord' && (
-              <FormSection title="📝 Teoretický kvíz (volitelné)" variant="secondary">
+              <FormSection
+                title="📝 Teoretický kvíz (volitelné)"
+                variant="secondary"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.65)',
+                  border: BORDER.none,
+                  boxShadow: SHADOW.default,
+                  borderRadius: RADIUS.lg
+                }}
+              >
 
                 {/* Text otázky */}
                 <div style={{ marginBottom: '1rem' }}>
@@ -1050,87 +1024,60 @@ const QuizManager = () => {
               />
               <SaveButton onClick={handleSaveChord} />
             </div>
-          </motion.div>
+          </FormContainer>
         )}
       </AnimatePresence>
 
       {/* Seznam akordů */}
       <div style={{ display: 'grid', gap: '1rem' }}>
         {chords.map((chord) => (
-          <div key={chord.id}>
-            {/* Zobrazení akordu - při editaci se zobrazuje formulář nahoře */}
-            {editingChord === chord.id ? null : (
-              /* Normální zobrazení akordu */
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.01, y: -2 }}
-                style={{
-                  background: chord.is_active
-                    ? 'rgba(255, 255, 255, 0.9)'
-                    : 'rgba(200, 200, 200, 0.5)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(181, 31, 101, 0.1)',
-                  borderRadius: RADIUS.xl,
-                  padding: '1.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1.25rem',
-                  boxShadow: '0 4px 16px rgba(181, 31, 101, 0.12), 0 2px 6px rgba(181, 31, 101, 0.08)'
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
-                    <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{chord.name}</h3>
+          <QuestionCard
+            key={chord.id}
+            as={motion.div}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01, y: -2 }}
+            isActive={chord.is_active}
+          >
+            <div style={{ flex: 1 }}>
+              {/* Řádek 1: Název akordu + chip obtížnosti a status vpravo */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>{chord.name}</h3>
+                <Chip
+                  text={chord.difficulty === 'easy' ? '1' : chord.difficulty === 'medium' ? '2' : '3'}
+                  variant="difficulty"
+                  level={chord.difficulty === 'easy' ? 1 : chord.difficulty === 'medium' ? 2 : 3}
+                />
+                {!chord.is_active && (
+                  <Chip text="Neaktivní" variant="inactive" />
+                )}
+              </div>
+
+              {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {chord.piano_quiz_chord_options
+                  ?.sort((a, b) => a.display_order - b.display_order)
+                  .map((opt, idx) => (
                     <Chip
-                      text={chord.difficulty === 'easy' ? '1' : chord.difficulty === 'medium' ? '2' : '3'}
-                      variant="difficulty"
-                      level={chord.difficulty === 'easy' ? 1 : chord.difficulty === 'medium' ? 2 : 3}
+                      key={idx}
+                      text={opt.option_name}
+                      variant="answer"
+                      isCorrect={opt.is_correct}
                     />
-                    {!chord.is_active && (
-                      <Chip text="Neaktivní" variant="inactive" />
-                    )}
-                  </div>
-
-                  <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                    <strong style={{ color: '#64748b' }}>Noty:</strong>{' '}
-                    <span style={{ color: 'var(--color-primary)', fontWeight: '600' }}>
-                      {sortNotesByKeyboard(chord.notes || []).join(', ') || 'Žádné'}
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: '0.875rem' }}>
-                    <strong style={{ color: '#64748b' }}>Možnosti odpovědí:</strong>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
-                      {chord.piano_quiz_chord_options
-                        ?.sort((a, b) => a.display_order - b.display_order)
-                        .map((opt, idx) => (
-                          <Chip
-                            key={idx}
-                            text={opt.option_name}
-                            variant="answer"
-                            isCorrect={opt.is_correct}
-                          />
-                        ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
+                  ))}
+                <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
                   <ActionButton
-                    onClick={() => handleEditChord(chord)}
                     variant="edit"
-                    label="Upravit"
+                    onClick={() => handleEditChord(chord)}
                   />
                   <ActionButton
-                    onClick={() => handleDeleteChord(chord.id)}
                     variant="delete"
-                    label="Smazat"
+                    onClick={() => handleDeleteChord(chord.id)}
                   />
                 </div>
-              </motion.div>
-            )}
-          </div>
+              </div>
+            </div>
+          </QuestionCard>
         ))}
 
         {chords.length === 0 && (
@@ -1142,7 +1089,7 @@ const QuizManager = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageCard>
   );
 };
 
