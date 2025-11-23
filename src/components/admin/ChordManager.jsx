@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
-import { Music, BookOpen, Plus, Edit, Trash2, Save, X, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
+import { Music, BookOpen, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import TabButtons, { HelpButton, HelpPanel } from '../ui/TabButtons';
-import TheoryQuizManager from './TheoryQuizManager';
+import TabButtons, { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, PageCard, RADIUS } from '../ui/TabButtons';
+import UniversalQuizManager from './UniversalQuizManager';
 
 // Normalizace názvu akordu
 const normalizeChordName = (name) => {
@@ -56,6 +56,16 @@ const normalizeNotes = (notesString) => {
 
   // Spojíme zpět s mezerou
   return notes.join(' ');
+};
+
+// Helper funkce pro převod obtížnosti na číslo
+const getDifficultyLevel = (difficulty) => {
+  switch (difficulty) {
+    case 'easy': return 1;
+    case 'medium': return 2;
+    case 'hard': return 3;
+    default: return 1;
+  }
 };
 
 const ChordManager = () => {
@@ -227,6 +237,47 @@ const ChordManager = () => {
       display_order: chord.display_order,
       options: formattedOptions
     });
+  };
+
+  const handleDuplicateChord = async (chord) => {
+    try {
+      const { data: newChord, error: chordError } = await supabase
+        .from('piano_quiz_chords')
+        .insert([{
+          name: `${chord.name} (kopie)`,
+          quiz_type: chord.quiz_type,
+          notes: chord.notes,
+          difficulty: chord.difficulty,
+          is_active: chord.is_active,
+          display_order: chords.length + 1,
+          category: chord.category || null
+        }])
+        .select()
+        .single();
+
+      if (chordError) throw chordError;
+
+      const optionsToCopy = chord.piano_quiz_chord_options?.map(opt => ({
+        chord_id: newChord.id,
+        option_name: opt.option_name,
+        is_correct: opt.is_correct,
+        display_order: opt.display_order
+      })) || [];
+
+      if (optionsToCopy.length > 0) {
+        const { error: optionsError } = await supabase
+          .from('piano_quiz_chord_options')
+          .insert(optionsToCopy);
+
+        if (optionsError) throw optionsError;
+      }
+
+      showSuccess('Akord byl úspěšně duplikován');
+      fetchChords();
+    } catch (err) {
+      console.error('Error duplicating chord:', err);
+      setError('Nepodařilo se duplikovat akord: ' + err.message);
+    }
   };
 
   const handleDeleteChord = async (chordId) => {
@@ -588,10 +639,10 @@ const ChordManager = () => {
     return <Icon size={24} color="var(--color-primary)" />;
   };
 
-  // Pokud je vybraná záložka "Teorie", zobrazíme TheoryQuizManager
+  // Pokud je vybraná záložka "Teorie", zobrazíme UniversalQuizManager
   if (activeQuizType === 'theory') {
     return (
-      <div className="card">
+      <PageCard>
         {/* Záložky pro typy kvízů */}
         <div style={{ marginBottom: '2rem' }}>
           <TabButtons
@@ -603,14 +654,14 @@ const ChordManager = () => {
         </div>
 
         {/* Samostatný modul pro správu teoretických otázek */}
-        <TheoryQuizManager />
-      </div>
+        <UniversalQuizManager quizType="theory" title="Správa kvízů - Teorie" icon={BookOpen} />
+      </PageCard>
     );
   }
 
   // Pro ostatní typy zobrazíme původní ChordManager
   return (
-    <div className="card">
+    <PageCard>
       {/* Záložky pro typy kvízů */}
       <div style={{ marginBottom: '2rem' }}>
         <TabButtons
@@ -640,21 +691,7 @@ const ChordManager = () => {
         </div>
 
         {!showAddForm && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleAddChord}
-            className="btn btn-primary"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            <Plus size={16} />
-            Přidat akord
-          </motion.button>
+          <AddButton onClick={handleAddChord} label="Přidat akord" />
         )}
       </div>
 
@@ -738,17 +775,13 @@ const ChordManager = () => {
       {/* Add/Edit Form */}
       <AnimatePresence mode="wait">
         {showAddForm && (
-          <motion.div
+          <FormContainer
+            as={motion.div}
             key={editingChord || 'new'}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            style={{
-              marginBottom: '2rem',
-              padding: '1.5rem',
-              background: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius)'
-            }}
+            style={{ marginBottom: '2rem' }}
           >
             <h4 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>
               {editingChord
@@ -1176,173 +1209,91 @@ const ChordManager = () => {
 
             {/* Tlačítka */}
             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setShowAddForm(false);
-                  setEditingChord(null);
-                  setError(null);
-                }}
-                className="btn btn-secondary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.875rem'
-                }}
-              >
-                <X size={16} />
-                Zrušit
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSaveChord}
-                className="btn btn-primary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.875rem'
-                }}
-              >
-                <Save size={16} />
-                Uložit
-              </motion.button>
+              <CancelButton onClick={() => {
+                setShowAddForm(false);
+                setEditingChord(null);
+                setError(null);
+              }} />
+              <SaveButton onClick={handleSaveChord} />
             </div>
-          </motion.div>
+          </FormContainer>
         )}
       </AnimatePresence>
 
       {/* Seznam akordů */}
       <div style={{ display: 'grid', gap: '1rem' }}>
         {chords.map((chord) => (
-          <div key={chord.id}>
-            {/* Zobrazení akordu - při editaci se zobrazuje formulář nahoře */}
-            {editingChord === chord.id ? null : (
-              /* Normální zobrazení akordu */
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.01, y: -2 }}
-                style={{
-                  background: chord.is_active
-                    ? 'rgba(255, 255, 255, 0.9)'
-                    : 'rgba(200, 200, 200, 0.5)',
-                  backdropFilter: 'blur(20px)',
-                  border: '2px solid rgba(181, 31, 101, 0.2)',
-                  borderRadius: 'var(--radius)',
-                  padding: '1.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1.25rem',
-                  boxShadow: '0 4px 15px rgba(181, 31, 101, 0.15)'
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
-                    <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem' }}>{chord.name}</h3>
-                    <span style={{
-                      background: chord.difficulty === 'easy' ? 'var(--color-secondary)' :
-                                 chord.difficulty === 'medium' ? 'var(--color-primary)' : '#1e293b',
-                      color: '#fff',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: 'var(--radius)',
-                      fontSize: '0.75rem',
-                      fontWeight: '600'
-                    }}>
-                      {chord.difficulty === 'easy' ? 'Snadné' :
-                       chord.difficulty === 'medium' ? 'Střední' : 'Těžké'}
-                    </span>
-                    {!chord.is_active && (
-                      <span style={{
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        color: '#fff',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: 'var(--radius)',
-                        fontSize: '0.75rem',
-                        fontWeight: '600'
-                      }}>
-                        Neaktivní
-                      </span>
-                    )}
-                  </div>
+          <motion.div
+            key={chord.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01, y: -2 }}
+            style={{
+              background: chord.is_active
+                ? 'rgba(255, 255, 255, 0.9)'
+                : 'rgba(200, 200, 200, 0.5)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(181, 31, 101, 0.1)',
+              borderRadius: RADIUS.xl,
+              padding: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1.25rem',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              {/* Řádek 1: Název akordu + chip obtížnosti a status vpravo */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>{chord.name}</h3>
+                <Chip
+                  text={String(getDifficultyLevel(chord.difficulty))}
+                  variant="difficulty"
+                  level={getDifficultyLevel(chord.difficulty)}
+                />
+                {!chord.is_active && (
+                  <Chip text="Neaktivní" variant="inactive" />
+                )}
+              </div>
 
-                  <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                    <strong style={{ color: '#64748b' }}>Noty:</strong>{' '}
-                    <span style={{ color: 'var(--color-primary)', fontWeight: '600' }}>
-                      {sortNotesByKeyboard(chord.notes || []).join(', ') || 'Žádné'}
-                    </span>
-                  </div>
+              {/* Řádek 2: Info o notách */}
+              <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                <strong style={{ color: '#64748b' }}>Noty:</strong>{' '}
+                <span style={{ color: 'var(--color-primary)', fontWeight: '600' }}>
+                  {sortNotesByKeyboard(chord.notes || []).join(', ') || 'Žádné'}
+                </span>
+              </div>
 
-                  <div style={{ fontSize: '0.875rem' }}>
-                    <strong style={{ color: '#64748b' }}>Možnosti odpovědí:</strong>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.375rem' }}>
-                      {chord.piano_quiz_chord_options
-                        ?.sort((a, b) => a.display_order - b.display_order)
-                        .map((opt, idx) => (
-                          <span
-                            key={idx}
-                            style={{
-                              background: opt.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.1)',
-                              color: opt.is_correct ? '#fff' : '#64748b',
-                              padding: '0.25rem 0.625rem',
-                              borderRadius: 'var(--radius)',
-                              fontSize: '0.8125rem',
-                              fontWeight: opt.is_correct ? '600' : '400'
-                            }}
-                          >
-                            {opt.option_name}
-                            {opt.is_correct && ' ✓'}
-                          </span>
-                        ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+              {/* Řádek 3: Možnosti odpovědí + action buttony vpravo */}
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <strong style={{ color: '#64748b', fontSize: '0.875rem' }}>Možnosti odpovědí:</strong>
+                {chord.piano_quiz_chord_options
+                  ?.sort((a, b) => a.display_order - b.display_order)
+                  .map((opt, idx) => (
+                    <Chip
+                      key={idx}
+                      text={opt.option_name}
+                      variant="answer"
+                      isCorrect={opt.is_correct}
+                    />
+                  ))}
+                <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
+                  <ActionButton
+                    variant="edit"
                     onClick={() => handleEditChord(chord)}
-                    className="btn btn-primary"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.375rem',
-                      fontSize: '0.75rem',
-                      padding: '0.5rem 0.75rem',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    <Edit size={14} />
-                    Upravit
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                  />
+                  <ActionButton
+                    variant="duplicate"
+                    onClick={() => handleDuplicateChord(chord)}
+                  />
+                  <ActionButton
+                    variant="delete"
                     onClick={() => handleDeleteChord(chord.id)}
-                    className="btn btn-danger"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.375rem',
-                      fontSize: '0.75rem',
-                      padding: '0.5rem 0.75rem',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    <Trash2 size={14} />
-                    Smazat
-                  </motion.button>
+                  />
                 </div>
-              </motion.div>
-            )}
-          </div>
+              </div>
+            </div>
+          </motion.div>
         ))}
 
         {chords.length === 0 && (
@@ -1354,7 +1305,7 @@ const ChordManager = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageCard>
   );
 };
 

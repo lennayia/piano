@@ -3,9 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { Music, BookOpen, HelpCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import TabButtons, { HelpButton, HelpPanel, ActionButton, AddButton, Chip, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormSection } from '../ui/TabButtons';
+import TabButtons, { HelpButton, HelpPanel, ActionButton, AddButton, Chip, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormSection, RADIUS } from '../ui/TabButtons';
 import UniversalQuizManager from './UniversalQuizManager';
-import { RADIUS } from '../../utils/styleConstants';
 
 // Normalizace názvu akordu
 const normalizeChordName = (name) => {

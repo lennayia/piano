@@ -3,6 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save } from 'lucide-react';
 
 /**
+ * Border Radius System
+ * Centralizované hodnoty pro konzistentní border-radius napříč aplikací
+ */
+export const RADIUS = {
+  sm: '10px',    // Small elements (buttons, inputs, chips)
+  md: '12px',    // Medium elements (form containers, modals)
+  lg: '16px',    // Large elements (cards, panels)
+  xl: '22px',    // Extra large (main containers, question cards)
+};
+
+/**
  * Moderní tab tlačítka s animacemi
  *
  * @param {Array} tabs - Pole objektů { id, label, icon? }
