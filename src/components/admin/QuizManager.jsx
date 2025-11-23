@@ -131,7 +131,38 @@ const QuizManager = () => {
 
       if (chordsError) throw chordsError;
 
-      setChords(chordsData || []);
+      // Pro chord typ načteme i teoretické otázky
+      if (activeQuizType === 'chord' && chordsData) {
+        const { data: theoryQuizzes } = await supabase
+          .from('piano_quiz_chords')
+          .select('id, name, category')
+          .eq('quiz_type', 'theory');
+
+        // Přidáme teoretické otázky k akordům
+        const chordsWithTheory = chordsData.map(chord => {
+          // Najdeme teoretickou otázku pro tento akord
+          const theoryQuestion = theoryQuizzes?.find(theory => {
+            // Pokud mají stejnou kategorii nebo obě nemají kategorii
+            const categoryMatch = chord.category
+              ? theory.category === chord.category
+              : !theory.category;
+
+            // A název teoretické otázky obsahuje název akordu
+            const nameMatch = theory.name?.toLowerCase().includes(chord.name.toLowerCase());
+
+            return categoryMatch && nameMatch;
+          });
+
+          return {
+            ...chord,
+            theoryQuestion
+          };
+        });
+
+        setChords(chordsWithTheory);
+      } else {
+        setChords(chordsData || []);
+      }
     } catch (err) {
       console.error('Error fetching quizzes:', err);
       setError('Nepodařilo se načíst kvízy: ' + err.message);
@@ -227,6 +258,50 @@ const QuizManager = () => {
       display_order: chord.display_order,
       options: formattedOptions
     });
+  };
+
+  const handleDuplicateChord = async (chord) => {
+    try {
+      const chordData = {
+        name: `${chord.name} (kopie)`,
+        quiz_type: chord.quiz_type,
+        notes: chord.notes,
+        category: chord.category || null,
+        difficulty: chord.difficulty,
+        is_active: chord.is_active,
+        display_order: chords.length + 1
+      };
+
+      const { data: newChord, error: chordError } = await supabase
+        .from('piano_quiz_chords')
+        .insert([chordData])
+        .select()
+        .single();
+
+      if (chordError) throw chordError;
+
+      // Zkopírujeme options
+      const optionsToCopy = chord.piano_quiz_chord_options?.map(opt => ({
+        chord_id: newChord.id,
+        option_name: opt.option_name,
+        is_correct: opt.is_correct,
+        display_order: opt.display_order
+      })) || [];
+
+      if (optionsToCopy.length > 0) {
+        const { error: optionsError } = await supabase
+          .from('piano_quiz_chord_options')
+          .insert(optionsToCopy);
+
+        if (optionsError) throw optionsError;
+      }
+
+      showSuccess('Akord byl úspěšně duplikován');
+      fetchChords();
+    } catch (err) {
+      console.error('Error duplicating chord:', err);
+      setError('Nepodařilo se duplikovat akord: ' + err.message);
+    }
   };
 
   const handleDeleteChord = async (chordId) => {
@@ -654,7 +729,7 @@ const QuizManager = () => {
         </div>
 
         {!showAddForm && !editingChord && (
-          <AddButton onClick={handleAddChord} label="Přidat akord" />
+          <AddButton onClick={handleAddChord} iconOnly={true} />
         )}
       </div>
 
@@ -952,15 +1027,6 @@ const QuizManager = () => {
                         checked={option.is_correct}
                         onChange={() => handleOptionChange(index, 'is_correct', true)}
                         name="correct_answer"
-                        style={{
-                          padding: '0.5rem 0.75rem',
-                          background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
-                          borderRadius: RADIUS.sm,
-                          color: option.is_correct ? '#fff' : '#64748b',
-                          minWidth: '110px',
-                          justifyContent: 'center',
-                          fontSize: '0.75rem'
-                        }}
                       />
                     </div>
                   ))}
@@ -998,15 +1064,6 @@ const QuizManager = () => {
                       checked={option.is_correct}
                       onChange={() => handleOptionChange(index, 'is_correct', true)}
                       name="correct_answer"
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        background: option.is_correct ? 'var(--color-secondary)' : 'rgba(0, 0, 0, 0.05)',
-                        borderRadius: RADIUS.sm,
-                        color: option.is_correct ? '#fff' : '#64748b',
-                        minWidth: '110px',
-                        justifyContent: 'center',
-                        fontSize: '0.75rem'
-                      }}
                     />
                   </div>
                 ))}
@@ -1040,9 +1097,11 @@ const QuizManager = () => {
             isActive={chord.is_active}
           >
             <div style={{ flex: 1 }}>
-              {/* Řádek 1: Název akordu + chip obtížnosti a status vpravo */}
+              {/* Řádek 1: Text otázky + chip obtížnosti a status vpravo */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.75rem' }}>
-                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>{chord.name}</h3>
+                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', flex: 1 }}>
+                  {chord.theoryQuestion?.name || chord.name}
+                </h3>
                 <Chip
                   text={chord.difficulty === 'easy' ? '1' : chord.difficulty === 'medium' ? '2' : '3'}
                   variant="difficulty"
@@ -1069,6 +1128,10 @@ const QuizManager = () => {
                   <ActionButton
                     variant="edit"
                     onClick={() => handleEditChord(chord)}
+                  />
+                  <ActionButton
+                    variant="duplicate"
+                    onClick={() => handleDuplicateChord(chord)}
                   />
                   <ActionButton
                     variant="delete"
