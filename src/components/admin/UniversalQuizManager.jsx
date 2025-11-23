@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { BookOpen, Plus, CheckCircle, AlertCircle, Music, X } from 'lucide-react';
-import { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, PageCard } from '../ui/TabButtons';
-import { RADIUS } from '../../utils/styleConstants';
+import { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, PageCard, RADIUS } from '../ui/TabButtons';
 
 const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', icon: Icon = BookOpen }) => {
   const [questions, setQuestions] = useState([]);
@@ -32,7 +31,21 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
     return levels[difficulty] || 1;
   };
 
-  // Form state
+  const getTableNames = () => {
+    if (quizType === 'theory') {
+      return {
+        mainTable: 'piano_quiz_theory',
+        optionsTable: 'piano_quiz_theory_options',
+        foreignKey: 'theory_question_id'
+      };
+    }
+    return {
+      mainTable: 'piano_quiz_chords',
+      optionsTable: 'piano_quiz_chord_options',
+      foreignKey: 'chord_id'
+    };
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     quiz_type: quizType,
@@ -42,7 +55,6 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
     options: DEFAULT_OPTIONS
   });
 
-  // Help content podle typu kvízu
   const getHelpContent = () => {
     const baseSteps = [
       'Klikněte na "Přidat otázku"',
@@ -106,20 +118,35 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       setLoading(true);
       setError(null);
 
-      const { data: questionsData, error: questionsError } = await supabase
-        .from('piano_quiz_chords')
-        .select(`
-          *,
-          piano_quiz_chord_options (*)
-        `)
-        .eq('quiz_type', quizType)
-        .order('display_order');
+      const tableName = quizType === 'theory' ? 'piano_quiz_theory' : 'piano_quiz_chords';
+      const optionsTable = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+
+      let query;
+      if (quizType === 'theory') {
+        query = supabase
+          .from(tableName)
+          .select(`
+            *,
+            ${optionsTable} (*)
+          `)
+          .order('display_order');
+      } else {
+        query = supabase
+          .from(tableName)
+          .select(`
+            *,
+            ${optionsTable} (*)
+          `)
+          .eq('quiz_type', quizType)
+          .order('display_order');
+      }
+
+      const { data: questionsData, error: questionsError } = await query;
 
       if (questionsError) throw questionsError;
 
       setQuestions(questionsData || []);
     } catch (err) {
-      console.error('Error fetching questions:', err);
       setError('Nepodařilo se načíst otázky: ' + err.message);
     } finally {
       setLoading(false);
@@ -143,7 +170,10 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
     setEditingQuestion(question.id);
     setShowAddForm(false);
 
-    const sortedOptions = [...(question.piano_quiz_chord_options || [])].sort(
+    // Název pole options závisí na typu tabulky
+    const optionsFieldName = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+
+    const sortedOptions = [...(question[optionsFieldName] || [])].sort(
       (a, b) => a.display_order - b.display_order
     );
 
@@ -157,7 +187,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
 
     setFormData({
       name: question.name,
-      quiz_type: question.quiz_type,
+      quiz_type: question.quiz_type || quizType,
       difficulty: question.difficulty,
       is_active: question.is_active,
       display_order: question.display_order,
@@ -171,8 +201,10 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
     }
 
     try {
+      const { mainTable } = getTableNames();
+
       const { error } = await supabase
-        .from('piano_quiz_chords')
+        .from(mainTable)
         .delete()
         .eq('id', questionId);
 
@@ -181,31 +213,44 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       showSuccess('Otázka byla úspěšně smazána');
       fetchQuestions();
     } catch (err) {
-      console.error('Error deleting question:', err);
       setError('Nepodařilo se smazat otázku: ' + err.message);
     }
   };
 
   const handleDuplicateQuestion = async (question) => {
     try {
+      const { mainTable, optionsTable, foreignKey } = getTableNames();
+
+      const questionData = {
+        name: `${question.name} (kopie)`,
+        difficulty: question.difficulty,
+        is_active: question.is_active,
+        display_order: questions.length + 1,
+      };
+
+      // Pro teorii přidáme question_text (povinné!) a category
+      if (quizType === 'theory') {
+        questionData.question_text = question.question_text || question.name;
+        if (question.category) questionData.category = question.category;
+      } else {
+        // Pro chord a ostatní přidáme quiz_type, notes a category
+        questionData.quiz_type = question.quiz_type;
+        questionData.notes = null;
+        questionData.category = null;
+      }
+
       const { data: newQuestion, error: questionError } = await supabase
-        .from('piano_quiz_chords')
-        .insert([{
-          name: `${question.name} (kopie)`,
-          quiz_type: question.quiz_type,
-          difficulty: question.difficulty,
-          is_active: question.is_active,
-          display_order: questions.length + 1,
-          notes: null,
-          category: null
-        }])
+        .from(mainTable)
+        .insert([questionData])
         .select()
         .single();
 
       if (questionError) throw questionError;
 
-      const optionsToCopy = question.piano_quiz_chord_options?.map(opt => ({
-        chord_id: newQuestion.id,
+      // Zkopírujeme options - název pole v datech závisí na typu tabulky
+      const optionsFieldName = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+      const optionsToCopy = question[optionsFieldName]?.map(opt => ({
+        [foreignKey]: newQuestion.id,
         option_name: opt.option_name,
         is_correct: opt.is_correct,
         display_order: opt.display_order
@@ -213,7 +258,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
 
       if (optionsToCopy.length > 0) {
         const { error: optionsError } = await supabase
-          .from('piano_quiz_chord_options')
+          .from(optionsTable)
           .insert(optionsToCopy);
 
         if (optionsError) throw optionsError;
@@ -222,7 +267,6 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       showSuccess('Otázka byla úspěšně duplikována');
       fetchQuestions();
     } catch (err) {
-      console.error('Error duplicating question:', err);
       setError('Nepodařilo se duplikovat otázku: ' + err.message);
     }
   };
@@ -249,19 +293,28 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
 
       setError(null);
 
+      const { mainTable, optionsTable, foreignKey } = getTableNames();
+
       const questionData = {
         name: formData.name,
-        quiz_type: quizType,
         difficulty: formData.difficulty,
         is_active: formData.is_active,
         display_order: formData.display_order,
-        notes: null,
-        category: null
       };
+
+      // Pro teorii přidáme question_text (povinné!)
+      if (quizType === 'theory') {
+        questionData.question_text = formData.name;
+      } else {
+        // Pro chord a ostatní přidáme quiz_type, notes a category
+        questionData.quiz_type = quizType;
+        questionData.notes = null;
+        questionData.category = null;
+      }
 
       if (editingQuestion) {
         const { data: updateData, error: updateError } = await supabase
-          .from('piano_quiz_chords')
+          .from(mainTable)
           .update(questionData)
           .eq('id', editingQuestion)
           .select();
@@ -273,19 +326,19 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         if (updateError) throw updateError;
 
         await supabase
-          .from('piano_quiz_chord_options')
+          .from(optionsTable)
           .delete()
-          .eq('chord_id', editingQuestion);
+          .eq(foreignKey, editingQuestion);
 
         const optionsToInsert = filledOptions.map(opt => ({
-          chord_id: editingQuestion,
+          [foreignKey]: editingQuestion,
           option_name: opt.option_name,
           is_correct: opt.is_correct,
           display_order: opt.display_order
         }));
 
         const { error: optionsError } = await supabase
-          .from('piano_quiz_chord_options')
+          .from(optionsTable)
           .insert(optionsToInsert);
 
         if (optionsError) throw optionsError;
@@ -293,7 +346,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         showSuccess('Otázka byla úspěšně aktualizována');
       } else {
         const { data: newQuestion, error: insertError } = await supabase
-          .from('piano_quiz_chords')
+          .from(mainTable)
           .insert([questionData])
           .select()
           .single();
@@ -301,14 +354,14 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         if (insertError) throw insertError;
 
         const optionsToInsert = filledOptions.map(opt => ({
-          chord_id: newQuestion.id,
+          [foreignKey]: newQuestion.id,
           option_name: opt.option_name,
           is_correct: opt.is_correct,
           display_order: opt.display_order
         }));
 
         const { error: optionsError } = await supabase
-          .from('piano_quiz_chord_options')
+          .from(optionsTable)
           .insert(optionsToInsert);
 
         if (optionsError) throw optionsError;
@@ -320,15 +373,16 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       setEditingQuestion(null);
       fetchQuestions();
     } catch (err) {
-      console.error('Error saving question:', err);
       setError('Nepodařilo se uložit otázku: ' + err.message);
     }
   };
 
   const handleToggleActive = async (questionId, currentStatus) => {
     try {
+      const { mainTable } = getTableNames();
+
       const { error } = await supabase
-        .from('piano_quiz_chords')
+        .from(mainTable)
         .update({ is_active: !currentStatus })
         .eq('id', questionId);
 
@@ -337,7 +391,6 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
       showSuccess(`Otázka byla ${!currentStatus ? 'aktivována' : 'deaktivována'}`);
       fetchQuestions();
     } catch (err) {
-      console.error('Error toggling active status:', err);
       setError('Nepodařilo se změnit stav: ' + err.message);
     }
   };
@@ -601,16 +654,19 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
 
               {/* Řádek 2: Chipy odpovědí + action buttony vpravo */}
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                {question.piano_quiz_chord_options
-                  ?.sort((a, b) => a.display_order - b.display_order)
-                  .map((opt, idx) => (
-                    <Chip
-                      key={idx}
-                      text={opt.option_name}
-                      variant="answer"
-                      isCorrect={opt.is_correct}
-                    />
-                  ))}
+                {(() => {
+                  const optionsFieldName = quizType === 'theory' ? 'piano_quiz_theory_options' : 'piano_quiz_chord_options';
+                  return question[optionsFieldName]
+                    ?.sort((a, b) => a.display_order - b.display_order)
+                    .map((opt, idx) => (
+                      <Chip
+                        key={idx}
+                        text={opt.option_name}
+                        variant="answer"
+                        isCorrect={opt.is_correct}
+                      />
+                    ));
+                })()}
                 <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
                   <ActionButton
                     variant="edit"
