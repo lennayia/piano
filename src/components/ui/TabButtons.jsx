@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save } from 'lucide-react';
+import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Border Radius System
@@ -1000,6 +1001,144 @@ export function NoteButton({ note, selected = false, onClick, variant = 'primary
     >
       {note}
     </motion.button>
+  );
+}
+
+/**
+ * IconButton - tlačítko s ikonou pro navigaci a akce
+ *
+ * @param {React.Component} icon - Lucide ikona komponenta
+ * @param {function} onClick - Callback při kliknutí
+ * @param {string} variant - 'primary' | 'secondary' (default: 'primary')
+ * @param {number} size - Velikost tlačítka v px (default: 48)
+ * @param {number} iconSize - Velikost ikony v px (default: 24)
+ * @param {string} borderRadius - Border radius (default: RADIUS.lg)
+ * @param {string} ariaLabel - Accessibility label
+ * @param {object} style - Dodatečné styly
+ */
+export function IconButton({
+  icon: Icon,
+  onClick,
+  variant = 'primary',
+  size = 48,
+  iconSize = 24,
+  borderRadius = RADIUS.lg,
+  ariaLabel,
+  style = {},
+  ...props
+}) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const variants = {
+    primary: {
+      background: 'var(--color-primary)',
+      hoverBackground: 'linear-gradient(135deg, rgba(181, 31, 101, 1) 0%, rgba(181, 31, 101, 0.9) 100%)',
+      color: '#ffffff',
+      shadow: '0 4px 16px rgba(181, 31, 101, 0.25), 0 2px 8px rgba(181, 31, 101, 0.15)',
+      hoverShadow: '0 6px 20px rgba(181, 31, 101, 0.35), 0 3px 10px rgba(181, 31, 101, 0.2)'
+    },
+    secondary: {
+      background: 'var(--color-secondary)',
+      hoverBackground: 'linear-gradient(135deg, rgba(45, 91, 120, 1) 0%, rgba(45, 91, 120, 0.9) 100%)',
+      color: '#ffffff',
+      shadow: '0 4px 16px rgba(45, 91, 120, 0.25), 0 2px 8px rgba(45, 91, 120, 0.15)',
+      hoverShadow: '0 6px 20px rgba(45, 91, 120, 0.35), 0 3px 10px rgba(45, 91, 120, 0.2)'
+    }
+  };
+
+  const variantStyle = variants[variant];
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      aria-label={ariaLabel}
+      style={{
+        background: isHovered ? variantStyle.hoverBackground : variantStyle.background,
+        color: variantStyle.color,
+        border: 'none',
+        borderRadius: borderRadius,
+        width: `${size}px`,
+        height: `${size}px`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: isHovered ? variantStyle.hoverShadow : variantStyle.shadow,
+        padding: 0,
+        transition: 'all 0.2s ease',
+        position: 'relative',
+        overflow: 'hidden',
+        ...style
+      }}
+      {...props}
+    >
+      {/* Shine effect */}
+      {isHovered && (
+        <motion.div
+          initial={{ x: '-100%' }}
+          animate={{ x: '200%' }}
+          transition={{ duration: 0.6 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+            pointerEvents: 'none'
+          }}
+        />
+      )}
+      <Icon size={iconSize} />
+    </motion.button>
+  );
+}
+
+/**
+ * BackButton - tlačítko pro navigaci zpět
+ * Automaticky používá React Router navigate(-1)
+ *
+ * @param {string} variant - 'primary' | 'secondary' (default: 'secondary')
+ * @param {number} size - Velikost tlačítka v px (default: 48)
+ * @param {number} iconSize - Velikost ikony v px (default: 24)
+ * @param {function} onClick - Custom onClick handler (pokud chceš override default behavior)
+ * @param {object} style - Dodatečné styly
+ */
+export function BackButton({
+  variant = 'secondary',
+  size = 48,
+  iconSize = 24,
+  onClick,
+  style = {},
+  ...props
+}) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(-1);
+    }
+  };
+
+  return (
+    <IconButton
+      icon={ChevronLeft}
+      onClick={handleClick}
+      variant={variant}
+      size={size}
+      iconSize={iconSize}
+      ariaLabel="Zpět"
+      style={style}
+      {...props}
+    />
   );
 }
 

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, BookOpen, CheckCircle, XCircle, Brain, Music, TrendingUp, Award, Star } from 'lucide-react';
+import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, BookOpen, CheckCircle, XCircle, Brain, Music, TrendingUp, Award, Star, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
+import { RADIUS, SHADOW, BORDER, IconButton, BackButton } from '../ui/TabButtons';
 
 /**
  * UniversalTheoryQuiz - Univerzální komponenta pro teoretické kvízy
@@ -33,6 +34,15 @@ function UniversalTheoryQuiz({
 
   const currentUser = useUserStore((state) => state.currentUser);
   const updateUserStats = useUserStore((state) => state.updateUserStats);
+
+  // Detekce velikosti obrazovky pro responzivitu
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Mapování tabulek podle typu kvízu
   const getTableNames = () => {
@@ -107,8 +117,8 @@ function UniversalTheoryQuiz({
 
         // Střídat barvy mezi primary a secondary
         const colors = [
-          'rgba(45, 91, 120, 0.2)', // secondary
-          'rgba(181, 31, 101, 0.2)', // primary
+          'rgba(45, 91, 120, 0.05)', // secondary
+          'rgba(181, 31, 101, 0.05)', // primary
         ];
 
         return {
@@ -230,6 +240,23 @@ function UniversalTheoryQuiz({
     }
   };
 
+  const previousQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+    } else {
+      // Pokud jsme na první otázce, vrátíme se na start
+      setGameStarted(false);
+      setScore(0);
+      setCurrentQuestion(0);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setStreak(0);
+      setTotalXpEarned(0);
+    }
+  };
+
   const resetGame = () => {
     setGameStarted(false);
     setScore(0);
@@ -297,7 +324,7 @@ function UniversalTheoryQuiz({
         textAlign: 'center',
         padding: '3rem',
         background: 'rgba(239, 68, 68, 0.1)',
-        borderRadius: 'var(--radius)',
+        borderRadius: RADIUS.lg,
         border: '2px solid rgba(239, 68, 68, 0.3)'
       }}>
         <XCircle size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
@@ -312,107 +339,117 @@ function UniversalTheoryQuiz({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         style={{
-          background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.1), rgba(181, 31, 101, 0.1))',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: 'var(--radius)',
-          padding: '3rem',
+          background: 'rgba(255, 255, 255, 0.6)',
+          borderRadius: RADIUS.lg,
+          padding: '2rem',
           textAlign: 'center',
-          border: '2px solid rgba(45, 91, 120, 0.2)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+          border: BORDER.default,
+          boxShadow: SHADOW.default
         }}
       >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring' }}
-        >
-          <Icon size={80} color="var(--color-primary)" style={{ margin: '0 auto 2rem' }} />
-        </motion.div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.75rem',
+          marginBottom: '1rem'
+        }}>
+          <Icon size={32} color="var(--color-primary)" />
+          <h2 style={{ fontSize: '1.75rem', margin: 0, color: 'var(--text-primary)' }}>
+            {title}
+          </h2>
+        </div>
 
-        <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
-          {title}
-        </h2>
-
-        <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>
+        <p style={{
+          fontSize: '1rem',
+          color: 'var(--text-secondary)',
+          marginBottom: '2rem',
+          maxWidth: '500px',
+          margin: '0 auto 2rem'
+        }}>
           {description} Odpovězte na {questions.length} otázek a prokažte své znalosti!
         </p>
 
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          display: 'flex',
           gap: '1rem',
           marginBottom: '2rem',
-          maxWidth: '600px',
-          margin: '0 auto 2rem'
+          justifyContent: 'center',
+          flexWrap: 'wrap'
         }}>
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            style={{
-              background: 'rgba(45, 91, 120, 0.1)',
-              padding: '1.5rem',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(45, 91, 120, 0.3)'
+          <div style={{
+              background: 'rgba(45, 91, 120, 0.05)',
+              padding: '1rem 1.5rem',
+              borderRadius: RADIUS.md,
+              boxShadow: SHADOW.default,
+              minWidth: '120px'
             }}
           >
-            <Target size={32} color="var(--color-secondary)" style={{ margin: '0 auto 0.5rem' }} />
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+            <div style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: 'var(--color-secondary)',
+              marginBottom: '0.25rem'
+            }}>
               {questions.length}
             </div>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Otázek</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            style={{
-              background: 'rgba(181, 31, 101, 0.1)',
-              padding: '1.5rem',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(181, 31, 101, 0.3)'
+          <div style={{
+              background: 'rgba(181, 31, 101, 0.05)',
+              padding: '1rem 1.5rem',
+              borderRadius: RADIUS.md,
+              boxShadow: SHADOW.default,
+              minWidth: '120px'
             }}
           >
-            <Trophy size={32} color="var(--color-primary)" style={{ margin: '0 auto 0.5rem' }} />
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+            <div style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: 'var(--color-primary)',
+              marginBottom: '0.25rem'
+            }}>
               {bestStreak}
             </div>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Nejlepší série</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            style={{
-              background: 'rgba(255, 215, 0, 0.1)',
-              padding: '1.5rem',
-              borderRadius: 'var(--radius)',
-              border: '2px solid rgba(255, 215, 0, 0.3)'
+          <div style={{
+              background: 'rgba(45, 91, 120, 0.05)',
+              padding: '1rem 1.5rem',
+              borderRadius: RADIUS.md,
+              boxShadow: SHADOW.default,
+              minWidth: '120px'
             }}
           >
-            <Star size={32} color="#FFD700" style={{ margin: '0 auto 0.5rem' }} />
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#FFD700' }}>
+            <div style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: 'var(--color-secondary)',
+              marginBottom: '0.25rem'
+            }}>
               100
             </div>
             <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Max XP</div>
-          </motion.div>
+          </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={startGame}
           className="btn btn-primary"
           style={{
-            fontSize: '1.25rem',
-            padding: '1rem 3rem',
-            background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-            border: 'none',
+            fontSize: '1rem',
+            padding: '0.625rem 1.5rem',
+            borderRadius: RADIUS.md,
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.75rem'
+            gap: '0.5rem'
           }}
         >
-          <Play size={24} />
+          <Play size={18} />
           Začít kvíz
-        </motion.button>
+        </button>
       </motion.div>
     );
   }
@@ -428,9 +465,9 @@ function UniversalTheoryQuiz({
       {/* Progress bar */}
       <div style={{
         background: 'rgba(255, 255, 255, 0.5)',
-        borderRadius: 'var(--radius)',
-        height: '8px',
-        marginBottom: '2rem',
+        borderRadius: RADIUS.sm,
+        height: isMobile ? '6px' : '8px',
+        marginBottom: isMobile ? '1rem' : '2rem',
         overflow: 'hidden'
       }}>
         <motion.div
@@ -439,7 +476,7 @@ function UniversalTheoryQuiz({
           style={{
             height: '100%',
             background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
-            borderRadius: 'var(--radius)'
+            borderRadius: RADIUS.sm
           }}
         />
       </div>
@@ -448,104 +485,75 @@ function UniversalTheoryQuiz({
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        marginBottom: '2rem',
-        gap: '1rem',
+        marginBottom: isMobile ? '1rem' : '2rem',
+        gap: isMobile ? '0.5rem' : '1rem',
         flexWrap: 'wrap'
       }}>
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          style={{
-            background: 'rgba(45, 91, 120, 0.1)',
-            padding: '1rem 1.5rem',
-            borderRadius: 'var(--radius)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            border: '2px solid rgba(45, 91, 120, 0.3)',
+        <div style={{
+            background: 'rgba(45, 91, 120, 0.05)',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+            borderRadius: RADIUS.md,
+            boxShadow: SHADOW.default,
             flex: 1,
-            minWidth: '150px'
+            minWidth: isMobile ? '80px' : '100px',
+            textAlign: 'center'
           }}
         >
-          <Trophy size={24} color="var(--color-secondary)" />
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Skóre</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
-              {score}/{questions.length}
-            </div>
+          <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Skóre</div>
+          <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+            {score}/{questions.length}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          animate={streak > 0 ? { scale: [1, 1.1, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          style={{
-            background: streak > 0 ? 'rgba(255, 215, 0, 0.15)' : 'rgba(45, 91, 120, 0.1)',
-            padding: '1rem 1.5rem',
-            borderRadius: 'var(--radius)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            border: streak > 0 ? '2px solid rgba(255, 215, 0, 0.5)' : '2px solid rgba(45, 91, 120, 0.3)',
+        <div style={{
+            background: 'rgba(45, 91, 120, 0.05)',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+            borderRadius: RADIUS.md,
+            boxShadow: SHADOW.default,
             flex: 1,
-            minWidth: '150px'
+            minWidth: isMobile ? '80px' : '100px',
+            textAlign: 'center'
           }}
         >
-          <Flame size={24} color={streak > 0 ? '#FFD700' : 'var(--color-secondary)'} />
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Série</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: streak > 0 ? '#FFD700' : 'var(--color-secondary)' }}>
-              {streak} 🔥
-            </div>
+          <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Série</div>
+          <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+            {streak}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          style={{
-            background: 'rgba(181, 31, 101, 0.1)',
-            padding: '1rem 1.5rem',
-            borderRadius: 'var(--radius)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            border: '2px solid rgba(181, 31, 101, 0.3)',
+        <div style={{
+            background: 'rgba(45, 91, 120, 0.05)',
+            padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+            borderRadius: RADIUS.md,
+            boxShadow: SHADOW.default,
             flex: 1,
-            minWidth: '150px'
+            minWidth: isMobile ? '80px' : '100px',
+            textAlign: 'center'
           }}
         >
-          <Target size={24} color="var(--color-primary)" />
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Otázka</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-              {currentQuestion + 1}/{questions.length}
-            </div>
+          <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Otázka</div>
+          <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+            {currentQuestion + 1}/{questions.length}
           </div>
-        </motion.div>
+        </div>
 
         {totalXpEarned > 0 && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            whileHover={{ scale: 1.05 }}
             style={{
-              background: 'rgba(59, 130, 246, 0.15)',
-              padding: '1rem 1.5rem',
-              borderRadius: 'var(--radius)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              border: '2px solid rgba(59, 130, 246, 0.5)',
+              background: 'rgba(45, 91, 120, 0.05)',
+              padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+              borderRadius: RADIUS.md,
+              boxShadow: SHADOW.default,
               flex: 1,
-              minWidth: '150px'
+              minWidth: isMobile ? '80px' : '100px',
+              textAlign: 'center'
             }}
           >
-            <Zap size={24} color="#3b82f6" />
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Získané XP</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
-                +{totalXpEarned}
-              </div>
+            <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Získané XP</div>
+            <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+              +{totalXpEarned}
             </div>
           </motion.div>
         )}
@@ -562,23 +570,23 @@ function UniversalTheoryQuiz({
             background: currentQ.color,
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: 'var(--radius)',
-            padding: '2rem',
-            marginBottom: '2rem',
-            border: '2px solid rgba(45, 91, 120, 0.3)',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+            borderRadius: RADIUS.xl,
+            padding: isMobile ? '1rem' : '2rem',
+            marginBottom: isMobile ? '1rem' : '2rem',
+            border: BORDER.default,
+            boxShadow: SHADOW.default
           }}
         >
           <div style={{
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '1rem',
-            marginBottom: '1.5rem'
+            gap: isMobile ? '0.75rem' : '1rem',
+            marginBottom: isMobile ? '1rem' : '1.5rem'
           }}>
-            <Icon size={32} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+            <Icon size={isMobile ? 24 : 32} color="var(--color-primary)" style={{ flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <h3 style={{
-                fontSize: '1.5rem',
+                fontSize: isMobile ? '1.125rem' : '1.5rem',
                 color: 'var(--text-primary)',
                 margin: '0 0 0.5rem 0',
                 lineHeight: 1.4
@@ -590,7 +598,7 @@ function UniversalTheoryQuiz({
                   display: 'inline-block',
                   padding: '0.25rem 0.75rem',
                   background: 'rgba(45, 91, 120, 0.2)',
-                  borderRadius: '999px',
+                  borderRadius: RADIUS.sm,
                   fontSize: '0.875rem',
                   color: 'var(--color-secondary)',
                   fontWeight: 600
@@ -603,8 +611,8 @@ function UniversalTheoryQuiz({
 
           <div style={{
             display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+            gap: isMobile ? '0.75rem' : '1rem',
+            gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(120px, 1fr))' : 'repeat(auto-fit, minmax(200px, 1fr))'
           }}>
             {currentQ.options.map((option, index) => {
               const isSelected = selectedAnswer === option.text;
@@ -619,22 +627,22 @@ function UniversalTheoryQuiz({
                   onClick={() => handleAnswer(option.text)}
                   disabled={showResult}
                   style={{
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius)',
+                    padding: isMobile ? '0.875rem' : '1.25rem',
+                    borderRadius: RADIUS.lg,
                     border: showCorrect
                       ? '3px solid #10b981'
                       : showWrong
                       ? '3px solid #ef4444'
                       : isSelected
                       ? '3px solid var(--color-primary)'
-                      : '2px solid rgba(45, 91, 120, 0.3)',
+                      : BORDER.default,
                     background: showCorrect
                       ? 'rgba(16, 185, 129, 0.2)'
                       : showWrong
                       ? 'rgba(239, 68, 68, 0.2)'
                       : 'rgba(255, 255, 255, 0.7)',
                     cursor: showResult ? 'not-allowed' : 'pointer',
-                    fontSize: '1rem',
+                    fontSize: isMobile ? '0.875rem' : '1rem',
                     fontWeight: 600,
                     color: showCorrect
                       ? '#10b981'
@@ -649,8 +657,8 @@ function UniversalTheoryQuiz({
                   }}
                 >
                   <span>{option.text}</span>
-                  {showCorrect && <CheckCircle size={20} />}
-                  {showWrong && <XCircle size={20} />}
+                  {showCorrect && <CheckCircle size={isMobile ? 16 : 20} />}
+                  {showWrong && <XCircle size={isMobile ? 16 : 20} />}
                 </motion.button>
               );
             })}
@@ -659,22 +667,27 @@ function UniversalTheoryQuiz({
       </AnimatePresence>
 
       {/* Navigation buttons */}
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+        {showResult && (
+          <IconButton
+            icon={ChevronLeft}
+            onClick={previousQuestion}
+            variant="secondary"
+            size={isMobile ? 44 : 48}
+            iconSize={isMobile ? 20 : 24}
+            ariaLabel={currentQuestion > 0 ? "Předchozí otázka" : "Zpět na start"}
+          />
+        )}
+
         {showResult && currentQuestion < questions.length - 1 && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <IconButton
+            icon={ChevronRight}
             onClick={nextQuestion}
-            className="btn btn-primary"
-            style={{
-              fontSize: '1.125rem',
-              padding: '0.875rem 2rem'
-            }}
-          >
-            Další otázka →
-          </motion.button>
+            variant="primary"
+            size={isMobile ? 44 : 48}
+            iconSize={isMobile ? 20 : 24}
+            ariaLabel="Další otázka"
+          />
         )}
 
         {showResult && currentQuestion === questions.length - 1 && (
@@ -686,14 +699,15 @@ function UniversalTheoryQuiz({
             onClick={resetGame}
             className="btn btn-primary"
             style={{
-              fontSize: '1.125rem',
-              padding: '0.875rem 2rem',
+              fontSize: isMobile ? '0.875rem' : '1rem',
+              padding: isMobile ? '0.5rem 1rem' : '0.625rem 1.5rem',
+              borderRadius: RADIUS.md,
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem'
             }}
           >
-            <RotateCcw size={20} />
+            <RotateCcw size={isMobile ? 16 : 18} />
             Hrát znovu
           </motion.button>
         )}
@@ -712,7 +726,7 @@ function UniversalTheoryQuiz({
               background: score === questions.length
                 ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(255, 215, 0, 0.2))'
                 : 'linear-gradient(135deg, rgba(45, 91, 120, 0.1), rgba(181, 31, 101, 0.1))',
-              borderRadius: 'var(--radius)',
+              borderRadius: RADIUS.lg,
               textAlign: 'center',
               border: `2px solid ${motivation.color}`,
               boxShadow: `0 4px 20px ${motivation.color}40`
@@ -749,7 +763,7 @@ function UniversalTheoryQuiz({
                   marginTop: '1rem',
                   padding: '1rem',
                   background: 'rgba(59, 130, 246, 0.2)',
-                  borderRadius: 'var(--radius)',
+                  borderRadius: RADIUS.md,
                   display: 'inline-block'
                 }}
               >
