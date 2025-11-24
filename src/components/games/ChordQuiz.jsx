@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, Music, CheckCircle, XCircle } from 'lucide-react';
+import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, Music, CheckCircle, XCircle, Award, Star, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
+import { RADIUS, SHADOW, BORDER, IconButton, BackButton, AnswerStatusChip } from '../ui/TabButtons';
 
 function ChordQuiz() {
   const [score, setScore] = useState(0);
@@ -19,6 +20,7 @@ function ChordQuiz() {
   const [chords, setChords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalXpEarned, setTotalXpEarned] = useState(0);
 
   const currentUser = useUserStore((state) => state.currentUser);
   const updateUserStats = useUserStore((state) => state.updateUserStats);
@@ -98,7 +100,6 @@ function ChordQuiz() {
 
     try {
       // 1. Uložit dokončení kvízu do historie
-      const xpEarned = isPerfect ? 50 : 20;
       const { error: quizError } = await supabase
         .from('piano_quiz_completions')
         .insert([{
@@ -107,42 +108,30 @@ function ChordQuiz() {
           score: finalScore,
           total_questions: chords.length,
           is_perfect: isPerfect,
-          xp_earned: xpEarned
+          xp_earned: isPerfect ? 50 : 20
         }]);
 
       if (quizError) {
         console.error('Chyba při ukládání kvízu:', quizError);
       }
 
-      // 2. Aktualizovat statistiky uživatele
-      const { data: stats, error: statsError } = await supabase
-        .from('piano_user_stats')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .single();
-
-      if (stats && !statsError) {
-        const { error: updateError } = await supabase
-          .from('piano_user_stats')
-          .update({
-            quizzes_completed: (stats.quizzes_completed || 0) + 1,
-            quizzes_perfect_score: isPerfect
-              ? (stats.quizzes_perfect_score || 0) + 1
-              : stats.quizzes_perfect_score,
-            total_xp: (stats.total_xp || 0) + (isPerfect ? 50 : 20), // 50 XP za perfektní, 20 XP za dokončení
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', currentUser.id);
-
-        if (updateError) {
-          console.error('Chyba při aktualizaci statistik:', updateError);
-        } else {
-          // Aktualizovat lokální store
-          if (updateUserStats) {
-            updateUserStats();
-          }
-        }
+      // 2. Aktualizovat statistiky a achievementy pomocí store
+      let xpEarned = 0;
+      if (isPerfect) {
+        xpEarned = 100; // Perfektní skóre 🎉
+      } else if (finalScore >= chords.length * 0.8) {
+        xpEarned = 75; // 80%+ správně 👏
+      } else if (finalScore >= chords.length * 0.7) {
+        xpEarned = 50; // 70%+ správně 👍
+      } else if (finalScore >= chords.length * 0.5) {
+        xpEarned = 25; // 50%+ správně 💪
       }
+
+      if (xpEarned > 0) {
+        await updateUserStats({ xp_gained: xpEarned, quiz_completed: true });
+        setTotalXpEarned(prev => prev + xpEarned);
+      }
+
     } catch (error) {
       console.error('Chyba při ukládání kvízu:', error);
     }
@@ -155,6 +144,7 @@ function ChordQuiz() {
     setStreak(0);
     setSelectedAnswer(null);
     setShowResult(false);
+    setTotalXpEarned(0);
   };
 
   const handleAnswer = (answer) => {
@@ -211,12 +201,9 @@ function ChordQuiz() {
   // Loading state
   if (loading) {
     return (
-      <div>
-        <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáte akord?</h2>
-        <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-          <Music size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem', animation: 'pulse 1.5s infinite' }} />
-          <p style={{ color: '#64748b' }}>Načítám akordy...</p>
-        </div>
+      <div style={{ textAlign: 'center', padding: '3rem' }}>
+        <Music size={48} color="var(--color-primary)" style={{ animation: 'pulse 1.5s infinite', margin: '0 auto 1rem' }} />
+        <p style={{ color: 'var(--text-secondary)' }}>Načítám akordy...</p>
       </div>
     );
   }
@@ -224,28 +211,31 @@ function ChordQuiz() {
   // Error state
   if (error) {
     return (
-      <div>
-        <h2 style={{ marginBottom: '1.5rem', color: '#1e293b' }}>Poznáte akord?</h2>
-        <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-          <XCircle size={48} color="var(--color-danger)" style={{ margin: '0 auto 1rem' }} />
-          <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Tohle se nám nedaří načíst</h3>
-          <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>{error}</p>
-          <button
-            onClick={fetchChords}
-            style={{
-              background: 'var(--color-primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--radius)',
-              padding: '12px 24px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: '600'
-            }}
-          >
-            Zkusit znovu
-          </button>
-        </div>
+      <div style={{
+        textAlign: 'center',
+        padding: '3rem',
+        background: 'rgba(239, 68, 68, 0.1)',
+        borderRadius: RADIUS.lg,
+        border: '2px solid rgba(239, 68, 68, 0.3)'
+      }}>
+        <XCircle size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
+        <p style={{ color: '#ef4444', fontWeight: 600 }}>{error}</p>
+        <button
+          onClick={fetchChords}
+          style={{
+            background: 'var(--color-primary)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: RADIUS.md,
+            padding: '12px 24px',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            fontWeight: '600',
+            marginTop: '1rem'
+          }}
+        >
+          Zkusit znovu
+        </button>
       </div>
     );
   }
@@ -328,11 +318,12 @@ function ChordQuiz() {
                   background: score === chords.length
                     ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)'
                     : 'rgba(45, 91, 120, 0.1)',
-                  borderRadius: 'var(--radius)',
+                  borderRadius: RADIUS.lg,
                   marginBottom: '1.5rem',
                   border: score === chords.length
                     ? '2px solid #10b981'
-                    : '1px solid rgba(45, 91, 120, 0.2)'
+                    : BORDER.default,
+                  boxShadow: SHADOW.default
                 }}
               >
                 <div style={{ fontSize: '2rem', fontWeight: 700, color: score === chords.length ? '#059669' : 'var(--color-secondary)', marginBottom: '0.5rem' }}>
@@ -347,13 +338,31 @@ function ChordQuiz() {
                     <>Není to špatné! Zkuste to ještě jednou</>
                   )}
                 </div>
+                {totalXpEarned > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem',
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    borderRadius: RADIUS.md,
+                    marginBottom: score < chords.length ? '0.75rem' : '0',
+                    border: '1px solid rgba(59, 130, 246, 0.2)'
+                  }}>
+                    <Star size={18} color="#3b82f6" style={{ fill: '#3b82f6' }} />
+                    <span style={{ fontSize: '0.875rem', color: '#3b82f6', fontWeight: 600 }}>
+                      +{totalXpEarned} XP získáno!
+                    </span>
+                  </div>
+                )}
                 {score < chords.length && (
                   <div style={{
                     fontSize: '0.75rem',
                     color: '#64748b',
                     padding: '0.5rem',
                     background: 'rgba(181, 31, 101, 0.05)',
-                    borderRadius: 'var(--radius)',
+                    borderRadius: RADIUS.md,
                     borderLeft: '3px solid var(--color-primary)'
                   }}>
                     💡 Tip: Poslouchejte si akordy víckrát, pomůže vám to líp je rozpoznat!
@@ -372,7 +381,7 @@ function ChordQuiz() {
                 <div style={{
                   padding: '0.75rem 1.25rem',
                   background: 'rgba(181, 31, 101, 0.1)',
-                  borderRadius: 'var(--radius)',
+                  borderRadius: RADIUS.md,
                   border: '1px solid rgba(181, 31, 101, 0.2)'
                 }}>
                   <Zap size={20} color="var(--color-primary)" style={{ marginBottom: '0.25rem' }} />
