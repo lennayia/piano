@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown, History, Headphones } from 'lucide-react';
+import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown, History, Headphones, Brain } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import useUserStore from '../../store/useUserStore';
@@ -136,6 +136,22 @@ function Header() {
                 }}>
                   <Headphones size={18} />
                   <span>Cvičení</span>
+                </Link>
+
+                <Link to="/theory-quizzes" onClick={handleNavClick} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  textDecoration: 'none',
+                  color: location.pathname === '/theory-quizzes'
+                    ? 'var(--color-primary)'
+                    : 'var(--color-text-secondary)',
+                  fontSize: '0.875rem',
+                  fontWeight: location.pathname === '/theory-quizzes' ? 600 : 500,
+                  transition: 'all 0.3s ease'
+                }}>
+                  <Brain size={18} />
+                  <span>Teorie</span>
                 </Link>
 
                 <Link to="/resources" onClick={handleNavClick} style={{
@@ -372,6 +388,26 @@ function Header() {
                     }}>
                       <Headphones size={20} />
                       <span>Cvičení</span>
+                    </Link>
+
+                    <Link to="/theory-quizzes" onClick={handleNavClick} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      textDecoration: 'none',
+                      color: location.pathname === '/theory-quizzes'
+                        ? 'var(--color-primary)'
+                        : 'var(--color-text-secondary)',
+                      fontSize: '1rem',
+                      fontWeight: location.pathname === '/theory-quizzes' ? 600 : 500,
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius)',
+                      background: location.pathname === '/theory-quizzes'
+                        ? 'rgba(181, 31, 101, 0.1)'
+                        : 'transparent'
+                    }}>
+                      <Brain size={20} />
+                      <span>Teorie</span>
                     </Link>
 
                     <Link to="/resources" onClick={handleNavClick} style={{
