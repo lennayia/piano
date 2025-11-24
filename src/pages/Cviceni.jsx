@@ -7,7 +7,6 @@ import PianoKeyboard from '../components/lessons/PianoKeyboard';
 import TabButtons from '../components/ui/TabButtons';
 import SongLibrary from '../components/resources/SongLibrary';
 import ChordQuiz from '../components/games/ChordQuiz';
-import TheoryQuiz from '../components/games/TheoryQuiz';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import audioEngine from '../utils/audio';
 import { getChordNotesWithOctaves, shuffleArray } from '../utils/noteUtils';
@@ -73,7 +72,7 @@ function Cviceni() {
 
   // Noty jsou už ve správném formátu v databázi (A., C#, H'', atd.)
   // Použijeme je přímo pro zvýraznění na klaviatuře
-  const chordNotesWithOctaves = currentChord ? currentChord.notes : [];
+  const chordNotesWithOctaves = currentChord?.notes || [];
 
   // Přehrát celý akord najednou
   const playFullChord = () => {
@@ -261,12 +260,11 @@ function Cviceni() {
         </p>
       </motion.div>
 
-      {/* Hlavní navigace - Akordy / Poznáte akord? / Hudební teorie / Písničky */}
+      {/* Hlavní navigace - Akordy / Poznáte akord? / Písničky */}
       <TabButtons
         tabs={[
           { id: 'chords', label: 'Akordy', icon: Piano },
           { id: 'quiz', label: 'Poznáte akord?', icon: Target },
-          { id: 'theory', label: 'Hudební teorie', icon: Brain },
           { id: 'songs', label: 'Písničky', icon: Music }
         ]}
         activeTab={activeSection}
@@ -634,11 +632,6 @@ function Cviceni() {
       {/* Sekce Poznáte akord? */}
       {activeSection === 'quiz' && (
         <ChordQuiz />
-      )}
-
-      {/* Sekce Hudební teorie */}
-      {activeSection === 'theory' && (
-        <TheoryQuiz />
       )}
 
       {/* Sekce Písničky */}

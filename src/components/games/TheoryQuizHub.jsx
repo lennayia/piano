@@ -13,6 +13,13 @@ function TheoryQuizHub() {
   // Konfigurace všech typů kvízů
   const QUIZ_TYPES = [
     {
+      id: 'theory',
+      label: 'Teoretický kvíz',
+      icon: Brain,
+      title: 'Kvíz: Hudební teorie',
+      description: 'Obecné otázky z hudební teorie'
+    },
+    {
       id: 'interval',
       label: 'Intervaly',
       icon: TrendingUp,
@@ -37,7 +44,7 @@ function TheoryQuizHub() {
       id: 'mixed',
       label: 'Mix',
       icon: Sparkles,
-      title: 'Kvíz: Hudební teorie',
+      title: 'Kvíz: Mix',
       description: 'Smíšené otázky ze všech oblastí hudební teorie'
     }
   ];

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save, ChevronLeft } from 'lucide-react';
+import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save, ChevronLeft, CheckCircle, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import audioEngine from '../../utils/audio';
 
 /**
  * Border Radius System
@@ -1097,6 +1098,63 @@ export function IconButton({
       )}
       <Icon size={iconSize} />
     </motion.button>
+  );
+}
+
+/**
+ * AnswerStatusChip - malý chip s ikonou pro zobrazení správnosti odpovědi
+ *
+ * @param {string} status - 'correct' | 'incorrect'
+ * @param {number} size - Velikost ikony v px (default: 20)
+ * @param {object} style - Dodatečné styly
+ */
+export function AnswerStatusChip({ status = 'correct', size = 20, style = {}, ...props }) {
+  const statusConfig = {
+    correct: {
+      icon: CheckCircle,
+      background: 'rgba(16, 185, 129, 0.15)',
+      color: '#10b981',
+      border: '2px solid rgba(16, 185, 129, 0.3)'
+    },
+    incorrect: {
+      icon: XCircle,
+      background: 'rgba(239, 68, 68, 0.15)',
+      color: '#ef4444',
+      border: '2px solid rgba(239, 68, 68, 0.3)'
+    }
+  };
+
+  const config = statusConfig[status];
+  const Icon = config.icon;
+
+  // Přehrát zvuk při zobrazení chipu
+  useEffect(() => {
+    if (status === 'correct') {
+      audioEngine.playSuccess();
+    } else if (status === 'incorrect') {
+      audioEngine.playError();
+    }
+  }, []); // Prázdný array = spustí se pouze při mount
+
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0.375rem',
+        borderRadius: RADIUS.md,
+        background: config.background,
+        border: config.border,
+        ...style
+      }}
+      {...props}
+    >
+      <Icon size={size} color={config.color} strokeWidth={2.5} />
+    </motion.div>
   );
 }
 

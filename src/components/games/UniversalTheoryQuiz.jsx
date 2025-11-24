@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
-import { RADIUS, SHADOW, BORDER, IconButton, BackButton } from '../ui/TabButtons';
+import { RADIUS, SHADOW, BORDER, IconButton, BackButton, AnswerStatusChip } from '../ui/TabButtons';
+import audioEngine from '../../utils/audio';
 
 /**
  * UniversalTheoryQuiz - Univerzální komponenta pro teoretické kvízy
@@ -47,6 +48,12 @@ function UniversalTheoryQuiz({
   // Mapování tabulek podle typu kvízu
   const getTableNames = () => {
     const tableMap = {
+      theory: {
+        mainTable: 'piano_quiz_theory',
+        optionsTable: 'piano_quiz_theory_options',
+        completionsTable: 'piano_quiz_theory_completions',
+        foreignKey: 'theory_question_id'
+      },
       interval: {
         mainTable: 'piano_quiz_interval',
         optionsTable: 'piano_quiz_interval_options',
@@ -72,7 +79,7 @@ function UniversalTheoryQuiz({
         foreignKey: 'mixed_question_id'
       }
     };
-    return tableMap[quizType] || tableMap.interval;
+    return tableMap[quizType] || tableMap.theory;
   };
 
   // Načtení otázek z databáze
@@ -145,28 +152,48 @@ function UniversalTheoryQuiz({
     }
   };
 
-  const saveQuizCompletion = async (finalScore) => {
-    if (!currentUser) return;
+  const saveQuizCompletion = async (finalScore, answer) => {
+    console.log('🎯 saveQuizCompletion called:', { finalScore, currentQuestion, answer });
+
+    if (!currentUser) {
+      console.log('❌ No current user');
+      return;
+    }
 
     const isPerfect = finalScore === questions.length;
     const tables = getTableNames();
 
+    console.log('📋 Tables:', tables);
+
     try {
       // 1. Uložit dokončení aktuální otázky
       const currentQuestionData = questions[currentQuestion];
-      const selectedOption = currentQuestionData.options.find(opt => opt.text === selectedAnswer);
+      const selectedOption = currentQuestionData.options.find(opt => opt.text === answer);
+
+      console.log('🔍 Current question:', currentQuestionData);
+      console.log('🔍 Selected option:', selectedOption);
 
       if (selectedOption) {
         const completionData = {
           user_id: currentUser.id,
           [tables.foreignKey]: currentQuestionData.id,
           selected_option_id: selectedOption.id,
-          is_correct: selectedOption.isCorrect
+          is_correct: selectedOption.isCorrect,
+          completed_at: new Date().toISOString()
         };
 
-        await supabase
+        console.log('💾 Saving quiz completion:', tables.completionsTable, completionData);
+
+        const { data, error } = await supabase
           .from(tables.completionsTable)
-          .insert(completionData);
+          .insert(completionData)
+          .select();
+
+        if (error) {
+          console.error('❌ Error saving completion:', error);
+        } else {
+          console.log('✅ Completion saved:', data);
+        }
       }
 
       // 2. Přidat XP podle výsledku
@@ -182,7 +209,7 @@ function UniversalTheoryQuiz({
       }
 
       if (xpEarned > 0) {
-        await updateUserStats({ xp_gained: xpEarned });
+        await updateUserStats({ xp_gained: xpEarned, quiz_completed: true });
         setTotalXpEarned(prev => prev + xpEarned);
       }
 
@@ -222,11 +249,15 @@ function UniversalTheoryQuiz({
     // Pokud je to poslední otázka, uložíme výsledek
     if (currentQuestion === questions.length - 1) {
       const finalScore = isCorrect ? score + 1 : score;
-      saveQuizCompletion(finalScore);
+      saveQuizCompletion(finalScore, answer);
 
-      // Pokud perfektní skóre, zobrazíme konfety
+      // Pokud perfektní skóre, zobrazíme konfety a zahrajeme fanfáru
       if (finalScore === questions.length) {
         setShowCelebration(true);
+        audioEngine.playFanfare();
+        setTimeout(() => {
+          audioEngine.playApplause();
+        }, 500);
         setTimeout(() => setShowCelebration(false), 3000);
       }
     }
@@ -464,9 +495,9 @@ function UniversalTheoryQuiz({
 
       {/* Progress bar */}
       <div style={{
-        background: 'rgba(255, 255, 255, 0.5)',
+        background: 'rgba(0, 0, 0, 0.05)',
         borderRadius: RADIUS.sm,
-        height: isMobile ? '6px' : '8px',
+        height: isMobile ? '3px' : '4px',
         marginBottom: isMobile ? '1rem' : '2rem',
         overflow: 'hidden'
       }}>
@@ -475,7 +506,7 @@ function UniversalTheoryQuiz({
           animate={{ width: `${progress}%` }}
           style={{
             height: '100%',
-            background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
+            background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.6), rgba(45, 91, 120, 0.6))',
             borderRadius: RADIUS.sm
           }}
         />
@@ -616,7 +647,7 @@ function UniversalTheoryQuiz({
           }}>
             {currentQ.options.map((option, index) => {
               const isSelected = selectedAnswer === option.text;
-              const showCorrect = showResult && option.isCorrect;
+              const showCorrect = showResult && isSelected && option.isCorrect;
               const showWrong = showResult && isSelected && !option.isCorrect;
 
               return (
@@ -629,26 +660,15 @@ function UniversalTheoryQuiz({
                   style={{
                     padding: isMobile ? '0.875rem' : '1.25rem',
                     borderRadius: RADIUS.lg,
-                    border: showCorrect
-                      ? '3px solid #10b981'
-                      : showWrong
-                      ? '3px solid #ef4444'
-                      : isSelected
-                      ? '3px solid var(--color-primary)'
-                      : BORDER.default,
-                    background: showCorrect
-                      ? 'rgba(16, 185, 129, 0.2)'
-                      : showWrong
-                      ? 'rgba(239, 68, 68, 0.2)'
-                      : 'rgba(255, 255, 255, 0.7)',
+                    border: BORDER.default,
+                    boxShadow: isSelected
+                      ? '0 4px 16px rgba(181, 31, 101, 0.25), 0 2px 8px rgba(181, 31, 101, 0.15)'
+                      : 'none',
+                    background: 'rgba(255, 255, 255, 0.7)',
                     cursor: showResult ? 'not-allowed' : 'pointer',
                     fontSize: isMobile ? '0.875rem' : '1rem',
                     fontWeight: 600,
-                    color: showCorrect
-                      ? '#10b981'
-                      : showWrong
-                      ? '#ef4444'
-                      : 'var(--text-primary)',
+                    color: 'var(--text-primary)',
                     transition: 'all 0.2s',
                     display: 'flex',
                     alignItems: 'center',
@@ -657,8 +677,8 @@ function UniversalTheoryQuiz({
                   }}
                 >
                   <span>{option.text}</span>
-                  {showCorrect && <CheckCircle size={isMobile ? 16 : 20} />}
-                  {showWrong && <XCircle size={isMobile ? 16 : 20} />}
+                  {showCorrect && <AnswerStatusChip status="correct" size={isMobile ? 16 : 20} />}
+                  {showWrong && <AnswerStatusChip status="incorrect" size={isMobile ? 16 : 20} />}
                 </motion.button>
               );
             })}
@@ -723,35 +743,29 @@ function UniversalTheoryQuiz({
             style={{
               marginTop: '2rem',
               padding: '2rem',
-              background: score === questions.length
-                ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(255, 215, 0, 0.2))'
-                : 'linear-gradient(135deg, rgba(45, 91, 120, 0.1), rgba(181, 31, 101, 0.1))',
-              borderRadius: RADIUS.lg,
+              background: 'rgba(255, 255, 255, 0.7)',
+              borderRadius: RADIUS.xl,
               textAlign: 'center',
-              border: `2px solid ${motivation.color}`,
-              boxShadow: `0 4px 20px ${motivation.color}40`
+              border: BORDER.default,
+              boxShadow: SHADOW.default
             }}
           >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ repeat: 2, duration: 0.5 }}
-              style={{ fontSize: '3rem', marginBottom: '1rem' }}
-            >
+            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
               {motivation.emoji}
-            </motion.div>
-            <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: motivation.color }}>
+            </div>
+            <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>
               {motivation.title}
             </h3>
             <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
               {motivation.message}
             </p>
             <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)' }}>
-              Vaše skóre: <strong style={{ color: motivation.color }}>{score}/{questions.length}</strong>
+              Vaše skóre: <strong style={{ color: 'var(--color-secondary)' }}>{score}/{questions.length}</strong>
               {' '}({Math.round((score / questions.length) * 100)}%)
             </p>
             {bestStreak > 1 && (
               <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                🔥 Nejlepší série: <strong style={{ color: '#FFD700' }}>{bestStreak} správně za sebou!</strong>
+                Nejlepší série: <strong style={{ color: 'var(--color-secondary)' }}>{bestStreak} správně za sebou!</strong>
               </p>
             )}
             {totalXpEarned > 0 && (
@@ -762,13 +776,13 @@ function UniversalTheoryQuiz({
                 style={{
                   marginTop: '1rem',
                   padding: '1rem',
-                  background: 'rgba(59, 130, 246, 0.2)',
-                  borderRadius: RADIUS.md,
+                  background: 'rgba(45, 91, 120, 0.05)',
+                  borderRadius: RADIUS.lg,
                   display: 'inline-block'
                 }}
               >
-                <Zap size={24} color="#3b82f6" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} />
-                <strong style={{ fontSize: '1.5rem', color: '#3b82f6' }}>+{totalXpEarned} XP získáno!</strong>
+                <Zap size={24} color="var(--color-secondary)" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} />
+                <strong style={{ fontSize: '1.5rem', color: 'var(--color-secondary)' }}>+{totalXpEarned} XP získáno!</strong>
               </motion.div>
             )}
           </motion.div>

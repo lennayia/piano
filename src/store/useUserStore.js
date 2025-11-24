@@ -425,7 +425,8 @@ const useUserStore = create(
             .from('piano_user_achievements')
             .insert({
               user_id: userId,
-              achievement_id: achievement.id
+              achievement_id: achievement.id,
+              earned_at: new Date().toISOString()
             });
 
           // Add achievement XP to user stats
@@ -612,10 +613,116 @@ const useUserStore = create(
   },
 
   // Update user stats (refresh after lesson/quiz/song completion)
-  updateUserStats: async () => {
+  updateUserStats: async (updates = {}) => {
     try {
       const state = get();
       if (!state.currentUser) return;
+
+      let totalXpAdded = 0;
+      let newTotalXp = state.currentUser.stats?.total_xp || 0;
+      let newLevel = state.currentUser.stats?.level || 1;
+
+      // If we have xp_gained, add it to total_xp
+      if (updates.xp_gained && updates.xp_gained > 0) {
+        const currentXp = state.currentUser.stats?.total_xp || 0;
+        newTotalXp = currentXp + updates.xp_gained;
+        newLevel = Math.floor(newTotalXp / 100) + 1;
+        totalXpAdded = updates.xp_gained;
+
+        // Prepare update data
+        const updateData = {
+          total_xp: newTotalXp,
+          level: newLevel,
+          updated_at: new Date().toISOString()
+        };
+
+        // If quiz was completed, increment quizzes_completed
+        if (updates.quiz_completed) {
+          const currentQuizzes = state.currentUser.stats?.quizzes_completed || 0;
+          updateData.quizzes_completed = currentQuizzes + 1;
+          console.log(`📝 Quiz completed! Total quizzes: ${currentQuizzes + 1}`);
+        }
+
+        // Update stats in database
+        await supabase
+          .from('piano_user_stats')
+          .update(updateData)
+          .eq('user_id', state.currentUser.id);
+
+        console.log(`✅ Added ${updates.xp_gained} XP! Total: ${newTotalXp}, Level: ${newLevel}`);
+
+        // Check and award achievements after XP update
+        const { data: allAchievements } = await supabase
+          .from('piano_achievements')
+          .select('*')
+          .eq('is_active', true);
+
+        const { data: earnedAchievements } = await supabase
+          .from('piano_user_achievements')
+          .select('achievement_id')
+          .eq('user_id', state.currentUser.id);
+
+        const earnedIds = new Set(earnedAchievements?.map(a => a.achievement_id) || []);
+        const newlyEarnedAchievements = [];
+
+        for (const achievement of allAchievements || []) {
+          if (earnedIds.has(achievement.id)) continue;
+
+          let shouldAward = false;
+
+          switch (achievement.requirement_type) {
+            case 'xp':
+              shouldAward = newTotalXp >= achievement.requirement_value;
+              break;
+            case 'level':
+              shouldAward = newLevel >= achievement.requirement_value;
+              break;
+            case 'streak':
+              const currentStreak = state.currentUser.stats?.current_streak || 0;
+              shouldAward = currentStreak >= achievement.requirement_value;
+              break;
+            case 'lessons_completed':
+              const lessonsCompleted = state.currentUser.stats?.lessons_completed || 0;
+              shouldAward = lessonsCompleted >= achievement.requirement_value;
+              break;
+          }
+
+          if (shouldAward) {
+            // Award the achievement
+            await supabase
+              .from('piano_user_achievements')
+              .insert({
+                user_id: state.currentUser.id,
+                achievement_id: achievement.id,
+                earned_at: new Date().toISOString()
+              });
+
+            newlyEarnedAchievements.push(achievement);
+            console.log(`🏆 Achievement earned: ${achievement.title} (+${achievement.xp_reward} XP)`);
+
+            // Add achievement XP reward
+            if (achievement.xp_reward > 0) {
+              newTotalXp += achievement.xp_reward;
+              totalXpAdded += achievement.xp_reward;
+              newLevel = Math.floor(newTotalXp / 100) + 1;
+            }
+          }
+        }
+
+        // If we earned achievements with XP rewards, update stats again
+        if (newlyEarnedAchievements.length > 0 && totalXpAdded > updates.xp_gained) {
+          await supabase
+            .from('piano_user_stats')
+            .update({
+              total_xp: newTotalXp,
+              level: newLevel,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', state.currentUser.id);
+
+          console.log(`🎉 Total XP with achievement rewards: ${newTotalXp}, Level: ${newLevel}`);
+        }
+      }
 
       // Fetch fresh stats from database
       const { data: stats, error: statsError } = await supabase
