@@ -660,10 +660,10 @@ function UniversalTheoryQuiz({
                   style={{
                     padding: isMobile ? '0.875rem' : '1.25rem',
                     borderRadius: RADIUS.lg,
-                    border: BORDER.default,
+                    border: BORDER.none,
                     boxShadow: isSelected
-                      ? '0 4px 16px rgba(181, 31, 101, 0.25), 0 2px 8px rgba(181, 31, 101, 0.15)'
-                      : 'none',
+                      ? SHADOW.selected
+                      : SHADOW.subtle,
                     background: 'rgba(255, 255, 255, 0.7)',
                     cursor: showResult ? 'not-allowed' : 'pointer',
                     fontSize: isMobile ? '0.875rem' : '1rem',

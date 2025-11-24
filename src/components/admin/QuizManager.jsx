@@ -748,7 +748,7 @@ const QuizManager = () => {
             exit={{ opacity: 0, y: -20 }}
             style={{
               background: 'rgba(45, 91, 120, 0.1)',
-              border: '2px solid var(--color-secondary)',
+              border: '1px solid var(--color-secondary)',
               borderRadius: RADIUS.sm,
               padding: '0.75rem 1.25rem',
               marginBottom: '1.25rem',
@@ -772,7 +772,7 @@ const QuizManager = () => {
             exit={{ opacity: 0, y: -20 }}
             style={{
               background: 'rgba(181, 31, 101, 0.1)',
-              border: '2px solid var(--color-primary)',
+              border: '1px solid var(--color-primary)',
               borderRadius: RADIUS.sm,
               padding: '0.75rem 1.25rem',
               marginBottom: '1.25rem',
@@ -1017,8 +1017,8 @@ const QuizManager = () => {
                         alignItems: 'center',
                         background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
                         padding: '0.5rem',
-                        borderRadius: RADIUS.sm,
-                        border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                        borderRadius: RADIUS.lg,
+                        border: option.is_correct ? '1px solid var(--color-secondary)' : '1px solid transparent'
                       }}
                     >
                       <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
@@ -1054,8 +1054,8 @@ const QuizManager = () => {
                       alignItems: 'center',
                       background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
                       padding: '0.5rem',
-                      borderRadius: RADIUS.sm,
-                      border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                      borderRadius: RADIUS.lg,
+                      border: option.is_correct ? '1px solid var(--color-secondary)' : '1px solid transparent'
                     }}
                   >
                     <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>
@@ -1260,8 +1260,8 @@ const QuizManager = () => {
                           alignItems: 'center',
                           background: option.is_correct ? 'rgba(45, 91, 120, 0.05)' : 'transparent',
                           padding: '0.5rem',
-                          borderRadius: RADIUS.sm,
-                          border: option.is_correct ? '2px solid var(--color-secondary)' : '2px solid transparent'
+                          borderRadius: RADIUS.lg,
+                          border: option.is_correct ? '1px solid var(--color-secondary)' : '1px solid transparent'
                         }}
                       >
                         <span style={{ fontWeight: 600, minWidth: '25px', fontSize: '0.875rem' }}>{index + 1}.</span>

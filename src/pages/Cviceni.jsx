@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Play, RotateCcw, CheckCircle, ChevronRight, Volume2, Headphones, Shuffle, Piano, Target, Brain } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
-import TabButtons from '../components/ui/TabButtons';
+import TabButtons, { RADIUS, SHADOW, BORDER } from '../components/ui/TabButtons';
 import SongLibrary from '../components/resources/SongLibrary';
 import ChordQuiz from '../components/games/ChordQuiz';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
@@ -306,10 +306,9 @@ function Cviceni() {
           onClick={() => setIsShuffled(!isShuffled)}
           style={{
             padding: '0.5rem 1rem',
-            borderRadius: '20px',
-            border: isShuffled
-              ? '2px solid var(--color-secondary)'
-              : '2px solid rgba(45, 91, 120, 0.2)',
+            borderRadius: RADIUS.md,
+            border: BORDER.none,
+            boxShadow: SHADOW.subtle,
             background: isShuffled
               ? 'var(--color-secondary)'
               : 'rgba(255, 255, 255, 0.7)',

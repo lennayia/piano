@@ -25,6 +25,15 @@ function ChordQuiz() {
   const currentUser = useUserStore((state) => state.currentUser);
   const updateUserStats = useUserStore((state) => state.updateUserStats);
 
+  // Detekce velikosti obrazovky pro responzivitu
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Načtení akordů z databáze
   useEffect(() => {
     fetchChords();
@@ -35,7 +44,7 @@ function ChordQuiz() {
       setLoading(true);
       setError(null);
 
-      // Načteme aktivní akordy s jejich možnostmi
+      // Načteme aktivní akordy s jejich možnostmi (pouze ty s notami pro poslechový kvíz)
       const { data: chordsData, error: chordsError } = await supabase
         .from('piano_quiz_chords')
         .select(`
@@ -43,6 +52,7 @@ function ChordQuiz() {
           piano_quiz_chord_options (*)
         `)
         .eq('is_active', true)
+        .not('notes', 'is', null)
         .order('display_order');
 
       if (chordsError) throw chordsError;
@@ -62,8 +72,8 @@ function ChordQuiz() {
 
         // Střídat barvy mezi primary a secondary
         const colors = [
-          'rgba(45, 91, 120, 0.2)', // secondary
-          'rgba(181, 31, 101, 0.2)', // primary
+          'rgba(45, 91, 120, 0.05)', // secondary
+          'rgba(181, 31, 101, 0.05)', // primary
         ];
 
         return {
@@ -161,39 +171,50 @@ function ChordQuiz() {
       if (streak + 1 > bestStreak) {
         setBestStreak(streak + 1);
       }
-      audioEngine.playSuccess(); // Pozitivní zvuk pro správnou odpověď
     } else {
       setStreak(0);
-      audioEngine.playError(); // Negativní zvuk pro špatnou odpověď
     }
 
-    setTimeout(() => {
-      if (currentQuestion < chords.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedAnswer(null);
-        setShowResult(false);
-      } else {
-        // Game over - celebrace POUZE pokud má 100% (všechno správně)
-        const finalScore = isCorrect ? score + 1 : score;
-        const isPerfectScore = finalScore === chords.length;
+    // Pokud je to poslední otázka, uložíme výsledek
+    if (currentQuestion === chords.length - 1) {
+      const finalScore = isCorrect ? score + 1 : score;
+      saveQuizCompletion(finalScore);
 
-        // Uložit dokončení kvízu do databáze
-        saveQuizCompletion(finalScore);
-
-        if (isPerfectScore) {
-          setShowCelebration(true);
-          audioEngine.playFanfare();
-          setTimeout(() => {
-            audioEngine.playApplause();
-          }, 500);
-        }
-
+      // Pokud perfektní skóre, zobrazíme konfety a zahrajeme fanfáru
+      if (finalScore === chords.length) {
+        setShowCelebration(true);
+        audioEngine.playFanfare();
         setTimeout(() => {
-          setGameStarted(false);
-          setShowCelebration(false);
-        }, isPerfectScore ? 3000 : 1500);
+          audioEngine.playApplause();
+        }, 500);
+        setTimeout(() => setShowCelebration(false), 3000);
       }
-    }, 1500);
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestion < chords.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+    }
+  };
+
+  const previousQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+    } else {
+      // Pokud jsme na první otázce, vrátíme se na start
+      setGameStarted(false);
+      setScore(0);
+      setCurrentQuestion(0);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setStreak(0);
+      setTotalXpEarned(0);
+    }
   };
 
   const currentChord = chords[currentQuestion];
@@ -278,134 +299,115 @@ function ChordQuiz() {
         {!gameStarted ? (
           <motion.div
             key="start"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="card"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             style={{
+              background: 'rgba(255, 255, 255, 0.6)',
+              borderRadius: RADIUS.lg,
+              padding: isMobile ? '1.5rem' : '2rem',
               textAlign: 'center',
-              padding: '3rem 2rem',
-              background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.1) 0%, rgba(45, 91, 120, 0.1) 100%)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              border: '2px solid rgba(181, 31, 101, 0.2)'
+              border: BORDER.default,
+              boxShadow: SHADOW.default
             }}
           >
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatType: 'reverse'
-              }}
-            >
-              <Sparkles size={64} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
-            </motion.div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.75rem',
+              marginBottom: '1rem'
+            }}>
+              <Music size={32} color="var(--color-primary)" />
+              <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', margin: 0, color: 'var(--text-primary)' }}>
+                Kvíz: Akordy
+              </h2>
+            </div>
 
-            <h3 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#1e293b' }}>
-              Jste připraveni na výzvu?
-            </h3>
+            <p style={{
+              fontSize: isMobile ? '0.875rem' : '1rem',
+              color: 'var(--text-secondary)',
+              marginBottom: '2rem',
+              maxWidth: '500px',
+              margin: '0 auto 2rem'
+            }}>
+              Naučte se rozpoznávat hudební akordy poslechem. Odpovězte na {chords.length} otázek a prokažte své znalosti!
+            </p>
 
-            {score > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                style={{
-                  padding: '1.5rem',
-                  background: score === chords.length
-                    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)'
-                    : 'rgba(45, 91, 120, 0.1)',
-                  borderRadius: RADIUS.lg,
-                  marginBottom: '1.5rem',
-                  border: score === chords.length
-                    ? '2px solid #10b981'
-                    : BORDER.default,
-                  boxShadow: SHADOW.default
-                }}
-              >
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: score === chords.length ? '#059669' : 'var(--color-secondary)', marginBottom: '0.5rem' }}>
-                  {score} / {chords.length}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.75rem' }}>
-                  {score === chords.length ? (
-                    <>🎉 Perfektní! Všechno správně!</>
-                  ) : score >= chords.length * 0.6 ? (
-                    <>Dobře! Zkuste to znovu pro 100%</>
-                  ) : (
-                    <>Není to špatné! Zkuste to ještě jednou</>
-                  )}
-                </div>
-                {totalXpEarned > 0 && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    padding: '0.75rem',
-                    background: 'rgba(59, 130, 246, 0.1)',
-                    borderRadius: RADIUS.md,
-                    marginBottom: score < chords.length ? '0.75rem' : '0',
-                    border: '1px solid rgba(59, 130, 246, 0.2)'
-                  }}>
-                    <Star size={18} color="#3b82f6" style={{ fill: '#3b82f6' }} />
-                    <span style={{ fontSize: '0.875rem', color: '#3b82f6', fontWeight: 600 }}>
-                      +{totalXpEarned} XP získáno!
-                    </span>
-                  </div>
-                )}
-                {score < chords.length && (
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: '#64748b',
-                    padding: '0.5rem',
-                    background: 'rgba(181, 31, 101, 0.05)',
-                    borderRadius: RADIUS.md,
-                    borderLeft: '3px solid var(--color-primary)'
-                  }}>
-                    💡 Tip: Poslouchejte si akordy víckrát, pomůže vám to líp je rozpoznat!
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-            {bestStreak > 0 && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '1rem',
+              marginBottom: '2rem',
+              maxWidth: '600px',
+              margin: '0 auto 2rem'
+            }}>
               <div style={{
-                display: 'flex',
-                gap: '1.5rem',
-                justifyContent: 'center',
-                marginBottom: '2rem'
+                background: 'rgba(45, 91, 120, 0.05)',
+                padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
+                borderRadius: RADIUS.md,
+                boxShadow: SHADOW.default
               }}>
                 <div style={{
-                  padding: '0.75rem 1.25rem',
-                  background: 'rgba(181, 31, 101, 0.1)',
-                  borderRadius: RADIUS.md,
-                  border: '1px solid rgba(181, 31, 101, 0.2)'
+                  fontSize: isMobile ? '1.25rem' : '1.5rem',
+                  fontWeight: 'bold',
+                  color: 'var(--color-secondary)',
+                  marginBottom: '0.25rem'
                 }}>
-                  <Zap size={20} color="var(--color-primary)" style={{ marginBottom: '0.25rem' }} />
-                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                    Nejlepší série: <strong>{bestStreak}</strong>
-                  </div>
+                  {chords.length}
                 </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Otázek</div>
               </div>
-            )}
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              <div style={{
+                background: 'rgba(181, 31, 101, 0.05)',
+                padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
+                borderRadius: RADIUS.md,
+                boxShadow: SHADOW.default
+              }}>
+                <div style={{
+                  fontSize: isMobile ? '1.25rem' : '1.5rem',
+                  fontWeight: 'bold',
+                  color: 'var(--color-primary)',
+                  marginBottom: '0.25rem'
+                }}>
+                  {bestStreak}
+                </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Nejlepší série</div>
+              </div>
+
+              <div style={{
+                background: 'rgba(45, 91, 120, 0.05)',
+                padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
+                borderRadius: RADIUS.md,
+                boxShadow: SHADOW.default
+              }}>
+                <div style={{
+                  fontSize: isMobile ? '1.25rem' : '1.5rem',
+                  fontWeight: 'bold',
+                  color: 'var(--color-secondary)',
+                  marginBottom: '0.25rem'
+                }}>
+                  100
+                </div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Max XP</div>
+              </div>
+            </div>
+
+            <button
               onClick={startGame}
               className="btn btn-primary"
               style={{
-                fontSize: '1.125rem',
-                padding: '1rem 3rem',
-                boxShadow: '0 8px 24px rgba(45, 91, 120, 0.4)'
+                fontSize: isMobile ? '0.875rem' : '1rem',
+                padding: isMobile ? '0.625rem 1.25rem' : '0.625rem 1.5rem',
+                borderRadius: RADIUS.md,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}
             >
-              <Play size={20} />
-              {score > 0 ? 'Hrát znovu' : 'Začít hrát'}
-            </motion.button>
+              <Play size={18} />
+              Začít kvíz
+            </button>
           </motion.div>
         ) : (
           <motion.div
@@ -414,73 +416,95 @@ function ChordQuiz() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            {/* Score Bar */}
+            {/* Statistics */}
             <div style={{
               display: 'flex',
-              gap: '1rem',
-              marginBottom: '2rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap'
+              gap: isMobile ? '0.5rem' : '1rem',
+              flexWrap: 'wrap',
+              marginBottom: isMobile ? '1rem' : '1.5rem'
             }}>
-              <div className="card" style={{
-                padding: '0.75rem 1.25rem',
-                background: 'rgba(45, 91, 120, 0.1)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
+              <div style={{
+                background: 'rgba(45, 91, 120, 0.05)',
+                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+                borderRadius: RADIUS.md,
+                boxShadow: SHADOW.default,
+                flex: 1,
+                minWidth: isMobile ? '80px' : '100px',
+                textAlign: 'center'
               }}>
-                <Trophy size={20} color="var(--color-secondary)" />
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
-                  Skóre: {score} / {chords.length}
-                </span>
+                <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                  Skóre
+                </div>
+                <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+                  {score}/{chords.length}
+                </div>
               </div>
 
-              {streak > 0 && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="card"
-                  style={{
-                    padding: '0.75rem 1.25rem',
-                    background: 'rgba(181, 31, 101, 0.1)',
-                    border: '1px solid rgba(181, 31, 101, 0.2)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <Zap size={20} color="var(--color-primary)" />
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    Série: {streak} <Flame size={16} color="var(--color-secondary)" />
-                  </span>
-                </motion.div>
-              )}
+              <div style={{
+                background: 'rgba(45, 91, 120, 0.05)',
+                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+                borderRadius: RADIUS.md,
+                boxShadow: SHADOW.default,
+                flex: 1,
+                minWidth: isMobile ? '80px' : '100px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                  Série
+                </div>
+                <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+                  {streak}
+                </div>
+              </div>
+
+              <div style={{
+                background: 'rgba(45, 91, 120, 0.05)',
+                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
+                borderRadius: RADIUS.md,
+                boxShadow: SHADOW.default,
+                flex: 1,
+                minWidth: isMobile ? '80px' : '100px',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
+                  Otázka
+                </div>
+                <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
+                  {currentQuestion + 1}/{chords.length}
+                </div>
+              </div>
             </div>
 
             {/* Question Card */}
             <motion.div
               key={currentQuestion}
-              initial={{ opacity: 0, scale: 0.9, rotateY: -90 }}
-              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-              className="card"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2 }}
               style={{
-                padding: '3rem 2rem',
-                background: `linear-gradient(135deg, ${currentChord.color} 0%, rgba(255, 255, 255, 0.8) 100%)`,
-                backdropFilter: 'blur(40px)',
-                WebkitBackdropFilter: 'blur(40px)',
-                border: '2px solid rgba(255, 255, 255, 0.4)',
-                textAlign: 'center',
-                marginBottom: '2rem'
+                background: currentChord.color,
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                borderRadius: RADIUS.xl,
+                padding: isMobile ? '1rem' : '2rem',
+                marginBottom: isMobile ? '1rem' : '2rem',
+                border: BORDER.default,
+                boxShadow: SHADOW.default
               }}
             >
-              <div style={{ fontSize: '1rem', color: '#64748b', marginBottom: '1.5rem' }}>
-                Otázka {currentQuestion + 1} z {chords.length}
+              <div style={{
+                textAlign: 'center',
+                marginBottom: isMobile ? '1rem' : '1.5rem'
+              }}>
+                <h3 style={{
+                  fontSize: isMobile ? '1.125rem' : '1.5rem',
+                  color: 'var(--text-primary)',
+                  margin: '0 0 0.5rem 0',
+                  lineHeight: 1.4
+                }}>
+                  Který akord slyšíte?
+                </h3>
               </div>
-
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', color: '#1e293b' }}>
-                Který akord slyšíte?
-              </h3>
 
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -507,72 +531,103 @@ function ChordQuiz() {
               {/* Options */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '1rem',
-                maxWidth: '500px',
-                margin: '0 auto'
+                gap: isMobile ? '0.75rem' : '1rem',
+                gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(120px, 1fr))' : 'repeat(auto-fit, minmax(200px, 1fr))'
               }}>
                 {currentChord.options.map((option, index) => {
                   const isSelected = selectedAnswer === option;
                   const isCorrect = option === currentChord.correctAnswer;
-                  const showFeedback = showResult && isSelected;
+                  const showCorrect = showResult && isSelected && isCorrect;
+                  const showWrong = showResult && isSelected && !isCorrect;
 
                   return (
                     <motion.button
                       key={index}
-                      whileHover={!showResult ? { scale: 1.05, y: -4 } : {}}
-                      whileTap={!showResult ? { scale: 0.95 } : {}}
+                      whileHover={!showResult ? { scale: 1.02, y: -2 } : {}}
+                      whileTap={!showResult ? { scale: 0.98 } : {}}
                       onClick={() => handleAnswer(option)}
                       disabled={showResult}
-                      className="card"
                       style={{
-                        padding: '1.25rem',
-                        background: showFeedback
-                          ? isCorrect
-                            ? 'rgba(16, 185, 129, 0.15)' // Zelená pro správně
-                            : 'rgba(239, 68, 68, 0.15)' // Červená pro špatně
-                          : 'rgba(255, 255, 255, 0.9)',
-                        border: showFeedback
-                          ? isCorrect
-                            ? '2px solid #10b981' // Zelená border
-                            : '2px solid #ef4444' // Červená border
-                          : '2px solid rgba(255, 255, 255, 0.4)',
-                        cursor: showResult ? 'default' : 'pointer',
-                        fontSize: '1.125rem',
+                        padding: isMobile ? '0.875rem' : '1.25rem',
+                        borderRadius: RADIUS.lg,
+                        border: BORDER.none,
+                        boxShadow: isSelected
+                          ? SHADOW.selected
+                          : SHADOW.subtle,
+                        background: 'rgba(255, 255, 255, 0.7)',
+                        cursor: showResult ? 'not-allowed' : 'pointer',
+                        fontSize: isMobile ? '0.875rem' : '1rem',
                         fontWeight: 600,
-                        color: showFeedback
-                          ? isCorrect
-                            ? '#059669' // Tmavší zelená text
-                            : '#dc2626' // Tmavší červená text
-                          : '#1e293b',
-                        transition: 'all 0.3s',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
+                        color: 'var(--text-primary)',
+                        transition: 'all 0.2s',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
+                        justifyContent: 'space-between',
+                        gap: '0.5rem',
+                        minHeight: isMobile ? '3rem' : '3.5rem'
                       }}
                     >
-                      {option}
-                      {showFeedback && (
-                        <motion.div
-                          initial={{ scale: 0, rotate: -180 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          transition={{ type: 'spring', stiffness: 200 }}
-                        >
-                          {isCorrect ? (
-                            <CheckCircle size={24} color="#10b981" />
-                          ) : (
-                            <XCircle size={24} color="#ef4444" />
-                          )}
-                        </motion.div>
-                      )}
+                      <span>{option}</span>
+                      {showCorrect && <AnswerStatusChip status="correct" size={isMobile ? 16 : 20} />}
+                      {showWrong && <AnswerStatusChip status="incorrect" size={isMobile ? 16 : 20} />}
                     </motion.button>
                   );
                 })}
               </div>
             </motion.div>
+
+            {/* Navigation buttons */}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+              {showResult && (
+                <IconButton
+                  icon={ChevronLeft}
+                  onClick={previousQuestion}
+                  variant="secondary"
+                  size={isMobile ? 44 : 48}
+                  iconSize={isMobile ? 20 : 24}
+                  ariaLabel={currentQuestion > 0 ? "Předchozí otázka" : "Zpět na start"}
+                />
+              )}
+
+              {showResult && currentQuestion < chords.length - 1 && (
+                <IconButton
+                  icon={ChevronRight}
+                  onClick={nextQuestion}
+                  variant="primary"
+                  size={isMobile ? 44 : 48}
+                  iconSize={isMobile ? 20 : 24}
+                  ariaLabel="Další otázka"
+                />
+              )}
+
+              {showResult && currentQuestion === chords.length - 1 && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setGameStarted(false);
+                    setScore(0);
+                    setCurrentQuestion(0);
+                    setSelectedAnswer(null);
+                    setShowResult(false);
+                    setStreak(0);
+                  }}
+                  style={{
+                    padding: isMobile ? '0.75rem 1.5rem' : '0.875rem 2rem',
+                    background: 'var(--color-primary)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: RADIUS.lg,
+                    fontSize: isMobile ? '0.875rem' : '1rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: SHADOW.default
+                  }}
+                >
+                  Zobrazit výsledky
+                </motion.button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

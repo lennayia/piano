@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { BookOpen, List, Clock, CheckCircle } from 'lucide-react';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
+import { PageSection } from '../components/ui/TabButtons';
 
 function Lekce() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
+  const [mainTab, setMainTab] = useState('all');
+  const [difficultyTab, setDifficultyTab] = useState('all');
 
   useEffect(() => {
     if (!currentUser) {
@@ -19,42 +21,92 @@ function Lekce() {
     return null;
   }
 
-  return (
-    <div className="container">
-      {/* Page Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        style={{
-          marginBottom: '2rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem'
-        }}
-      >
-        <div style={{
-          width: '48px',
-          height: '48px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: 'var(--radius)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '2px solid rgba(181, 31, 101, 0.2)',
-          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
-        }}>
-          <BookOpen size={24} color="var(--color-primary)" />
-        </div>
-        <h1 style={{ margin: 0, color: '#1e293b' }}>
-          Moje lekce
-        </h1>
-      </motion.div>
+  // Dočasné hodnoty pro progress (později z databáze)
+  const totalLessons = 12;
+  const completedLessons = 5;
+  const progressPercentage = (completedLessons / totalLessons) * 100;
 
-      {/* Lessons */}
-      <LessonList />
-    </div>
+  // Dynamický obsah podle aktivních tabů
+  const getSectionContent = () => {
+    const mainTabContent = {
+      all: {
+        title: 'Všechny lekce',
+        description: 'Procházejte kompletní nabídku lekcí a vyberte si, co vás zajímá.'
+      },
+      in_progress: {
+        title: 'Probíhající lekce',
+        description: 'Pokračujte v lekcích, které jste již začali a ještě jste nedokončili.'
+      },
+      completed: {
+        title: 'Dokončené lekce',
+        description: 'Přehled všech lekcí, které jste úspěšně dokončili.'
+      }
+    };
+
+    const difficultyContent = {
+      all: '',
+      beginner: ' Pro začátečníky.',
+      intermediate: ' Pro pokročilé.',
+      expert: ' Pro experty.'
+    };
+
+    const main = mainTabContent[mainTab] || mainTabContent.all;
+    const difficulty = difficultyTab !== 'all' ? difficultyContent[difficultyTab] : '';
+
+    return {
+      title: main.title,
+      description: main.description + difficulty
+    };
+  };
+
+  const sectionContent = getSectionContent();
+
+  return (
+    <PageSection
+      maxWidth="lg"
+      icon={BookOpen}
+      title="Lekce"
+      description="Procházejte své lekce a pokračujte v učení"
+
+      mainTabs={[
+        { id: 'all', label: 'Všechny', icon: List },
+        { id: 'in_progress', label: 'Probíhající', icon: Clock },
+        { id: 'completed', label: 'Dokončené', icon: CheckCircle }
+      ]}
+
+      subTabs={{
+        'all': [
+          { id: 'all', label: 'Vše' },
+          { id: 'beginner', label: 'Začátečník' },
+          { id: 'intermediate', label: 'Pokročilý' },
+          { id: 'expert', label: 'Expert' }
+        ],
+        'in_progress': [
+          { id: 'all', label: 'Vše' },
+          { id: 'beginner', label: 'Začátečník' },
+          { id: 'intermediate', label: 'Pokročilý' },
+          { id: 'expert', label: 'Expert' }
+        ],
+        'completed': [
+          { id: 'all', label: 'Vše' },
+          { id: 'beginner', label: 'Začátečník' },
+          { id: 'intermediate', label: 'Pokročilý' },
+          { id: 'expert', label: 'Expert' }
+        ]
+      }}
+
+      activeMainTab={mainTab}
+      activeSubTab={difficultyTab}
+      onMainTabChange={setMainTab}
+      onSubTabChange={setDifficultyTab}
+
+      sectionTitle={sectionContent.title}
+      sectionDescription={sectionContent.description}
+      progressLabel="Váš pokrok"
+      progress={progressPercentage}
+    >
+      <LessonList filter={mainTab} difficulty={difficultyTab} />
+    </PageSection>
   );
 }
 

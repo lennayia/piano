@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Music, TrendingUp, Activity, Sparkles, Brain } from 'lucide-react';
+import { Music, TrendingUp, Activity, Sparkles, Brain, BookOpen, GraduationCap } from 'lucide-react';
 import TabButtons from '../ui/TabButtons';
 import UniversalTheoryQuiz from './UniversalTheoryQuiz';
 import { motion } from 'framer-motion';
@@ -8,7 +8,22 @@ import { motion } from 'framer-motion';
  * TheoryQuizHub - Centrální rozhraní pro všechny teoretické kvízy
  */
 function TheoryQuizHub() {
+  const [mainSection, setMainSection] = useState('quizzes'); // 'quizzes' nebo 'materials'
   const [activeQuizType, setActiveQuizType] = useState('interval');
+
+  // Konfigurace hlavních sekcí
+  const MAIN_SECTIONS = [
+    {
+      id: 'quizzes',
+      label: 'Kvízy',
+      icon: GraduationCap
+    },
+    {
+      id: 'materials',
+      label: 'Materiály',
+      icon: BookOpen
+    }
+  ];
 
   // Konfigurace všech typů kvízů
   const QUIZ_TYPES = [
@@ -34,9 +49,16 @@ function TheoryQuizHub() {
       description: 'Otestujte své znalosti durových a mollových stupnic'
     },
     {
+      id: 'chord',
+      label: 'Akordy',
+      icon: Music,
+      title: 'Kvíz: Akordy',
+      description: 'Rozpoznávejte a pojmenovávejte hudební akordy'
+    },
+    {
       id: 'rhythm',
       label: 'Rytmus',
-      icon: Music,
+      icon: Sparkles,
       title: 'Kvíz: Rytmus',
       description: 'Procvičte si notové hodnoty a rytmické vzorce'
     },
@@ -73,22 +95,55 @@ function TheoryQuizHub() {
         </p>
       </motion.div>
 
-      {/* Tabs */}
+      {/* Hlavní navigační tabs */}
       <TabButtons
-        tabs={QUIZ_TYPES}
-        activeTab={activeQuizType}
-        onTabChange={setActiveQuizType}
-        options={{ size: 'md', style: { marginBottom: '1.5rem' } }}
+        tabs={MAIN_SECTIONS}
+        activeTab={mainSection}
+        onTabChange={setMainSection}
+        options={{ size: 'lg', style: { marginBottom: '1.5rem' } }}
       />
 
-      {/* Quiz obsah */}
-      {currentQuiz && (
-        <UniversalTheoryQuiz
-          quizType={currentQuiz.id}
-          title={currentQuiz.title}
-          description={currentQuiz.description}
-          icon={currentQuiz.icon}
-        />
+      {/* Kvízy sekce */}
+      {mainSection === 'quizzes' && (
+        <>
+          {/* Tabs pro typy kvízů */}
+          <TabButtons
+            tabs={QUIZ_TYPES}
+            activeTab={activeQuizType}
+            onTabChange={setActiveQuizType}
+            options={{ layout: 'pill', style: { marginBottom: '1.5rem' } }}
+          />
+
+          {/* Quiz obsah */}
+          {currentQuiz && (
+            <UniversalTheoryQuiz
+              quizType={currentQuiz.id}
+              title={currentQuiz.title}
+              description={currentQuiz.description}
+              icon={currentQuiz.icon}
+            />
+          )}
+        </>
+      )}
+
+      {/* Materiály sekce */}
+      {mainSection === 'materials' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            padding: '2rem',
+            background: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}
+        >
+          <BookOpen size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+          <h2>Materiály</h2>
+          <p style={{ color: '#64748b' }}>
+            Sekce s učebními materiály bude brzy k dispozici.
+          </p>
+        </motion.div>
       )}
     </div>
   );

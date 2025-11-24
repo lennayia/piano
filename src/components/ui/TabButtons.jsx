@@ -20,7 +20,9 @@ export const RADIUS = {
  * Centralizované hodnoty pro box-shadow
  */
 export const SHADOW = {
-  default: '0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06)'
+  default: '0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06)',
+  subtle: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+  selected: '0 4px 16px rgba(181, 31, 101, 0.25), 0 2px 8px rgba(181, 31, 101, 0.15)'
 };
 
 /**
@@ -153,7 +155,7 @@ function TabButtons({
           : variantConfig.inactiveColor,
       boxShadow: isActive
         ? '0 2px 8px rgba(0, 0, 0, 0.15)'
-        : 'none',
+        : '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
       position: 'relative',
       overflow: 'hidden'
     };
@@ -186,7 +188,7 @@ function TabButtons({
         ? variantConfig.activeShadow
         : isHovered
           ? variantConfig.hoverShadow
-          : '0 2px 8px rgba(0, 0, 0, 0.06)',
+          : '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
       position: 'relative',
       overflow: 'hidden'
     };
@@ -408,14 +410,14 @@ export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIco
         borderRadius: '14px',
         fontSize: '0.8125rem',
         fontWeight: 500,
-        border: '1px solid rgba(0, 0, 0, 0.08)',
+        border: BORDER.none,
         cursor: 'pointer',
         transition: 'all 0.2s ease',
         background: isHovered ? config.hoverBackground : config.background,
         color: config.color,
         boxShadow: isHovered
           ? '0 3px 8px rgba(0, 0, 0, 0.1)'
-          : '0 1px 3px rgba(0, 0, 0, 0.06)',
+          : SHADOW.subtle,
         minWidth: iconOnly ? '38px' : 'auto',
         minHeight: iconOnly ? '38px' : 'auto',
         ...style
@@ -460,7 +462,7 @@ export function AddButton({ onClick, label = 'Přidat novou otázku', icon: Cust
         borderRadius: '17px',
         fontSize: '0.9rem',
         fontWeight: 600,
-        border: '1px solid rgba(0, 0, 0, 0.08)',
+        border: BORDER.none,
         cursor: 'pointer',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         background: isHovered
@@ -527,7 +529,7 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
         width: '36px',
         height: '36px',
         borderRadius: '14px',
-        border: '1px solid rgba(0, 0, 0, 0.08)',
+        border: BORDER.none,
         cursor: 'pointer',
         transition: 'all 0.2s ease',
         background: isActive
@@ -539,7 +541,7 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
         WebkitBackdropFilter: 'blur(10px)',
         boxShadow: isHovered || isActive
           ? '0 3px 12px rgba(0, 0, 0, 0.12)'
-          : '0 2px 8px rgba(0, 0, 0, 0.08)',
+          : SHADOW.subtle,
         ...style
       }}
       {...props}
@@ -579,12 +581,13 @@ export function CancelButton({ onClick, label = 'Zrušit', style = {}, ...props 
         fontSize: '0.75rem',
         padding: '0.3rem 0.6rem',
         borderRadius: '10px',
-        border: '2px solid rgba(45, 91, 120, 0.2)',
+        border: BORDER.none,
         background: 'rgba(45, 91, 120, 0.08)',
         color: 'var(--color-secondary)',
         fontWeight: 500,
         cursor: 'pointer',
         transition: 'all 0.2s ease',
+        boxShadow: SHADOW.subtle,
         ...style
       }}
       {...props}
@@ -615,12 +618,13 @@ export function SaveButton({ onClick, label = 'Uložit', style = {}, ...props })
         fontSize: '0.75rem',
         padding: '0.3rem 0.6rem',
         borderRadius: '10px',
-        border: '2px solid var(--color-primary)',
+        border: BORDER.none,
         background: 'var(--color-primary)',
         color: '#fff',
         fontWeight: 500,
         cursor: 'pointer',
         transition: 'all 0.2s ease',
+        boxShadow: SHADOW.subtle,
         ...style
       }}
       {...props}
@@ -671,7 +675,11 @@ export function RadioLabel({ checked, onChange, name, label = 'Správná', style
         name={name}
         checked={checked}
         onChange={onChange}
-        style={{ width: '16px', height: '16px' }}
+        style={{
+          width: '16px',
+          height: '16px',
+          accentColor: 'var(--color-primary)'
+        }}
       />
       {label}
     </label>
@@ -725,7 +733,7 @@ export function FormTextarea({ value, onChange, placeholder = '', rows = 3, styl
         padding: '0.75rem',
         borderRadius: RADIUS.lg,
         border: BORDER.none,
-        boxShadow: SHADOW.default,
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
         fontSize: '0.875rem',
         fontFamily: 'inherit',
         resize: 'vertical',
@@ -755,7 +763,7 @@ export function FormSelect({ value, onChange, options = [], style = {}, ...props
         padding: '0.5rem',
         borderRadius: RADIUS.sm,
         border: BORDER.none,
-        boxShadow: SHADOW.default,
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
         fontSize: '0.875rem',
         cursor: 'pointer',
         transition: 'border-color 0.2s ease',
@@ -793,7 +801,7 @@ export function FormInput({ type = 'text', value, onChange, placeholder = '', st
         padding: '0.5rem',
         borderRadius: RADIUS.sm,
         border: BORDER.none,
-        boxShadow: SHADOW.default,
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
         fontSize: '0.875rem',
         transition: 'border-color 0.2s ease',
         ...style
@@ -833,7 +841,11 @@ export function CheckboxLabel({ checked, onChange, label, style = {}, ...props }
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        style={{ width: '18px', height: '18px' }}
+        style={{
+          width: '18px',
+          height: '18px',
+          accentColor: 'var(--color-primary)'
+        }}
       />
       {label}
     </label>
@@ -988,8 +1000,9 @@ export function NoteButton({ note, selected = false, onClick, variant = 'primary
       onClick={onClick}
       style={{
         background: selected ? color : 'rgba(255, 255, 255, 0.9)',
-        border: `2px solid ${selected ? color : '#ddd'}`,
-        borderRadius: RADIUS.sm,
+        border: BORDER.none,
+        boxShadow: SHADOW.subtle,
+        borderRadius: RADIUS.md,
         padding: '0.5rem 0.75rem',
         cursor: 'pointer',
         color: selected ? '#fff' : '#1e293b',
@@ -1197,6 +1210,194 @@ export function BackButton({
       style={style}
       {...props}
     />
+  );
+}
+
+/**
+ * PageSection - Komplexní layout komponenta pro stránky s menu/submenu strukturou
+ *
+ * @param {object} props
+ * @param {string} props.maxWidth - Maximální šířka: 'sm' | 'md' | 'lg' | 'xl' | 'full' nebo custom (např. '1200px')
+ * @param {React.Component} props.icon - Ikona pro hlavičku (z lucide-react)
+ * @param {string} props.title - H1 nadpis stránky
+ * @param {string} props.description - Popis pod nadpisem
+ * @param {array} props.mainTabs - Pole hlavních tabs [{id, label, icon}]
+ * @param {object} props.subTabs - Object s submenu pro každý hlavní tab: {mainTabId: [{id, label, icon}]}
+ * @param {string} props.activeMainTab - ID aktivního hlavního tabu
+ * @param {string} props.activeSubTab - ID aktivního sub tabu
+ * @param {function} props.onMainTabChange - Callback při změně hlavního tabu
+ * @param {function} props.onSubTabChange - Callback při změně sub tabu
+ * @param {string} props.sectionTitle - H2 nadpis content sekce
+ * @param {string} props.sectionDescription - Popisný text pod section title
+ * @param {React.Component} props.sectionAction - Action button vedle section title
+ * @param {string} props.progressLabel - Label pro progress bar (např. "Váš pokrok")
+ * @param {number} props.progress - Progress bar value (0-100)
+ * @param {React.Component} props.children - Obsah stránky
+ */
+export function PageSection({
+  maxWidth = 'lg',
+  icon: Icon,
+  title,
+  description,
+  mainTabs,
+  subTabs = {},
+  activeMainTab,
+  activeSubTab,
+  onMainTabChange,
+  onSubTabChange,
+  sectionTitle,
+  sectionDescription,
+  sectionAction,
+  progressLabel,
+  progress,
+  children
+}) {
+  // Přednastavené šířky
+  const widthPresets = {
+    sm: '600px',
+    md: '900px',
+    lg: '1200px',
+    xl: '1400px',
+    full: '100%'
+  };
+
+  // Zjistit šířku kontejneru
+  const containerWidth = widthPresets[maxWidth] || maxWidth;
+
+  // Zjistit, jestli aktivní hlavní tab má submenu
+  const currentSubTabs = subTabs[activeMainTab] || [];
+  const hasSubMenu = currentSubTabs.length > 0;
+
+  // Divider komponent
+  const Divider = () => (
+    <div style={{
+      width: '100%',
+      height: '1px',
+      background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent)',
+      margin: '1.5rem 0'
+    }} />
+  );
+
+  return (
+    <div style={{
+      maxWidth: containerWidth,
+      margin: '0 auto',
+      padding: '0 1rem'
+    }}>
+      {/* Header sekce */}
+      {(Icon || title || description) && (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ marginBottom: '1rem' }}
+          >
+            {title && (
+              <h1 style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: description ? '0.5rem' : '0'
+              }}>
+                {Icon && <Icon size={32} color="var(--color-primary)" />}
+                {title}
+              </h1>
+            )}
+            {description && (
+              <p style={{ color: '#64748b', margin: 0 }}>
+                {description}
+              </p>
+            )}
+          </motion.div>
+        </>
+      )}
+
+      {/* Menu sekce */}
+      {mainTabs && mainTabs.length > 0 && (
+        <>
+          <TabButtons
+            tabs={mainTabs}
+            activeTab={activeMainTab}
+            onTabChange={onMainTabChange}
+            options={{ size: 'lg', style: { marginBottom: hasSubMenu ? '1rem' : 0 } }}
+          />
+
+          {/* Submenu pills */}
+          {hasSubMenu && (
+            <TabButtons
+              tabs={currentSubTabs}
+              activeTab={activeSubTab}
+              onTabChange={onSubTabChange}
+              options={{ layout: 'pill', style: { marginBottom: 0 } }}
+            />
+          )}
+
+          <Divider />
+        </>
+      )}
+
+      {/* Content header sekce */}
+      {sectionTitle && (
+        <>
+          <h2 style={{ margin: 0, fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+            {sectionTitle}
+          </h2>
+
+          {sectionDescription && (
+            <p style={{ color: '#64748b', margin: 0, marginBottom: '1.5rem' }}>
+              {sectionDescription}
+            </p>
+          )}
+        </>
+      )}
+
+      {/* Progress bar sekce */}
+      {(progressLabel || progress !== undefined) && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          marginBottom: '2rem'
+        }}>
+          {progressLabel && (
+            <span style={{
+              fontSize: '0.95rem',
+              fontWeight: 500,
+              color: '#475569',
+              flexShrink: 0
+            }}>
+              {progressLabel}
+            </span>
+          )}
+
+          {progress !== undefined && (
+            <div style={{
+              flex: 1,
+              height: '4px',
+              background: 'rgba(0, 0, 0, 0.03)',
+              borderRadius: '2px',
+              overflow: 'hidden'
+            }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                style={{
+                  height: '100%',
+                  background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.5), rgba(45, 91, 120, 0.5))',
+                  borderRadius: '2px'
+                }}
+              />
+            </div>
+          )}
+
+          {sectionAction && <div style={{ flexShrink: 0 }}>{sectionAction}</div>}
+        </div>
+      )}
+
+      {/* Obsah stránky */}
+      {children}
+    </div>
   );
 }
 

@@ -119,7 +119,7 @@ function Header() {
                   transition: 'all 0.3s ease'
                 }}>
                   <BookOpen size={18} />
-                  <span>Moje lekce</span>
+                  <span>Lekce</span>
                 </Link>
 
                 <Link to="/cviceni" onClick={handleNavClick} style={{
@@ -367,7 +367,7 @@ function Header() {
                         : 'transparent'
                     }}>
                       <BookOpen size={20} />
-                      <span>Moje lekce</span>
+                      <span>Lekce</span>
                     </Link>
 
                     <Link to="/cviceni" onClick={handleNavClick} style={{
