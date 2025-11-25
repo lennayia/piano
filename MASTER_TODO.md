@@ -1,10 +1,43 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 22. listopadu 2025
+Datum poslední aktualizace: 25. listopadu 2025
 
 ## 🔥 Aktuální prioritní úkoly
 
-### 1. ⏳ Přidat správu gamifikace do admin panelu
+### 1. ⏳ Dokončit refaktoring TabButtons
+**Status:** Pending
+**Popis:**
+- Zkontrolovat re-exporty v TabButtons.jsx
+- Ověřit, že všechny komponenty používají správné importy
+- Zajistit konzistenci napříč celou aplikací
+
+**Soubory k ověření:**
+- `src/components/ui/TabButtons.jsx` - centrální export hub
+- `src/components/ui/ButtonComponents.jsx`
+- `src/components/ui/CardComponents.jsx`
+- `src/components/ui/FormComponents.jsx`
+- `src/components/ui/PageSection.jsx`
+
+---
+
+### 2. ⏳ Zobrazit teoretické otázky pro akordy v UI
+**Status:** Pending
+**Popis:**
+- V sekci Teorie → Kvízy → Akordy zobrazit teoretické otázky pro akordy
+- Filtrace teoretických otázek podle `quiz_type = 'chord'` a `questionText IS NOT NULL`
+- Zobrazení v TheoryQuizHub nebo samostatné komponentě
+- Oddělení od poslechového kvízu (ChordQuiz) a obecných teoretických otázek
+
+**Soubory k úpravě:**
+- `src/pages/Teorie.jsx` nebo `src/components/theory/TheoryQuizHub.jsx`
+- Přidat filtraci pro teoretické otázky typu "chord"
+- UI pro zobrazení a hraní těchto otázek
+
+**Poznámka:** Teoretické otázky pro akordy jsou uložené v `piano_quiz_chords` s vyplněným `questionText` a možnostmi v `piano_quiz_chord_options`.
+
+---
+
+### 3. ⏳ Přidat správu gamifikace do admin panelu
 **Status:** Pending
 **Popis:**
 - Správa bodů (XP) a levelů uživatelů
@@ -60,6 +93,42 @@ Datum poslední aktualizace: 22. listopadu 2025
 ---
 
 ## ✅ Nedávno dokončené úkoly
+
+### Modularizace UI komponent + Fix ChordQuiz (25.11.2025)
+**Dokončeno:** ✅
+**Popis:** Rozdělení TabButtons do modulárních souborů a oprava automatického generování možností v ChordQuiz
+
+**Změny:**
+- ✅ **Modularizace UI komponent:**
+  - `ButtonComponents.jsx` - Chip, ActionButton, AddButton, IconButton atd.
+  - `CardComponents.jsx` - PageCard, QuestionCard
+  - `FormComponents.jsx` - FormInput, FormSelect, FormSection atd.
+  - `PageSection.jsx` - Komplexní layout komponenta s menu strukturou
+  - `TabButtons.jsx` - Centrální export hub pro všechny UI komponenty
+
+- ✅ **Fix ChordQuiz - Automatické generování možností:**
+  - Odstranění JOIN na `piano_quiz_chord_options`
+  - Možnosti se generují automaticky z názvů akordů (1 správná + 3 náhodné)
+  - Přidána `shuffleArray()` helper funkce
+  - Teoretické možnosti se již nezobrazují v poslechovém kvízu
+
+- ✅ **QuizManager refactoring:**
+  - Oddělení chord/theory options
+  - Odstranění manuálních input fieldů pro chord možnosti
+  - Informační text o automatickém generování
+  - Save logika rozlišuje mezi chord a theory záznamy
+
+- ✅ **Archivace:**
+  - `ChordManager.jsx` → `ChordManager.jsx.backup`
+  - QuizManager je nyní jediný univerzální správce všech kvízů
+
+**Soubory:**
+- Branch: `refactor/split-tabbuttons-module`
+- Commit: `e6195e7`
+- Dokumentace: `DOKUMENTACE-20251125.md`
+- 19 souborů změněno (+1962, -1294 řádků)
+
+---
 
 ### Univerzální struktura kvízů (22.11.2025)
 **Dokončeno:** ✅
