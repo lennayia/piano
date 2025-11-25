@@ -7,7 +7,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
     switch (difficulty) {
       case 'začátečník':
         return 'badge-success';
-      case 'mírně pokročilý':
+      case 'mírně pokročilý začátečník':
         return 'badge-warning';
       case 'pokročilý':
         return 'badge-primary';
@@ -194,7 +194,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
                     style={{ fontSize: '0.875rem' }}
                   >
                     <option value="začátečník">začátečník</option>
-                    <option value="mírně pokročilý">mírně pokročilý</option>
+                    <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
                     <option value="pokročilý">pokročilý</option>
                   </select>
                 </div>

@@ -736,7 +736,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     switch (difficulty) {
       case 'začátečník':
         return 'badge-success';
-      case 'mírně pokročilý':
+      case 'mírně pokročilý začátečník':
         return 'badge-warning';
       default:
         return '';
@@ -1044,7 +1044,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                   style={{ fontSize: '0.875rem' }}
                 >
                   <option value="začátečník">začátečník</option>
-                  <option value="mírně pokročilý">mírně pokročilý</option>
+                  <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
                   <option value="pokročilý">pokročilý</option>
                 </select>
               </div>
@@ -1432,7 +1432,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                           style={{ fontSize: '0.875rem' }}
                         >
                           <option value="začátečník">začátečník</option>
-                          <option value="mírně pokročilý">mírně pokročilý</option>
+                          <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
                           <option value="pokročilý">pokročilý</option>
                         </select>
                       </div>

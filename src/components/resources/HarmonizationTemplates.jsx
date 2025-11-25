@@ -204,7 +204,7 @@ function HarmonizationTemplates() {
     switch (difficulty) {
       case 'začátečník':
         return 'badge-success';
-      case 'mírně pokročilý':
+      case 'mírně pokročilý začátečník':
         return 'badge-warning';
       default:
         return '';
@@ -213,24 +213,16 @@ function HarmonizationTemplates() {
 
   return (
     <div>
-      <h2 className="card-title" style={{ marginBottom: '1.5rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <div style={{
-          width: '48px',
-          height: '48px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '2px solid rgba(181, 31, 101, 0.2)',
-          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
-        }}>
-          <FileText size={24} color="var(--color-primary)" />
-        </div>
-        Šablony pro harmonizaci
+      <h2 style={{
+        marginBottom: '0.5rem',
+        color: '#1e293b',
+        fontSize: '1.5rem',
+        fontWeight: 600
+      }}>
+        Harmonizační postupy
       </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
-        Připravené harmonické postupy pro rychlou harmonizaci písní
+      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6 }}>
+        Připravené harmonické sekvence a kadence pro různé tóniny. Každou šablonu můžete přehrát a použít jako inspiraci pro vlastní harmonizace.
       </p>
 
       {/* Tlačítko pro přidání nové šablony (pouze pro adminy) */}
@@ -308,7 +300,7 @@ function HarmonizationTemplates() {
                   style={{ fontSize: '0.875rem' }}
                 >
                   <option value="začátečník">začátečník</option>
-                  <option value="mírně pokročilý">mírně pokročilý</option>
+                  <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
                   <option value="pokročilý">pokročilý</option>
                 </select>
               </div>
@@ -620,7 +612,7 @@ function HarmonizationTemplates() {
                           style={{ fontSize: '0.875rem' }}
                         >
                           <option value="začátečník">začátečník</option>
-                          <option value="mírně pokročilý">mírně pokročilý</option>
+                          <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
                           <option value="pokročilý">pokročilý</option>
                         </select>
                       </div>

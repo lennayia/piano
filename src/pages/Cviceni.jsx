@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Play, RotateCcw, CheckCircle, ChevronRight, Volume2, Headphones, Shuffle, Piano, Target, Brain } from 'lucide-react';
+import { Music, Play, RotateCcw, CheckCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target, Brain } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
 import TabButtons from '../components/ui/TabButtons';
+import { IconButton } from '../components/ui/ButtonComponents';
 import { RADIUS, SHADOW, BORDER } from '../utils/styleConstants';
 import SongLibrary from '../components/resources/SongLibrary';
 import ChordQuiz from '../components/games/ChordQuiz';
@@ -42,6 +43,7 @@ function Cviceni() {
         .from('piano_quiz_chords')
         .select('*')
         .eq('is_active', true)
+        .eq('quiz_type', 'chord')
         .order('display_order', { ascending: true });
 
       if (error) throw error;
@@ -187,7 +189,7 @@ function Cviceni() {
           <div style={{
             background: 'rgba(45, 91, 120, 0.08)',
             padding: '0.75rem',
-            borderRadius: 'var(--radius)',
+            borderRadius: RADIUS.md,
             marginBottom: '1rem',
             borderLeft: '3px solid var(--color-secondary)'
           }}>
@@ -200,7 +202,7 @@ function Cviceni() {
           <div style={{
             background: 'rgba(45, 91, 120, 0.08)',
             padding: '0.75rem',
-            borderRadius: 'var(--radius)',
+            borderRadius: RADIUS.md,
             marginBottom: '1rem',
             borderLeft: '3px solid var(--color-secondary)'
           }}>
@@ -213,7 +215,7 @@ function Cviceni() {
           <div style={{
             background: 'rgba(45, 91, 120, 0.08)',
             padding: '0.75rem',
-            borderRadius: 'var(--radius)',
+            borderRadius: RADIUS.md,
             marginBottom: '1rem',
             borderLeft: '3px solid var(--color-secondary)'
           }}>
@@ -338,7 +340,7 @@ function Cviceni() {
           padding: '1rem',
           background: 'rgba(255, 255, 255, 0.7)',
           backdropFilter: 'blur(20px)',
-          borderRadius: 'var(--radius)',
+          borderRadius: RADIUS.lg,
           border: '1px solid rgba(255, 255, 255, 0.3)'
         }}
       >
@@ -363,7 +365,7 @@ function Cviceni() {
         <div style={{
           height: '8px',
           background: 'rgba(181, 31, 101, 0.1)',
-          borderRadius: '4px',
+          borderRadius: RADIUS.sm,
           overflow: 'hidden'
         }}>
           <motion.div
@@ -372,7 +374,7 @@ function Cviceni() {
             style={{
               height: '100%',
               background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
-              borderRadius: '4px'
+              borderRadius: RADIUS.sm
             }}
           />
         </div>
@@ -389,12 +391,20 @@ function Cviceni() {
           backdropFilter: 'blur(30px)',
           WebkitBackdropFilter: 'blur(30px)',
           border: '2px solid rgba(181, 31, 101, 0.2)',
-          boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
+          boxShadow: SHADOW.lg,
           marginBottom: '2rem'
         }}
       >
-        {/* Název akordu */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        {/* Název akordu s navigací */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <IconButton
+            icon={ChevronLeft}
+            onClick={prevChord}
+            variant="secondary"
+            size={40}
+            iconSize={24}
+            ariaLabel="Předchozí akord"
+          />
           <motion.h2
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -403,14 +413,19 @@ function Cviceni() {
               fontSize: '2.5rem',
               fontWeight: 700,
               color: 'var(--color-primary)',
-              marginBottom: '0.5rem'
+              margin: 0
             }}
           >
             {currentChord?.name}
           </motion.h2>
-          <p style={{ color: '#64748b' }}>
-            Zahrajte postupně tyto tóny:
-          </p>
+          <IconButton
+            icon={ChevronRight}
+            onClick={nextChord}
+            variant="primary"
+            size={40}
+            iconSize={24}
+            ariaLabel="Další akord"
+          />
         </div>
 
         {/* Tóny k zahrání */}
@@ -531,7 +546,7 @@ function Cviceni() {
               textAlign: 'center',
               padding: '1rem',
               background: 'rgba(181, 31, 101, 0.1)',
-              borderRadius: 'var(--radius)',
+              borderRadius: RADIUS.lg,
               marginBottom: '1rem'
             }}
           >
@@ -553,7 +568,7 @@ function Cviceni() {
                 textAlign: 'center',
                 padding: '2rem',
                 background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2))',
-                borderRadius: 'var(--radius)',
+                borderRadius: RADIUS.lg,
                 border: '2px solid rgba(16, 185, 129, 0.3)'
               }}
             >
@@ -600,32 +615,6 @@ function Cviceni() {
           </div>
         )}
       </motion.div>
-
-          {/* Navigace mezi akordy */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: '1rem'
-          }}>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={prevChord}
-              className="btn btn-secondary"
-              style={{ flex: 1 }}
-            >
-              ← Předchozí
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={nextChord}
-              className="btn btn-secondary"
-              style={{ flex: 1 }}
-            >
-              Další →
-            </motion.button>
-          </div>
         </>
       )}
 

@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Piano, User, BookOpen, Lightbulb, Shield, LogOut, Menu, X, ChevronDown, History, Headphones, Brain } from 'lucide-react';
+import { Piano, User, BookOpen, Shield, LogOut, Menu, X, ChevronDown, History, Headphones, Brain } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import useUserStore from '../../store/useUserStore';
@@ -152,22 +152,6 @@ function Header() {
                 }}>
                   <Brain size={18} />
                   <span>Teorie</span>
-                </Link>
-
-                <Link to="/resources" onClick={handleNavClick} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  textDecoration: 'none',
-                  color: location.pathname === '/resources'
-                    ? 'var(--color-primary)'
-                    : 'var(--color-text-secondary)',
-                  fontSize: '0.875rem',
-                  fontWeight: location.pathname === '/resources' ? 600 : 500,
-                  transition: 'all 0.3s ease'
-                }}>
-                  <Lightbulb size={18} />
-                  <span>Materiály</span>
                 </Link>
 
                 {currentUser.is_admin && (
@@ -408,26 +392,6 @@ function Header() {
                     }}>
                       <Brain size={20} />
                       <span>Teorie</span>
-                    </Link>
-
-                    <Link to="/resources" onClick={handleNavClick} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      textDecoration: 'none',
-                      color: location.pathname === '/resources'
-                        ? 'var(--color-primary)'
-                        : 'var(--color-text-secondary)',
-                      fontSize: '1rem',
-                      fontWeight: location.pathname === '/resources' ? 600 : 500,
-                      padding: '0.75rem',
-                      borderRadius: 'var(--radius)',
-                      background: location.pathname === '/resources'
-                        ? 'rgba(181, 31, 101, 0.1)'
-                        : 'transparent'
-                    }}>
-                      <Lightbulb size={20} />
-                      <span>Materiály</span>
                     </Link>
 
                     {currentUser.is_admin && (

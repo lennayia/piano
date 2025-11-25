@@ -8,7 +8,6 @@ import UserDashboard from './pages/UserDashboard';
 import Lekce from './pages/Lekce';
 import Admin from './pages/Admin';
 import Lesson from './pages/Lesson';
-import Resources from './pages/Resources';
 import History from './pages/History';
 import Cviceni from './pages/Cviceni';
 import TheoryQuizzes from './pages/TheoryQuizzes';
@@ -40,7 +39,6 @@ function App() {
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
           <Route path="/lesson/:id" element={<ProtectedRoute><Lesson /></ProtectedRoute>} />
           <Route path="/cviceni" element={<ProtectedRoute><Cviceni /></ProtectedRoute>} />
-          <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
           <Route path="/theory-quizzes" element={<ProtectedRoute><TheoryQuizzes /></ProtectedRoute>} />
         </Routes>
       </Layout>

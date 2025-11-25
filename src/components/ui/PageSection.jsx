@@ -15,6 +15,7 @@ import TabButtons from './TabButtons';
  * @param {string} props.activeSubTab - ID aktivního sub tabu
  * @param {function} props.onMainTabChange - Callback při změně hlavního tabu
  * @param {function} props.onSubTabChange - Callback při změně sub tabu
+ * @param {string} props.mainTabsSize - Velikost main tabs: 'sm' | 'md' | 'lg' (default: 'lg')
  * @param {string} props.sectionTitle - H2 nadpis content sekce
  * @param {string} props.sectionDescription - Popisný text pod section title
  * @param {React.Component} props.sectionAction - Action button vedle section title
@@ -33,6 +34,7 @@ export function PageSection({
   activeSubTab,
   onMainTabChange,
   onSubTabChange,
+  mainTabsSize = 'md',
   sectionTitle,
   sectionDescription,
   sectionAction,
@@ -40,18 +42,6 @@ export function PageSection({
   progress,
   children
 }) {
-  // Přednastavené šířky
-  const widthPresets = {
-    sm: '600px',
-    md: '900px',
-    lg: '1200px',
-    xl: '1400px',
-    full: '100%'
-  };
-
-  // Zjistit šířku kontejneru
-  const containerWidth = widthPresets[maxWidth] || maxWidth;
-
   // Zjistit, jestli aktivní hlavní tab má submenu
   const currentSubTabs = subTabs[activeMainTab] || [];
   const hasSubMenu = currentSubTabs.length > 0;
@@ -67,11 +57,7 @@ export function PageSection({
   );
 
   return (
-    <div style={{
-      maxWidth: containerWidth,
-      margin: '0 auto',
-      padding: '0 1rem'
-    }}>
+    <div className="container">
       {/* Header sekce */}
       {(Icon || title || description) && (
         <>
@@ -107,7 +93,7 @@ export function PageSection({
             tabs={mainTabs}
             activeTab={activeMainTab}
             onTabChange={onMainTabChange}
-            options={{ size: 'lg', style: { marginBottom: hasSubMenu ? '1rem' : 0 } }}
+            options={{ size: mainTabsSize, style: { marginBottom: hasSubMenu ? '1rem' : 0 } }}
           />
 
           {/* Submenu pills */}

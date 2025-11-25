@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Music, TrendingUp, Activity, Sparkles, Brain, BookOpen, GraduationCap } from 'lucide-react';
-import TabButtons from '../ui/TabButtons';
+import { Music, TrendingUp, Activity, Sparkles, Brain, BookOpen, GraduationCap, Book } from 'lucide-react';
+import PageSection from '../ui/PageSection';
 import UniversalTheoryQuiz from './UniversalTheoryQuiz';
+import HarmonizationTemplates from '../resources/HarmonizationTemplates';
+import Glossary from '../resources/Glossary';
+import { FloatingHelpButton } from '../ui/FloatingHelp';
 import { motion } from 'framer-motion';
 
 /**
- * TheoryQuizHub - Centrální rozhraní pro všechny teoretické kvízy
+ * TheoryQuizHub - Centrální rozhraní pro všechny teoretické kvízy a materiály
  */
 function TheoryQuizHub() {
-  const [mainSection, setMainSection] = useState('quizzes'); // 'quizzes' nebo 'materials'
-  const [activeQuizType, setActiveQuizType] = useState('interval');
+  const [activeMainTab, setActiveMainTab] = useState('quizzes');
+  const [activeSubTab, setActiveSubTab] = useState('interval');
 
   // Konfigurace hlavních sekcí
   const MAIN_SECTIONS = [
@@ -71,81 +74,114 @@ function TheoryQuizHub() {
     }
   ];
 
-  const currentQuiz = QUIZ_TYPES.find(q => q.id === activeQuizType);
+  // Konfigurace tabs pro materiály
+  const MATERIAL_TABS = [
+    { id: 'templates', label: 'Šablony harmonizace', icon: BookOpen },
+    { id: 'glossary', label: 'Slovníček', icon: Book }
+  ];
+
+  // Mapování hlavních tabs na jejich sub-tabs
+  const SUB_TABS = {
+    quizzes: QUIZ_TYPES,
+    materials: MATERIAL_TABS
+  };
+
+  // Handler pro změnu hlavního tabu - resetuje sub tab na výchozí hodnotu
+  const handleMainTabChange = (newTab) => {
+    setActiveMainTab(newTab);
+    // Nastavit výchozí sub tab podle sekce
+    if (newTab === 'quizzes') {
+      setActiveSubTab('interval');
+    } else if (newTab === 'materials') {
+      setActiveSubTab('templates');
+    }
+  };
+
+  // Najít aktuální kvíz
+  const currentQuiz = QUIZ_TYPES.find(q => q.id === activeSubTab);
 
   return (
-    <div className="container">
-      {/* Hlavička */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: '2rem' }}
-      >
-        <h1 style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          marginBottom: '0.5rem'
-        }}>
-          <Brain size={32} color="var(--color-primary)" />
-          Hudební teorie
-        </h1>
-        <p style={{ color: '#64748b' }}>
-          Vyberte si typ kvízu a otestujte své znalosti!
-        </p>
-      </motion.div>
+    <PageSection
+      maxWidth="lg"
+      icon={Brain}
+      title="Hudební teorie"
+      description="Vyberte si typ kvízu a otestujte své znalosti!"
+      mainTabs={MAIN_SECTIONS}
+      subTabs={SUB_TABS}
+      activeMainTab={activeMainTab}
+      activeSubTab={activeSubTab}
+      onMainTabChange={handleMainTabChange}
+      onSubTabChange={setActiveSubTab}
+    >
+      {/* Obsah podle aktivní sekce a sub tabu */}
+      {activeMainTab === 'quizzes' && currentQuiz && (
+        <UniversalTheoryQuiz
+          quizType={currentQuiz.id}
+          title={currentQuiz.title}
+          description={currentQuiz.description}
+          icon={currentQuiz.icon}
+        />
+      )}
 
-      {/* Hlavní navigační tabs */}
-      <TabButtons
-        tabs={MAIN_SECTIONS}
-        activeTab={mainSection}
-        onTabChange={setMainSection}
-        options={{ size: 'lg', style: { marginBottom: '1.5rem' } }}
-      />
-
-      {/* Kvízy sekce */}
-      {mainSection === 'quizzes' && (
+      {activeMainTab === 'materials' && (
         <>
-          {/* Tabs pro typy kvízů */}
-          <TabButtons
-            tabs={QUIZ_TYPES}
-            activeTab={activeQuizType}
-            onTabChange={setActiveQuizType}
-            options={{ layout: 'pill', style: { marginBottom: '1.5rem' } }}
-          />
+          <FloatingHelpButton title="Nápověda - Výukové materiály">
+            <div style={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.7 }}>
+              <h4 style={{ color: '#1e293b', marginBottom: '0.75rem', fontSize: '1rem' }}>
+                Výukové materiály
+              </h4>
+              <p style={{ marginBottom: '1rem' }}>
+                Zde najdete pomocné materiály pro studium harmonizace a hudební teorie.
+              </p>
 
-          {/* Quiz obsah */}
-          {currentQuiz && (
-            <UniversalTheoryQuiz
-              quizType={currentQuiz.id}
-              title={currentQuiz.title}
-              description={currentQuiz.description}
-              icon={currentQuiz.icon}
-            />
-          )}
+              <div style={{
+                background: 'rgba(45, 91, 120, 0.08)',
+                padding: '0.75rem',
+                borderRadius: 'var(--radius)',
+                marginBottom: '1rem',
+                borderLeft: '3px solid var(--color-secondary)'
+              }}>
+                <strong style={{ color: '#1e293b' }}>Šablony harmonizace</strong>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+                  Připravené harmonické postupy pro různé tóniny. Můžete si je přehrát a použít jako inspiraci.
+                </p>
+              </div>
+
+              <div style={{
+                background: 'rgba(45, 91, 120, 0.08)',
+                padding: '0.75rem',
+                borderRadius: 'var(--radius)',
+                marginBottom: '1rem',
+                borderLeft: '3px solid var(--color-secondary)'
+              }}>
+                <strong style={{ color: '#1e293b' }}>Slovníček</strong>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
+                  Přehled hudebních pojmů a jejich vysvětlení. Užitečné pro pochopení teorie.
+                </p>
+              </div>
+
+              <h4 style={{ color: '#1e293b', marginTop: '1.5rem', marginBottom: '0.75rem', fontSize: '1rem' }}>
+                Tip
+              </h4>
+              <p style={{ margin: 0 }}>
+                U každé šablony harmonizace můžete kliknout na tlačítko <strong>Přehrát</strong> a uslyšíte celou kadenci - všechny akordy za sebou zakončené návratem na tóniku.
+              </p>
+            </div>
+          </FloatingHelpButton>
+
+          <motion.div
+            key={activeSubTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeSubTab === 'templates' && <HarmonizationTemplates />}
+            {activeSubTab === 'glossary' && <Glossary />}
+          </motion.div>
         </>
       )}
-
-      {/* Materiály sekce */}
-      {mainSection === 'materials' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            padding: '2rem',
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '12px',
-            textAlign: 'center'
-          }}
-        >
-          <BookOpen size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
-          <h2>Materiály</h2>
-          <p style={{ color: '#64748b' }}>
-            Sekce s učebními materiály bude brzy k dispozici.
-          </p>
-        </motion.div>
-      )}
-    </div>
+    </PageSection>
   );
 }
 

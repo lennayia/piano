@@ -285,7 +285,7 @@ function LessonList() {
                   style={{ fontSize: '0.875rem' }}
                 >
                   <option value="začátečník">začátečník</option>
-                  <option value="mírně pokročilý">mírně pokročilý</option>
+                  <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
                   <option value="pokročilý">pokročilý</option>
                 </select>
               </div>

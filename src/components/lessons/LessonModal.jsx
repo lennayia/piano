@@ -98,7 +98,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
     switch (difficulty) {
       case 'začátečník':
         return 'badge-success';
-      case 'mírně pokročilý':
+      case 'mírně pokročilý začátečník':
         return 'badge-warning';
       case 'pokročilý':
         return 'badge-primary';

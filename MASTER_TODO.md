@@ -1,6 +1,6 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 25. listopadu 2025
+Datum poslední aktualizace: 25. listopadu 2025 (večer)
 
 ---
 
@@ -489,6 +489,47 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 ---
 
 ## ✅ Nedávno dokončené úkoly
+
+### Optimalizace Cvičení + PianoKeyboard vylepšení (25.11.2025 večer)
+**Dokončeno:** ✅
+**Popis:** Optimalizace stránky Cvičení pro mobil, vylepšení klaviatury a aplikace modulárního designu
+
+**Změny:**
+- ✅ **Optimalizace stránky Cvičení:**
+  - Nahrazeny velké navigační tlačítka IconButtons (ChevronLeft, ChevronRight)
+  - Odstraněn text "Zahrajte postupně tyto tóny:"
+  - Přidán filtr `quiz_type = 'chord'` pro správné zobrazení cvičení
+  - Aplikovány modulární konstanty (RADIUS.md, RADIUS.lg, RADIUS.sm, SHADOW.lg)
+
+- ✅ **PianoKeyboard vylepšení:**
+  - Puntíky přesunuty dolů (bottom: 10px/15px)
+  - Text not umístěn 15px nad puntíky
+  - Sjednoceny barvy na `var(--color-secondary)` (#2d5b78)
+  - Konzistentní glow efekty (opacity 0.7 pro klávesy, 0.8 pro puntíky)
+  - Border na klávesách zmenšen z 3px na 2px
+  - Vnitřní stíny na puntících (bílé: světlý, černé: tmavší)
+  - Svislá čára 1px místo 3px, zIndex 10
+
+- ✅ **CSS optimalizace:**
+  - Přidáno `overflow-y: scroll` na html pro konzistentní scrollbar
+
+- ✅ **Modulární design aplikace:**
+  - Klaviatura: `var(--radius-xl)`, `var(--shadow-lg)`
+  - Nahrazeny deprecated `var(--radius)` za specifické hodnoty
+  - Použity konstanty z `styleConstants.js`
+
+**Soubory:**
+- `src/pages/Cviceni.jsx`
+- `src/components/lessons/PianoKeyboard.jsx`
+- `src/styles/index.css`
+- Dokumentace: `SESSION_CONTEXT-20251125.md`
+
+**Výsledek:**
+- Stránka Cvičení se vejde na jednu obrazovku i na mobilech
+- Vizuálně konzistentnější a elegantnější vzhled
+- Lepší viditelnost zvýraznění díky vnitřním stínům
+
+---
 
 ### Modularizace UI komponent + Fix ChordQuiz (25.11.2025)
 **Dokončeno:** ✅

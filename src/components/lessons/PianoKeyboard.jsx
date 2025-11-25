@@ -120,8 +120,8 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
       padding: windowWidth < 360 ? '0.75rem 0.25rem' : windowWidth < 768 ? '1rem 0.5rem' : '1.5rem 1rem',
       background: 'var(--glass-bg)',
       backdropFilter: 'blur(20px)',
-      borderRadius: 'var(--radius)',
-      boxShadow: 'var(--glass-shadow)',
+      borderRadius: 'var(--radius-xl)',
+      boxShadow: 'var(--shadow-lg)',
       overflow: 'hidden'
     }}>
       <div style={{
@@ -148,11 +148,11 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              paddingBottom: windowWidth < 360 ? '0.25rem' : windowWidth < 768 ? '0.5rem' : '1rem',
+              paddingBottom: keyWidth < 30 ? '32px' : keyWidth < 40 ? '41px' : '45px',
               fontSize: windowWidth < 360 ? '0.5rem' : windowWidth < 480 ? '0.625rem' : windowWidth < 768 ? '0.75rem' : '0.875rem',
               fontWeight: 500,
               position: 'relative',
-              border: isHighlighted(key.note) ? '3px solid #2d5b78' : '2px solid #ddd',
+              border: isHighlighted(key.note) ? '2px solid var(--color-secondary)' : '2px solid #ddd',
               boxShadow: isHighlighted(key.note)
                 ? '0 0 20px rgba(45, 91, 120, 0.5)'
                 : '0 4px 8px rgba(0, 0, 0, 0.1)'
@@ -165,12 +165,12 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
                 animate={{ scale: 1 }}
                 style={{
                   position: 'absolute',
-                  top: keyWidth < 30 ? '5px' : '10px',
+                  bottom: keyWidth < 30 ? '10px' : '15px',
                   width: keyWidth < 30 ? '12px' : keyWidth < 40 ? '16px' : '20px',
                   height: keyWidth < 30 ? '12px' : keyWidth < 40 ? '16px' : '20px',
-                  background: '#2d5b78',
+                  background: 'var(--color-secondary)',
                   borderRadius: '50%',
-                  boxShadow: '0 0 15px rgba(45, 91, 120, 0.8)'
+                  boxShadow: '0 0 15px rgba(45, 91, 120, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.5)'
                 }}
               />
             )}
@@ -206,13 +206,13 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
                 display: 'flex',
                 alignItems: 'flex-end',
                 justifyContent: 'center',
-                paddingBottom: windowWidth < 360 ? '0.125rem' : windowWidth < 768 ? '0.25rem' : '0.5rem',
+                paddingBottom: keyWidth < 30 ? '29px' : keyWidth < 40 ? '37px' : '41px',
                 fontSize: windowWidth < 360 ? '0.375rem' : windowWidth < 480 ? '0.5rem' : windowWidth < 768 ? '0.625rem' : '0.75rem',
                 fontWeight: 500,
                 color: 'white',
-                border: isHighlighted(key.note) ? '3px solid #4a7a9e' : '2px solid #000',
+                border: isHighlighted(key.note) ? '3px solid var(--color-secondary)' : '2px solid #000',
                 boxShadow: isHighlighted(key.note)
-                  ? '0 0 20px rgba(74, 122, 158, 0.7)'
+                  ? '0 0 20px rgba(45, 91, 120, 0.7)'
                   : '0 4px 8px rgba(0, 0, 0, 0.3)'
               }}
             >
@@ -223,12 +223,12 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
                   animate={{ scale: 1 }}
                   style={{
                     position: 'absolute',
-                    top: keyWidth < 30 ? '4px' : '10px',
+                    bottom: keyWidth < 30 ? '9px' : '15px',
                     width: keyWidth < 30 ? '10px' : keyWidth < 40 ? '12px' : '16px',
                     height: keyWidth < 30 ? '10px' : keyWidth < 40 ? '12px' : '16px',
-                    background: '#4a7a9e',
+                    background: 'var(--color-secondary)',
                     borderRadius: '50%',
-                    boxShadow: '0 0 15px rgba(74, 122, 158, 0.8)'
+                    boxShadow: '0 0 15px rgba(45, 91, 120, 0.8), inset 0 -2px 6px rgba(107, 168, 200, 0.5)'
                   }}
                 />
               )}
@@ -243,11 +243,11 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
                     top: `${blackKeyHeight - (keyWidth < 30 ? 2 : keyWidth < 40 ? 4 : 6)}px`,
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    width: '3px',
+                    width: '1px',
                     height: `${keyWidth < 30 ? '34px' : keyWidth < 40 ? '56px' : '78px'}`,
-                    background: '#2d5b78',
+                    background: 'var(--color-secondary)',
                     transformOrigin: 'top',
-                    zIndex: 1
+                    zIndex: 10
                   }}
                 />
               )}
@@ -286,16 +286,6 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
             />
           );
         })}
-      </div>
-
-      {/* Instructions */}
-      <div style={{
-        marginTop: '1.5rem',
-        textAlign: 'center',
-        color: 'var(--color-text-secondary)',
-        fontSize: '0.875rem'
-      }}>
-        Klikněte na klávesy pro přehrání tónů
       </div>
     </div>
   );

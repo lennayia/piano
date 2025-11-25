@@ -31,7 +31,7 @@ const defaultTemplates = [
   {
     id: 3,
     title: 'Rozšířená kadence s mollovou subdominantou',
-    difficulty: 'mírně pokročilý',
+    difficulty: 'mírně pokročilý začátečník',
     chords: [
       { name: 'C dur', notes: ['C', 'E', 'G'], function: 'I. stupeň - tónika' },
       { name: 'Am', notes: ['A', 'C', 'E'], function: 'VI. stupeň - mollová paralelá' },

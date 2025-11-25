@@ -166,30 +166,16 @@ function Glossary() {
 
   return (
     <div>
-      <h2 className="card-title" style={{
-        marginBottom: '1.5rem',
+      <h2 style={{
+        marginBottom: '0.5rem',
         color: '#1e293b',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
+        fontSize: '1.5rem',
+        fontWeight: 600
       }}>
-        <div style={{
-          width: '48px',
-          height: '48px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '2px solid rgba(181, 31, 101, 0.2)',
-          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
-        }}>
-          <Book size={24} color="var(--color-primary)" />
-        </div>
-        Slovníček hudebních výrazů
+        Hudební slovník
       </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
-        Vysvětlení základních pojmů pro začátečníky - klikněte na výraz pro víc informací
+      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6 }}>
+        Přehled důležitých hudebních pojmů a termínů s vysvětlením. Klikněte na libovolný termín pro zobrazení detailního popisu a příkladů.
       </p>
 
       {/* Tlačítko pro přidání nového termínu (pouze pro adminy) */}
