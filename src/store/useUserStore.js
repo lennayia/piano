@@ -170,7 +170,6 @@ const useUserStore = create(
       adminLogin: async (credentials) => {
         set({ loading: true, error: null });
         try {
-          console.log('🔑 Step 1: Authenticating with Supabase...');
           // Sign in with Supabase Auth
           const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
             email: credentials.email.toLowerCase(),
@@ -181,9 +180,6 @@ const useUserStore = create(
             console.error('❌ Auth error:', authError);
             throw authError;
           }
-          console.log('✅ Auth successful:', authData.user?.email);
-
-          console.log('🔍 Step 2: Fetching user profile...');
           // Get user profile from piano_users table
           const { data: userProfile, error: profileError } = await supabase
             .from('piano_users')
@@ -195,17 +191,12 @@ const useUserStore = create(
             console.error('❌ Profile error:', profileError);
             throw new Error('Uživatelský profil nebyl nalezen');
           }
-          console.log('✅ Profile found:', userProfile);
-
           // Check if user is admin
           if (!userProfile.is_admin) {
             console.error('❌ User is not admin');
             await supabase.auth.signOut();
             throw new Error('Tento účet nemá administrátorská oprávnění');
           }
-          console.log('✅ User is admin');
-
-          console.log('📊 Step 3: Updating login stats...');
           // Update login count and last login time
           const { data: updatedProfile, error: updateError } = await supabase
             .from('piano_users')
@@ -217,11 +208,6 @@ const useUserStore = create(
             .select()
             .single();
 
-          if (updateError) {
-            console.warn('⚠️ Login stats update error (non-critical):', updateError);
-          }
-
-          console.log('📊 Step 4: Fetching user stats...');
           // Get user stats
           const { data: stats, error: statsError } = await supabase
             .from('piano_user_stats')
@@ -229,12 +215,6 @@ const useUserStore = create(
             .eq('user_id', userProfile.id)
             .single();
 
-          if (statsError) {
-            console.warn('⚠️ Stats error (non-critical):', statsError);
-          }
-          console.log('✅ Stats fetched:', stats);
-
-          console.log('🏆 Step 5: Fetching user achievements...');
           // Get user achievements with full achievement data
           const { data: userAchievements, error: achievementsError } = await supabase
             .from('piano_user_achievements')
@@ -251,20 +231,14 @@ const useUserStore = create(
             `)
             .eq('user_id', userProfile.id);
 
-          if (achievementsError) {
-            console.warn('⚠️ Achievements error (non-critical):', achievementsError);
-          }
-
           const achievements = userAchievements?.map(a => ({
             id: a.achievement_id,
             earnedAt: a.earned_at,
             ...a.piano_achievements
           })) || [];
-          console.log('✅ Achievements fetched:', achievements);
 
           const userWithStats = { ...(updatedProfile || userProfile), stats, achievements };
           set({ currentUser: userWithStats, loading: false });
-          console.log('✅ Admin login complete, user set in store');
           return userWithStats;
         } catch (error) {
           console.error('❌ Admin login error:', error);
@@ -291,7 +265,6 @@ const useUserStore = create(
         set({ currentUser: { ...state.currentUser, is_admin: true } });
       }
 
-      console.log(`✅ ${email} je nyní admin!`);
       return data;
     } catch (error) {
       console.error('Error setting admin:', error);
@@ -311,7 +284,6 @@ const useUserStore = create(
         .single();
 
       if (existingProgress?.completed) {
-        console.log('Lesson already completed');
         return; // Already completed
       }
 
@@ -640,7 +612,6 @@ const useUserStore = create(
         if (updates.quiz_completed) {
           const currentQuizzes = state.currentUser.stats?.quizzes_completed || 0;
           updateData.quizzes_completed = currentQuizzes + 1;
-          console.log(`📝 Quiz completed! Total quizzes: ${currentQuizzes + 1}`);
         }
 
         // Update stats in database
@@ -648,8 +619,6 @@ const useUserStore = create(
           .from('piano_user_stats')
           .update(updateData)
           .eq('user_id', state.currentUser.id);
-
-        console.log(`✅ Added ${updates.xp_gained} XP! Total: ${newTotalXp}, Level: ${newLevel}`);
 
         // Check and award achievements after XP update
         const { data: allAchievements } = await supabase
@@ -698,7 +667,6 @@ const useUserStore = create(
               });
 
             newlyEarnedAchievements.push(achievement);
-            console.log(`🏆 Achievement earned: ${achievement.title} (+${achievement.xp_reward} XP)`);
 
             // Add achievement XP reward
             if (achievement.xp_reward > 0) {
@@ -719,8 +687,6 @@ const useUserStore = create(
               updated_at: new Date().toISOString()
             })
             .eq('user_id', state.currentUser.id);
-
-          console.log(`🎉 Total XP with achievement rewards: ${newTotalXp}, Level: ${newLevel}`);
         }
       }
 
@@ -771,7 +737,6 @@ const useUserStore = create(
         }
       });
 
-      console.log('✅ User stats updated:', stats);
     } catch (error) {
       console.error('Error updating user stats:', error);
     }
@@ -788,7 +753,6 @@ const useUserStore = create(
 
       // If already logged in today, skip
       if (lastActivityDate === today) {
-        console.log('✅ Already logged in today');
         return;
       }
 
@@ -826,8 +790,6 @@ const useUserStore = create(
         console.error('Error tracking daily login:', error);
         return;
       }
-
-      console.log(`✅ Daily login tracked! Streak: ${newStreak} days, +2 XP`);
 
       // Refresh user stats
       const updateUserStats = get().updateUserStats;

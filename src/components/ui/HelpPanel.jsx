@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RADIUS } from './TabButtons';
+import { RADIUS } from '../../utils/styleConstants';
 
 /**
  * Moderní HelpPanel - rozbalovací panel s nápovědou

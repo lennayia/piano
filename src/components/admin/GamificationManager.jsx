@@ -6,7 +6,8 @@ import {
   Settings, Save, HelpCircle, Crown,
   Zap, Music, BookOpen, Target
 } from 'lucide-react';
-import TabButtons, { HelpButton, HelpPanel } from '../ui/TabButtons';
+import TabButtons, { HelpPanel } from '../ui/TabButtons';
+import { HelpButton } from '../ui/ButtonComponents';
 
 const GamificationManager = () => {
   const [activeTab, setActiveTab] = useState('xp-rules');

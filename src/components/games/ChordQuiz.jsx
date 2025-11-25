@@ -6,7 +6,8 @@ import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import { RADIUS, SHADOW, BORDER, IconButton, BackButton, AnswerStatusChip } from '../ui/TabButtons';
+import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
+import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
 
 function ChordQuiz() {
   const [score, setScore] = useState(0);
@@ -39,18 +40,27 @@ function ChordQuiz() {
     fetchChords();
   }, []);
 
+  // Helper funkce pro zamíchání pole
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   const fetchChords = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Načteme aktivní akordy s jejich možnostmi (pouze ty s notami pro poslechový kvíz)
+      // Načteme VŠECHNY aktivní akordy (pouze ty s notami pro poslechový kvíz)
+      // BEZ možností z piano_quiz_chord_options - ty generujeme automaticky!
       const { data: chordsData, error: chordsError } = await supabase
         .from('piano_quiz_chords')
-        .select(`
-          *,
-          piano_quiz_chord_options (*)
-        `)
+        .select('*')
+        .eq('quiz_type', 'chord')
         .eq('is_active', true)
         .not('notes', 'is', null)
         .order('display_order');
@@ -63,12 +73,22 @@ function ChordQuiz() {
         return;
       }
 
+      // Získáme všechny názvy akordů pro generování možností
+      const allChordNames = chordsData.map(chord => chord.name);
+
       // Transformujeme data z databáze do formátu, který kvíz očekává
       const transformedChords = chordsData.map((chord, index) => {
-        // Seřadíme možnosti podle display_order
-        const sortedOptions = [...(chord.piano_quiz_chord_options || [])].sort(
-          (a, b) => a.display_order - b.display_order
-        );
+        // Generujeme 4 možnosti: 1 správná + 3 náhodné špatné
+        const correctAnswer = chord.name;
+
+        // Vybereme 3 náhodné špatné odpovědi (jiné názvy akordů)
+        const wrongAnswers = allChordNames
+          .filter(name => name !== correctAnswer)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+
+        // Spojíme správnou a špatné odpovědi a zamícháme
+        const allOptions = shuffleArray([correctAnswer, ...wrongAnswers]);
 
         // Střídat barvy mezi primary a secondary
         const colors = [
@@ -79,8 +99,8 @@ function ChordQuiz() {
         return {
           name: chord.name,
           notes: chord.notes || [],
-          options: sortedOptions.map(opt => opt.option_name),
-          correctAnswer: sortedOptions.find(opt => opt.is_correct)?.option_name || chord.name,
+          options: allOptions,
+          correctAnswer: correctAnswer,
           color: colors[index % 2]
         };
       });

@@ -32,7 +32,6 @@ class AudioEngine {
       this.masterGain.connect(this.audioContext.destination);
 
       this.initialized = true;
-      console.log('Audio engine initialized with compressor for louder sound');
     } catch (error) {
       console.error('Web Audio API not supported:', error);
     }

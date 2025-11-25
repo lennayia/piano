@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { Music, BookOpen, HelpCircle, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import TabButtons, { HelpButton, HelpPanel, ActionButton, AddButton, Chip, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormSection, FormContainer, PageCard, QuestionCard, NoteButton, RADIUS, SHADOW, BORDER } from '../ui/TabButtons';
+import TabButtons, { HelpPanel } from '../ui/TabButtons';
+import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
+import { HelpButton, ActionButton, AddButton, Chip, CancelButton, SaveButton, NoteButton } from '../ui/ButtonComponents';
+import { RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormSection, FormContainer } from '../ui/FormComponents';
+import { PageCard, QuestionCard } from '../ui/CardComponents';
 import UniversalQuizManager from './UniversalQuizManager';
 
 // Normalizace názvu akordu
@@ -83,6 +87,12 @@ const QuizManager = () => {
       { option_name: '', is_correct: false, display_order: 2 },
       { option_name: '', is_correct: false, display_order: 3 },
       { option_name: '', is_correct: false, display_order: 4 }
+    ],
+    theoryOptions: [ // NOVÉ: separátní možnosti pro teoretický kvíz
+      { option_name: '', is_correct: true, display_order: 1 },
+      { option_name: '', is_correct: false, display_order: 2 },
+      { option_name: '', is_correct: false, display_order: 3 },
+      { option_name: '', is_correct: false, display_order: 4 }
     ]
   });
 
@@ -112,6 +122,8 @@ const QuizManager = () => {
     // Reset formulář při změně tabu
     setShowAddForm(false);
     setEditingChord(null);
+    // Aktualizovat quiz_type ve formData podle aktivní záložky
+    setFormData(prev => ({ ...prev, quiz_type: activeQuizType }));
   }, [activeQuizType]);
 
   const fetchChords = async () => {
@@ -188,6 +200,12 @@ const QuizManager = () => {
         { option_name: '', is_correct: false, display_order: 2 },
         { option_name: '', is_correct: false, display_order: 3 },
         { option_name: '', is_correct: false, display_order: 4 }
+      ],
+      theoryOptions: [
+        { option_name: '', is_correct: true, display_order: 1 },
+        { option_name: '', is_correct: false, display_order: 2 },
+        { option_name: '', is_correct: false, display_order: 3 },
+        { option_name: '', is_correct: false, display_order: 4 }
       ]
     });
   };
@@ -223,11 +241,22 @@ const QuizManager = () => {
 
     // Pokud editujeme poslechový kvíz (chord), zkusíme najít existující teoretickou otázku
     let theoryQuestionText = '';
+    let theoryOptionsData = [
+      { option_name: '', is_correct: true, display_order: 1 },
+      { option_name: '', is_correct: false, display_order: 2 },
+      { option_name: '', is_correct: false, display_order: 3 },
+      { option_name: '', is_correct: false, display_order: 4 }
+    ];
+
     if (chord.quiz_type === 'chord') {
       try {
         let query = supabase
           .from('piano_quiz_chords')
-          .select('name')
+          .select(`
+            id,
+            name,
+            piano_quiz_chord_options (*)
+          `)
           .eq('quiz_type', 'theory');
 
         // Správné porovnání s NULL
@@ -246,6 +275,18 @@ const QuizManager = () => {
           );
           if (matching) {
             theoryQuestionText = matching.name;
+
+            // Načteme možnosti teoretického kvízu
+            if (matching.piano_quiz_chord_options && matching.piano_quiz_chord_options.length > 0) {
+              const sortedTheoryOptions = [...matching.piano_quiz_chord_options].sort(
+                (a, b) => a.display_order - b.display_order
+              );
+              theoryOptionsData = sortedTheoryOptions.map(opt => ({
+                option_name: opt.option_name || '',
+                is_correct: opt.is_correct || false,
+                display_order: opt.display_order || 1
+              }));
+            }
           }
         }
       } catch (err) {
@@ -262,7 +303,8 @@ const QuizManager = () => {
       difficulty: chord.difficulty,
       is_active: chord.is_active,
       display_order: chord.display_order,
-      options: formattedOptions
+      options: formattedOptions,
+      theoryOptions: theoryOptionsData // NOVÉ: načteme možnosti teoretického kvízu
     });
   };
 
@@ -332,9 +374,6 @@ const QuizManager = () => {
   };
 
   const handleSaveChord = async () => {
-    console.log('🔵 handleSaveChord called');
-    console.log('formData:', formData);
-
     try {
       // Validace
       if (!formData.name.trim()) {
@@ -344,25 +383,6 @@ const QuizManager = () => {
       if (activeQuizType === 'chord' && formData.notes.length === 0) {
         setError('Vyberte alespoň jednu notu');
         return;
-      }
-
-      // Zkontrolujeme jestli uživatel vyplnil nějaké možnosti
-      const filledOptions = formData.options.filter(opt => opt.option_name && opt.option_name.trim());
-
-      // Pokud jsou vyplněné nějaké možnosti, validujeme je
-      if (filledOptions.length > 0) {
-        // Ověříme, že máme právě jednu správnou odpověď
-        const correctAnswers = filledOptions.filter(opt => opt.is_correct);
-        if (correctAnswers.length !== 1) {
-          setError('Musí být právě jedna správná odpověď');
-          return;
-        }
-
-        // Ověříme, že všechny 4 možnosti jsou vyplněné
-        if (filledOptions.length !== 4) {
-          setError('Vyplňte všechny 4 možnosti nebo žádnou (budou generovány automaticky)');
-          return;
-        }
       }
 
       setError(null);
@@ -398,30 +418,20 @@ const QuizManager = () => {
 
         if (updateError) throw updateError;
 
-        // Možnosti ukládáme pouze pokud jsou vyplněné
-        if (filledOptions.length === 4) {
-          // Smažeme staré možnosti a vytvoříme nové
-          await supabase
-            .from('piano_quiz_chord_options')
-            .delete()
-            .eq('chord_id', editingChord);
-
-          const optionsToInsert = filledOptions.map(opt => ({
-            chord_id: editingChord,
-            option_name: normalizeNotes(opt.option_name), // Normalizujeme tóny
-            is_correct: opt.is_correct,
-            display_order: opt.display_order
-          }));
-
-          const { error: optionsError } = await supabase
-            .from('piano_quiz_chord_options')
-            .insert(optionsToInsert);
-
-          if (optionsError) throw optionsError;
-        }
+        // Pro chord typ se možnosti NEGENERUJÍ ručně - generují se automaticky v UI
+        // Možnosti ukládáme pouze pro teoretický kvíz
 
         // NOVÉ: Pokud je vyplněn text otázky, vytvoříme DRUHÝ záznam jako teoretický kvíz
-        if (formData.questionText && formData.questionText.trim() && filledOptions.length === 4) {
+        const filledTheoryOptions = formData.theoryOptions.filter(opt => opt.option_name && opt.option_name.trim());
+
+        if (formData.questionText && formData.questionText.trim() && filledTheoryOptions.length === 4) {
+          // Validace theoretical options
+          const correctTheoryAnswers = filledTheoryOptions.filter(opt => opt.is_correct);
+          if (correctTheoryAnswers.length !== 1) {
+            setError('Teoretický kvíz musí mít právě jednu správnou odpověď');
+            return;
+          }
+
           // Nejprve zkontrolujeme, jestli už teoretický kvíz pro tento akord existuje
           let theoryQuery = supabase
             .from('piano_quiz_chords')
@@ -456,13 +466,13 @@ const QuizManager = () => {
               .update(theoryUpdateData)
               .eq('id', existingTheory.id);
 
-            // Aktualizujeme odpovědi
+            // Aktualizujeme odpovědi - používáme theoryOptions!
             await supabase
               .from('piano_quiz_chord_options')
               .delete()
               .eq('chord_id', existingTheory.id);
 
-            const theoryOptionsToInsert = filledOptions.map(opt => ({
+            const theoryOptionsToInsert = filledTheoryOptions.map(opt => ({
               chord_id: existingTheory.id,
               option_name: normalizeNotes(opt.option_name),
               is_correct: opt.is_correct,
@@ -494,7 +504,8 @@ const QuizManager = () => {
 
             if (theoryInsertError) throw theoryInsertError;
 
-            const theoryOptionsToInsert = filledOptions.map(opt => ({
+            // Používáme theoryOptions!
+            const theoryOptionsToInsert = filledTheoryOptions.map(opt => ({
               chord_id: theoryQuiz.id,
               option_name: normalizeNotes(opt.option_name),
               is_correct: opt.is_correct,
@@ -536,24 +547,20 @@ const QuizManager = () => {
 
         if (insertError) throw insertError;
 
-        // Možnosti vkládáme pouze pokud jsou vyplněné
-        if (filledOptions.length === 4) {
-          const optionsToInsert = filledOptions.map(opt => ({
-            chord_id: newChord.id,
-            option_name: normalizeNotes(opt.option_name), // Normalizujeme tóny
-            is_correct: opt.is_correct,
-            display_order: opt.display_order
-          }));
-
-          const { error: optionsError } = await supabase
-            .from('piano_quiz_chord_options')
-            .insert(optionsToInsert);
-
-          if (optionsError) throw optionsError;
-        }
+        // Pro chord typ se možnosti NEGENERUJÍ ručně - generují se automaticky v UI
+        // Možnosti ukládáme pouze pro teoretický kvíz
 
         // NOVÉ: Pokud je vyplněn text otázky, vytvoříme DRUHÝ záznam jako teoretický kvíz
-        if (formData.questionText && formData.questionText.trim() && filledOptions.length === 4) {
+        const filledTheoryOptions = formData.theoryOptions.filter(opt => opt.option_name && opt.option_name.trim());
+
+        if (formData.questionText && formData.questionText.trim() && filledTheoryOptions.length === 4) {
+          // Validace theoretical options
+          const correctTheoryAnswers = filledTheoryOptions.filter(opt => opt.is_correct);
+          if (correctTheoryAnswers.length !== 1) {
+            setError('Teoretický kvíz musí mít právě jednu správnou odpověď');
+            return;
+          }
+
           const theoryData_obj = {
             name: formData.questionText.trim(), // Text otázky jako název
             quiz_type: 'theory',
@@ -572,8 +579,8 @@ const QuizManager = () => {
 
           if (theoryInsertError) throw theoryInsertError;
 
-          // Přidáme stejné možnosti odpovědí pro teoretický kvíz
-          const theoryOptionsToInsert = filledOptions.map(opt => ({
+          // Používáme theoryOptions!
+          const theoryOptionsToInsert = filledTheoryOptions.map(opt => ({
             chord_id: theoryQuiz.id,
             option_name: normalizeNotes(opt.option_name), // Normalizujeme tóny
             is_correct: opt.is_correct,
@@ -641,6 +648,23 @@ const QuizManager = () => {
       }
 
       return { ...prev, options: newOptions };
+    });
+  };
+
+  const handleTheoryOptionChange = (index, field, value) => {
+    setFormData(prev => {
+      const newOptions = [...prev.theoryOptions];
+
+      // Pokud měníme is_correct na true, ostatní nastavíme na false
+      if (field === 'is_correct' && value === true) {
+        newOptions.forEach((opt, i) => {
+          opt.is_correct = i === index;
+        });
+      } else {
+        newOptions[index] = { ...newOptions[index], [field]: value };
+      }
+
+      return { ...prev, theoryOptions: newOptions };
     });
   };
 
@@ -919,6 +943,12 @@ const QuizManager = () => {
                 <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
                   Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
                 </div>
+
+                <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(45, 91, 120, 0.05)', borderRadius: RADIUS.lg, border: '1px solid rgba(45, 91, 120, 0.2)' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+                    💡 Možnosti odpovědí pro poslechový kvíz se <strong>generují automaticky</strong> z dostupných akordů v databázi. Nemusíte je zadávat ručně!
+                  </p>
+                </div>
               </FormSection>
             )}
 
@@ -1000,14 +1030,17 @@ const QuizManager = () => {
                     rows={2}
                   />
                   <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem', marginBottom: 0 }}>
-                    💡 Pokud vyplníte text otázky, vytvoří se automaticky i teoretický kvíz se stejnými možnostmi odpovědí níže
+                    💡 Pokud vyplníte text otázky + 4 možnosti odpovědí níže, vytvoří se automaticky i teoretický kvíz. Teoretický kvíz je <strong>zcela volitelný</strong> a nezávislý na poslechovém kvízu.
                   </p>
                 </div>
 
-                {/* Možnosti odpovědí */}
+                {/* Možnosti odpovědí pro teoretický kvíz */}
                 <div style={{ marginBottom: '0' }}>
-                  <FormLabel text="Možnosti odpovědí (4 možnosti)" required />
-                  {formData.options.map((option, index) => (
+                  <FormLabel text="Možnosti odpovědí pro teoretický kvíz (4 možnosti)" />
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', marginBottom: '0.75rem' }}>
+                    💡 Zadejte 4 možnosti pro teoretickou otázku (např. jednotlivé tóny "C", "A", "D", "H" nebo jiné odpovědi). Tyto možnosti jsou SAMOSTATNÉ a neovlivní poslechový kvíz výše.
+                  </p>
+                  {formData.theoryOptions.map((option, index) => (
                     <div
                       key={index}
                       style={{
@@ -1025,14 +1058,14 @@ const QuizManager = () => {
                       <FormInput
                         type="text"
                         value={option.option_name}
-                        onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
+                        onChange={(e) => handleTheoryOptionChange(index, 'option_name', e.target.value)}
                         placeholder={`Možnost ${index + 1}`}
                         style={{ flex: 1 }}
                       />
                       <RadioLabel
                         checked={option.is_correct}
-                        onChange={() => handleOptionChange(index, 'is_correct', true)}
-                        name="correct_answer"
+                        onChange={() => handleTheoryOptionChange(index, 'is_correct', true)}
+                        name="correct_answer_theory"
                       />
                     </div>
                   ))}
@@ -1191,6 +1224,12 @@ const QuizManager = () => {
                   <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#64748b' }}>
                     Vybrané noty: {formData.notes.length > 0 ? sortNotesByKeyboard(formData.notes).join(', ') : 'žádné'}
                   </div>
+
+                  <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(45, 91, 120, 0.05)', borderRadius: RADIUS.lg, border: '1px solid rgba(45, 91, 120, 0.2)' }}>
+                    <p style={{ fontSize: '0.8rem', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+                      💡 Možnosti odpovědí pro poslechový kvíz se <strong>generují automaticky</strong> z dostupných akordů v databázi. Nemusíte je zadávat ručně!
+                    </p>
+                  </div>
                 </FormSection>
 
                 {/* Obtížnost a Pořadí */}
@@ -1243,14 +1282,17 @@ const QuizManager = () => {
                       rows={2}
                     />
                     <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem', marginBottom: 0 }}>
-                      💡 Pokud vyplníte text otázky, vytvoří se automaticky i teoretický kvíz se stejnými možnostmi odpovědí níže
+                      💡 Pokud vyplníte text otázky + 4 možnosti odpovědí níže, vytvoří se automaticky i teoretický kvíz. Teoretický kvíz je <strong>zcela volitelný</strong> a nezávislý na poslechovém kvízu.
                     </p>
                   </div>
 
-                  {/* Možnosti odpovědí */}
+                  {/* Možnosti odpovědí pro teoretický kvíz */}
                   <div style={{ marginBottom: '0' }}>
-                    <FormLabel text="Možnosti odpovědí (4 možnosti)" required />
-                    {formData.options.map((option, index) => (
+                    <FormLabel text="Možnosti odpovědí pro teoretický kvíz (4 možnosti)" />
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', marginBottom: '0.75rem' }}>
+                      💡 Zadejte 4 možnosti pro teoretickou otázku (např. jednotlivé tóny "C", "A", "D", "H" nebo jiné odpovědi). Tyto možnosti jsou SAMOSTATNÉ a neovlivní poslechový kvíz výše.
+                    </p>
+                    {formData.theoryOptions.map((option, index) => (
                       <div
                         key={index}
                         style={{
@@ -1268,14 +1310,14 @@ const QuizManager = () => {
                         <FormInput
                           type="text"
                           value={option.option_name}
-                          onChange={(e) => handleOptionChange(index, 'option_name', e.target.value)}
+                          onChange={(e) => handleTheoryOptionChange(index, 'option_name', e.target.value)}
                           placeholder={`Možnost ${index + 1}`}
                           style={{ flex: 1 }}
                         />
                         <RadioLabel
                           checked={option.is_correct}
-                          onChange={() => handleOptionChange(index, 'is_correct', true)}
-                          name="correct_answer"
+                          onChange={() => handleTheoryOptionChange(index, 'is_correct', true)}
+                          name="correct_answer_theory_edit"
                         />
                       </div>
                     ))}

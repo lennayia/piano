@@ -5,7 +5,8 @@ import { supabase } from '../../lib/supabase';
 import * as LucideIcons from 'lucide-react';
 import useLessonStore from '../../store/useLessonStore';
 import useSongStore from '../../store/useSongStore';
-import { HelpButton, HelpPanel } from '../ui/TabButtons';
+import { HelpPanel } from '../ui/TabButtons';
+import { HelpButton } from '../ui/ButtonComponents';
 import { generateSound } from '../../utils/soundGenerator';
 
 // Dostupné ikony pro výběr

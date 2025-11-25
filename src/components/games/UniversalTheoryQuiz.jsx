@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
-import { RADIUS, SHADOW, BORDER, IconButton, BackButton, AnswerStatusChip } from '../ui/TabButtons';
+import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
+import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
 import audioEngine from '../../utils/audio';
 
 /**

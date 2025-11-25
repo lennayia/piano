@@ -14,6 +14,19 @@ export const RADIUS = {
 // Pro zpětnou kompatibilitu
 export const BORDER_RADIUS = RADIUS;
 
+// Shadow System
+export const SHADOW = {
+  default: '0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06)',
+  subtle: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+  selected: '0 4px 16px rgba(181, 31, 101, 0.25), 0 2px 8px rgba(181, 31, 101, 0.15)'
+};
+
+// Border System
+export const BORDER = {
+  none: 'none',
+  default: '1px solid #ddd'
+};
+
 // Colors (z CSS proměnných)
 export const COLORS = {
   primary: '#b51f65',
@@ -26,5 +39,5 @@ export const COLORS = {
 };
 
 // Použití:
-// import { RADIUS } from '@/utils/styleConstants';
-// style={{ borderRadius: RADIUS.xl }}
+// import { RADIUS, SHADOW, BORDER } from '@/utils/styleConstants';
+// style={{ borderRadius: RADIUS.xl, boxShadow: SHADOW.subtle, border: BORDER.none }}

@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { BookOpen, Plus, CheckCircle, AlertCircle, Music, X } from 'lucide-react';
-import { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, QuestionCard, RADIUS } from '../ui/TabButtons';
+import { HelpPanel } from '../ui/TabButtons';
+import { RADIUS } from '../../utils/styleConstants';
+import { Chip, ActionButton, AddButton, HelpButton, CancelButton, SaveButton } from '../ui/ButtonComponents';
+import { RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer } from '../ui/FormComponents';
+import { QuestionCard } from '../ui/CardComponents';
 
 const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', icon: Icon = BookOpen }) => {
   const [questions, setQuestions] = useState([]);

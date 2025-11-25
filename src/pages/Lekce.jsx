@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, List, Clock, CheckCircle } from 'lucide-react';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
-import { PageSection } from '../components/ui/TabButtons';
+import { PageSection } from '../components/ui/PageSection';
 
 function Lekce() {
   const navigate = useNavigate();

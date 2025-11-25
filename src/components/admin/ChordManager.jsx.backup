@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { Music, BookOpen, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
-import TabButtons, { Chip, ActionButton, AddButton, HelpButton, HelpPanel, CancelButton, SaveButton, RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer, PageCard, RADIUS } from '../ui/TabButtons';
+import TabButtons, { HelpPanel } from '../ui/TabButtons';
+import { RADIUS } from '../../utils/styleConstants';
+import { Chip, ActionButton, AddButton, HelpButton, CancelButton, SaveButton } from '../ui/ButtonComponents';
+import { RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer } from '../ui/FormComponents';
+import { PageCard } from '../ui/CardComponents';
 import UniversalQuizManager from './UniversalQuizManager';
 
 // Normalizace názvu akordu
