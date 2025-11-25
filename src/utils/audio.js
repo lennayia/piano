@@ -25,7 +25,7 @@ class AudioEngine {
       this.compressor.release.value = 0.25;
 
       this.masterGain = this.audioContext.createGain();
-      this.masterGain.gain.value = 1.0; // Maximum hlasitost
+      this.masterGain.gain.value = 2.0; // Zvýšená defaultní hlasitost
 
       // Připojit compressor -> masterGain -> destination
       this.compressor.connect(this.masterGain);
@@ -153,13 +153,13 @@ class AudioEngine {
     oscillator2.type = 'triangle';
     oscillator3.type = 'sine'; // Vysoká harmonická zůstává sine
 
-    // VELMI silný envelope pro maximální hlasitost
+    // Silný envelope pro dobrou slyšitelnost
     const attackTime = 0.005;
     const totalDuration = duration;
 
-    // MAXIMUM hlasitost - 1.5 je nad normál, ale kompressor to zvládne
+    // Vyvážená hlasitost - 1.8 je dostatečně hlasité bez přehánění
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(1.5, now + attackTime);
+    gain.gain.linearRampToValueAtTime(1.8, now + attackTime);
     gain.gain.exponentialRampToValueAtTime(0.01, now + totalDuration);
 
     // Připojit všechny oscilátory k jednomu gain nodu
@@ -207,26 +207,31 @@ class AudioEngine {
 
     const now = this.audioContext.currentTime;
 
-    // Play a pleasant chord
-    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+    // Hezčí melodie úspěchu - vzestupný akord C-E-G-C s delšími tóny
+    const melody = [
+      { freq: 523.25, time: 0, duration: 0.15 },     // C5
+      { freq: 659.25, time: 0.12, duration: 0.15 },  // E5
+      { freq: 783.99, time: 0.24, duration: 0.15 },  // G5
+      { freq: 1046.50, time: 0.36, duration: 0.4 }   // C6 (vyšší, delší)
+    ];
 
-    notes.forEach((freq, index) => {
+    melody.forEach(({ freq, time, duration }) => {
       const oscillator = this.audioContext.createOscillator();
       const gain = this.audioContext.createGain();
 
       oscillator.frequency.value = freq;
-      oscillator.type = 'sine';
+      oscillator.type = 'triangle'; // Teplejší zvuk než sine
 
-      const delay = index * 0.05;
-      gain.gain.setValueAtTime(0, now + delay);
-      gain.gain.linearRampToValueAtTime(0.15, now + delay + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.5);
+      const startTime = now + time;
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.6, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
       oscillator.connect(gain);
       gain.connect(this.masterGain);
 
-      oscillator.start(now + delay);
-      oscillator.stop(now + delay + 0.5);
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
     });
   }
 
@@ -376,7 +381,7 @@ class AudioEngine {
       if (response.ok) {
         this.vltavaAudio = new Audio(this.vltavaAudioPath);
         this.vltavaAudio.loop = true;
-        this.vltavaAudio.volume = 0.9;
+        this.vltavaAudio.volume = 1.0; // Maximum pro HTML Audio (omezeno na 0-1)
         return true;
       }
     } catch (error) {
@@ -446,7 +451,7 @@ class AudioEngine {
         if (currentStep >= steps) {
           clearInterval(fadeInterval);
           this.stopVltavaLoop();
-          this.vltavaAudio.volume = 0.9; // Reset volume
+          this.vltavaAudio.volume = 1.0; // Reset volume (HTML Audio max 1.0)
         }
       }, stepDuration);
 
@@ -464,21 +469,22 @@ class AudioEngine {
 
     setTimeout(() => {
       this.stopVltavaLoop();
-      this.masterGain.gain.value = 0.9; // Reset volume
+      this.masterGain.gain.value = 2.0; // Reset volume na defaultní hodnotu
     }, duration * 1000);
   }
 
   setVolume(volume) {
     const normalizedVolume = Math.max(0, Math.min(1, volume));
 
-    // Nastavit volume pro audio soubor
+    // Nastavit volume pro audio soubor (omezeno na 0-1)
     if (this.vltavaAudio) {
       this.vltavaAudio.volume = normalizedVolume;
     }
 
-    // Nastavit volume pro syntetizovaný zvuk
+    // Nastavit volume pro syntetizovaný zvuk (mapování 0-1 na 0-1.5)
+    // 100% na slideru = 1.5x hlasitěji (mírnější než předtím)
     if (this.masterGain) {
-      this.masterGain.gain.value = normalizedVolume;
+      this.masterGain.gain.value = normalizedVolume * 1.5;
     }
   }
 }

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Play, RotateCcw, CheckCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target, Brain } from 'lucide-react';
+import { Music, Play, RotateCcw, CheckCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target, Brain, Trophy } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
 import TabButtons from '../components/ui/TabButtons';
 import { IconButton } from '../components/ui/ButtonComponents';
+import PracticeModeControls from '../components/ui/PracticeModeControls';
 import { RADIUS, SHADOW, BORDER } from '../utils/styleConstants';
 import SongLibrary from '../components/resources/SongLibrary';
 import ChordQuiz from '../components/games/ChordQuiz';
@@ -23,6 +24,10 @@ function Cviceni() {
   const [currentChordIndex, setCurrentChordIndex] = useState(0);
   const [playedNotes, setPlayedNotes] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [practicingMode, setPracticingMode] = useState(false); // režim procvičování S nápovědou
+  const [challengeMode, setChallengeMode] = useState(false); // režim výzvy BEZ nápovědy (pro odměny)
+  const [practiceErrors, setPracticeErrors] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('all'); // 'all', 'easy', 'medium'
   const [isShuffled, setIsShuffled] = useState(false);
@@ -103,19 +108,35 @@ function Cviceni() {
   const handleNoteClick = (note) => {
     if (!currentChord) return;
 
+    const requiredNotes = chordNotesWithOctaves;
+
+    // Kontrola: je aktuální nota správná? (odpovídá notě na dané pozici)
+    const currentIndex = playedNotes.length;
+    const expectedNote = requiredNotes[currentIndex];
+
+    if (note !== expectedNote) {
+      // Špatná nota! Přehrát chybový zvuk, zobrazit chybu a resetovat
+      audioEngine.playError();
+      setShowError(true);
+      setPracticeErrors(prev => prev + 1);
+      setTimeout(() => {
+        setPlayedNotes([]);
+        setShowError(false);
+      }, 1500);
+      return;
+    }
+
     const newPlayedNotes = [...playedNotes, note];
     setPlayedNotes(newPlayedNotes);
 
-    // Zkontrolovat, jestli uživatel zahrál správné noty
-    const requiredNotes = chordNotesWithOctaves;
+    // Kontrola: všechny noty zahrány správně v pořadí?
+    const isCorrect = newPlayedNotes.length === requiredNotes.length;
 
-    // Pokud zahrál všechny noty akordu (v jakémkoliv pořadí)
-    const playedSet = new Set(newPlayedNotes);
-
-    if (requiredNotes.every(n => playedSet.has(n)) && newPlayedNotes.length >= requiredNotes.length) {
-      // Úspěch! Přehrát celý akord
+    // Přehrát zvuk úspěchu jen pokud ještě nebyl úspěch a všechny noty jsou správně v pořadí
+    if (!showSuccess && isCorrect) {
+      // Úspěch! Přehrát zvuk úspěchu
       setTimeout(() => {
-        playFullChord();
+        audioEngine.playSuccess();
         setShowSuccess(true);
       }, 300);
     }
@@ -428,68 +449,101 @@ function Cviceni() {
           />
         </div>
 
-        {/* Tóny k zahrání */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '1rem',
-          marginBottom: '2rem',
-          flexWrap: 'wrap'
-        }}>
-          {chordNotesWithOctaves.map((note, index) => {
-            const isPlayed = playedNotes.includes(note);
-            // Zobrazit původní název noty (bez oktávové notace)
-            const displayNote = currentChord?.notes[index] || note;
-            return (
-              <motion.div
-                key={note}
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: index * 0.1, type: 'spring' }}
-                whileHover={{ scale: 1.1 }}
-                onClick={() => audioEngine.playNote(note, 1.0)}
-                style={{
-                  width: '80px',
-                  height: '80px',
-                  borderRadius: '50%',
-                  background: isPlayed
-                    ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
-                    : 'rgba(255, 255, 255, 0.9)',
-                  border: isPlayed
-                    ? '3px solid var(--color-primary)'
-                    : '3px solid rgba(181, 31, 101, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  color: isPlayed ? 'white' : 'var(--color-primary)',
-                  cursor: 'pointer',
-                  boxShadow: isPlayed
-                    ? '0 8px 24px rgba(181, 31, 101, 0.4)'
-                    : '0 4px 16px rgba(181, 31, 101, 0.15)',
-                  transition: 'all 0.3s ease',
-                  position: 'relative'
-                }}
-              >
-                {displayNote}
-                {isPlayed && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px'
-                    }}
-                  >
-                    <CheckCircle size={24} color="white" fill="var(--color-primary)" />
-                  </motion.div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
+        {/* Tóny k zahrání - skryté v režimu výzvy */}
+        {!challengeMode && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1rem',
+            marginBottom: '2rem',
+            flexWrap: 'wrap'
+          }}>
+            {chordNotesWithOctaves.map((note, index) => {
+              const isPlayed = playedNotes.includes(note);
+              // Zobrazit původní název noty (bez oktávové notace)
+              const displayNote = currentChord?.notes[index] || note;
+              return (
+                <motion.div
+                  key={note}
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: index * 0.1, type: 'spring' }}
+                  whileHover={{ scale: 1.1 }}
+                  onClick={() => audioEngine.playNote(note, 1.0)}
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: isPlayed
+                      ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
+                      : 'rgba(255, 255, 255, 0.9)',
+                    border: isPlayed
+                      ? '3px solid var(--color-primary)'
+                      : '3px solid rgba(181, 31, 101, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.5rem',
+                    fontWeight: 700,
+                    color: isPlayed ? 'white' : 'var(--color-primary)',
+                    cursor: 'pointer',
+                    boxShadow: isPlayed
+                      ? '0 8px 24px rgba(181, 31, 101, 0.4)'
+                      : '0 4px 16px rgba(181, 31, 101, 0.15)',
+                    transition: 'all 0.3s ease',
+                    position: 'relative'
+                  }}
+                >
+                  {displayNote}
+                  {isPlayed && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px'
+                      }}
+                    >
+                      <CheckCircle size={24} color="white" fill="var(--color-primary)" />
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Režimy cvičení - univerzální komponenta */}
+        <PracticeModeControls
+          isPracticing={practicingMode}
+          isChallenge={challengeMode}
+          practiceErrors={practiceErrors}
+          progress={playedNotes.length}
+          totalNotes={chordNotesWithOctaves.length}
+          onStartPractice={() => {
+            setPracticingMode(true);
+            setChallengeMode(false);
+            setPracticeErrors(0);
+            setPlayedNotes([]);
+            setShowSuccess(false);
+          }}
+          onStartChallenge={() => {
+            setPracticingMode(false);
+            setChallengeMode(true);
+            setPracticeErrors(0);
+            setPlayedNotes([]);
+            setShowSuccess(false);
+          }}
+          onStop={() => {
+            setPracticingMode(false);
+            setChallengeMode(false);
+            setPracticeErrors(0);
+            setPlayedNotes([]);
+            setShowSuccess(false);
+          }}
+          showStopButton={false}
+        />
 
         {/* Tlačítka pro přehrání */}
         <div style={{
@@ -532,7 +586,11 @@ function Cviceni() {
             Klikněte na klávesy a zahrajte tóny akordu:
           </p>
           <PianoKeyboard
-            highlightedNotes={chordNotesWithOctaves}
+            highlightedNotes={
+              challengeMode
+                ? [] // VÝZVA: Žádné zvýraznění - bez nápovědy!
+                : chordNotesWithOctaves // PROCVIČOVÁNÍ nebo normální režim: Zobrazit nápovědu
+            }
             onNoteClick={handleNoteClick}
           />
         </div>
@@ -595,6 +653,40 @@ function Cviceni() {
                 Další akord
                 <ChevronRight size={18} />
               </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chyba! */}
+        <AnimatePresence>
+          {showError && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, x: -10 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              style={{
+                textAlign: 'center',
+                padding: '1.5rem',
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2))',
+                borderRadius: RADIUS.lg,
+                border: '2px solid rgba(239, 68, 68, 0.4)',
+                marginBottom: '1rem'
+              }}
+            >
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: [0, -10, 10, -10, 0] }}
+                transition={{ duration: 0.5 }}
+              >
+                <RotateCcw size={48} color="var(--color-danger)" style={{ marginBottom: '0.75rem' }} />
+              </motion.div>
+              <h4 style={{ color: 'var(--color-danger)', marginBottom: '0.25rem', fontSize: '1.125rem' }}>
+                Špatná nota!
+              </h4>
+              <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                Zkus to znovu - zahrávej tóny v přesném pořadí
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

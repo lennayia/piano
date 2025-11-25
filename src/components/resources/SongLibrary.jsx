@@ -21,6 +21,7 @@ import audioEngine from '../../utils/audio';
 import PianoKeyboard from '../lessons/PianoKeyboard';
 import NoteComposer from './NoteComposer';
 import Confetti from '../common/Confetti';
+import PracticeModeControls from '../ui/PracticeModeControls';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
@@ -1741,55 +1742,29 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                           {hideNotes[song.id] ? 'Zobrazit noty' : 'Skrýt noty'}
                         </motion.button>
 
-                        {/* Tlačítka Procvičovat / Výzva / Ukončit */}
-                        {(practicingMode === song.id || challengeMode === song.id) ? (
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={stopPractice}
-                            className="btn btn-primary"
-                            style={{
-                              fontSize: '0.875rem',
-                              padding: '0.5rem 1rem',
-                              background: 'var(--color-danger)',
-                              border: 'none'
-                            }}
-                          >
-                            <X size={16} />
-                            Ukončit {practicingMode === song.id ? 'procvičování' : 'výzvu'}
-                          </motion.button>
-                        ) : (
-                          <>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => startPractice(song)}
-                              className="btn btn-secondary"
-                              style={{
-                                fontSize: '0.875rem',
-                                padding: '0.5rem 1rem'
-                              }}
-                            >
-                              <Target size={16} />
-                              Procvičovat
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => startChallenge(song)}
-                              className="btn btn-primary"
-                              style={{
-                                fontSize: '0.875rem',
-                                padding: '0.5rem 1rem',
-                                background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                                border: 'none'
-                              }}
-                            >
-                              <Trophy size={16} />
-                              Výzva
-                            </motion.button>
-                          </>
-                        )}
+                        {/* Režimy cvičení - univerzální komponenta */}
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <PracticeModeControls
+                            isPracticing={practicingMode === song.id}
+                            isChallenge={challengeMode === song.id}
+                            practiceErrors={practiceErrors}
+                            progress={practiceProgress.length}
+                            totalNotes={(() => {
+                              let notesArray;
+                              if (Array.isArray(song.notes)) {
+                                notesArray = song.notes;
+                              } else {
+                                notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                              }
+                              const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
+                              return validNotes.length;
+                            })()}
+                            onStartPractice={() => startPractice(song)}
+                            onStartChallenge={() => startChallenge(song)}
+                            onStop={stopPractice}
+                            showStopButton={true}
+                          />
+                        </div>
 
                         {/* Klavír toggle */}
                         <motion.button
@@ -1806,53 +1781,6 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                           {showKeyboard === song.id ? 'Skrýt klavír' : 'Zkusit na klavíru'}
                         </motion.button>
                       </div>
-
-                      {/* Zobrazit progress při procvičování nebo výzvě */}
-                      {(practicingMode === song.id || challengeMode === song.id) && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          style={{
-                            padding: '1rem',
-                            background: challengeMode === song.id
-                              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(181, 31, 101, 0.15))'
-                              : 'rgba(181, 31, 101, 0.1)',
-                            borderRadius: 'var(--radius)',
-                            marginBottom: '0.75rem',
-                            border: challengeMode === song.id
-                              ? '2px solid #FFD700'
-                              : '2px solid var(--color-primary)'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                            {challengeMode === song.id ? <Trophy size={20} color="#FFD700" /> : <Target size={20} color="var(--color-primary)" />}
-                            <span style={{ fontWeight: 600, color: challengeMode === song.id ? '#FFD700' : 'var(--color-primary)' }}>
-                              {challengeMode === song.id ? 'Režim výzvy - Hraj bez nápovědy!' : 'Režim procvičování - S nápovědou'}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                            {challengeMode === song.id
-                              ? 'Zahrajte všechny noty bez chyb pro získání odměn!'
-                              : 'Procvičujte si s nápovědou. Odměny získáte v režimu Výzva.'
-                            } Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
-                          </div>
-                          <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                            Postup: <strong>{practiceProgress.length}</strong> / <strong>
-                              {(() => {
-                                let notesArray;
-                                if (Array.isArray(song.notes)) {
-                                  notesArray = song.notes;
-                                } else {
-                                  notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
-                                }
-                                // Počítat jen validní noty (bez pauz a textu)
-                                const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
-                                return validNotes.length;
-                              })()}
-                            </strong>
-                          </div>
-                        </motion.div>
-                      )}
                 </div>
 
                 <AnimatePresence>

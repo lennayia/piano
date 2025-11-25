@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Volume2 } from 'lucide-react';
 import audioEngine from '../../utils/audio';
 
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
   const [activeKeys, setActiveKeys] = useState(new Set());
   const [particles, setParticles] = useState([]);
+  const [volume, setVolume] = useState(0.8); // Defaultní hlasitost 80%
+
+  // Nastavit hlasitost při mount a při změně
+  useEffect(() => {
+    audioEngine.init();
+    audioEngine.setVolume(volume);
+  }, [volume]);
 
   // Definice kláves s pozicí černé klávesy (afterWhiteIndex = za kterou bílou klávesou)
   const keys = [
@@ -124,6 +132,47 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
       boxShadow: 'var(--shadow-lg)',
       overflow: 'hidden'
     }}>
+      {/* Volume Control */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        marginBottom: '1rem',
+        padding: '0.5rem 1rem',
+        background: 'rgba(255, 255, 255, 0.5)',
+        borderRadius: 'var(--radius-md)',
+        width: 'fit-content',
+        margin: '0 auto 1rem auto'
+      }}>
+        <Volume2 size={20} style={{ color: 'var(--color-secondary)', flexShrink: 0 }} />
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={volume * 100}
+          onChange={(e) => setVolume(e.target.value / 100)}
+          className="volume-slider"
+          style={{
+            width: windowWidth < 480 ? '100px' : '150px',
+            height: '6px',
+            borderRadius: '3px',
+            background: `linear-gradient(to right, var(--color-secondary) 0%, var(--color-secondary) ${volume * 100}%, #ddd ${volume * 100}%, #ddd 100%)`,
+            outline: 'none',
+            cursor: 'pointer'
+          }}
+        />
+        <span style={{
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          color: 'var(--color-secondary)',
+          minWidth: '3ch',
+          textAlign: 'right'
+        }}>
+          {Math.round(volume * 100)}%
+        </span>
+      </div>
+
       <div style={{
         position: 'relative',
         height: `${keyHeight}px`,
