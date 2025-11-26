@@ -448,8 +448,7 @@ function AchievementManager() {
                     padding: '0.5rem',
                     borderRadius: 'var(--radius)',
                     border: '1px solid #ddd',
-                    fontSize: '0.875rem',
-                    fontFamily: 'inherit'
+                    fontSize: '0.875rem'
                   }}
                 />
               </div>

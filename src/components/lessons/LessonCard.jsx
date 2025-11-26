@@ -228,13 +228,13 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
 
               <div className="form-group" style={{ marginBottom: '1rem' }}>
                 <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                  Tóny (oddělené čárkou)
+                  Tóny (oddělené mezerou)
                 </label>
                 <input
                   type="text"
                   className="form-input"
-                  value={editForm.content.notes.join(', ')}
-                  onChange={(e) => onEditFormChange('content.notes', e.target.value.split(',').map(n => n.trim()).filter(n => n))}
+                  value={editForm.content.notes.join(' ')}
+                  onChange={(e) => onEditFormChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
                   style={{ fontSize: '0.875rem' }}
                 />
               </div>

@@ -38,6 +38,13 @@ export function Chip({ text, variant = 'answer', level = 1, isCorrect = false, s
       border: 'none',
       boxShadow: 'inset 0 0 16px rgba(45, 91, 120, 1), 0 1px 3px rgba(45, 91, 120, 0.15)'
     },
+    // Info/Metadata - vnitřní glow se secondary barvou
+    info: {
+      background: 'rgba(255, 255, 255, 0.95)',
+      color: 'var(--color-secondary)',
+      border: 'none',
+      boxShadow: 'inset 0 0 16px rgba(45, 91, 120, 1), 0 1px 3px rgba(45, 91, 120, 0.15)'
+    },
     // Neaktivní
     inactive: {
       background: 'rgba(0, 0, 0, 0.04)',
@@ -543,6 +550,63 @@ export function AnswerStatusChip({ status = 'correct', size = 20, style = {}, ..
     >
       <Icon size={size} color={config.color} strokeWidth={2.5} />
     </motion.div>
+  );
+}
+
+/**
+ * ActionButtonGroup - skupina akčních tlačítek ve standardním pořadí
+ * Pořadí: Upravit → Duplikovat → Smazat
+ *
+ * @param {function} onEdit - Callback pro úpravu
+ * @param {function} onDuplicate - Callback pro duplikaci
+ * @param {function} onDelete - Callback pro smazání
+ * @param {boolean} iconOnly - Zobrazit jen ikony bez textů (default: true)
+ * @param {number} iconSize - Velikost ikon (default: 18)
+ * @param {object} style - Dodatečné styly pro wrapper
+ */
+export function ActionButtonGroup({
+  onEdit,
+  onDuplicate,
+  onDelete,
+  iconOnly = true,
+  iconSize = 18,
+  style = {},
+  ...props
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: '0.5rem',
+        ...style
+      }}
+      {...props}
+    >
+      {onEdit && (
+        <ActionButton
+          variant="edit"
+          onClick={onEdit}
+          iconOnly={iconOnly}
+          iconSize={iconSize}
+        />
+      )}
+      {onDuplicate && (
+        <ActionButton
+          variant="duplicate"
+          onClick={onDuplicate}
+          iconOnly={iconOnly}
+          iconSize={iconSize}
+        />
+      )}
+      {onDelete && (
+        <ActionButton
+          variant="delete"
+          onClick={onDelete}
+          iconOnly={iconOnly}
+          iconSize={iconSize}
+        />
+      )}
+    </div>
   );
 }
 

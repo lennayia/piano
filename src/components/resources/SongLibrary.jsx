@@ -22,6 +22,7 @@ import PianoKeyboard from '../lessons/PianoKeyboard';
 import NoteComposer from './NoteComposer';
 import Confetti from '../common/Confetti';
 import PracticeModeControls from '../ui/PracticeModeControls';
+import { Chip, ActionButtonGroup, SaveButton, CancelButton } from '../ui/ButtonComponents';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
@@ -165,19 +166,19 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
       }
     }
 
-    // Rozdělit melodii podle podtržítek (oddělovače)
+    // Rozdělit melodii podle mezer
     // notes může být buď pole nebo string
     let melodieString;
     if (Array.isArray(song.notes)) {
-      melodieString = song.notes.join(' '); // Spojit mezerou místo čárkou
+      melodieString = song.notes.join(' ');
     } else {
       melodieString = song.notes;
     }
 
-    // Odstranit znaky nového řádku a roury (oddělovače řádků) - jen přeskočit
-    melodieString = melodieString.replace(/\|/g, '_').replace(/\n/g, '_');
+    // Odstranit znaky nového řádku a roury (oddělovače řádků) - nahradit mezerou
+    melodieString = melodieString.replace(/\|/g, ' ').replace(/\n/g, ' ');
 
-    const elements = melodieString.split('_'); // Split podle podtržítka
+    const elements = melodieString.split(/\s+/).filter(e => e); // Split podle mezer
 
     // Multiplikátor tempa podle označení (definovat jednou před smyčkou)
     const tempoMultipliers = {
@@ -432,7 +433,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     if (Array.isArray(song.notes)) {
       notesArray = song.notes;
     } else {
-      notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+      notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
     }
 
     // Normalizovat a filtrovat noty
@@ -733,17 +734,6 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     setIsAddingNew(false);
   };
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'začátečník':
-        return 'badge-success';
-      case 'mírně pokročilý začátečník':
-        return 'badge-warning';
-      default:
-        return '';
-    }
-  };
-
   return (
     <div>
       {/* Confetti při perfektním zahrání */}
@@ -984,11 +974,10 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                 className="form-input"
                 value={newSongForm.notes}
                 onChange={(e) => handleNewSongChange('notes', e.target.value)}
-                placeholder="D_D_E_-_F_|_G_A_H"
+                placeholder="D D E - F | G A H"
                 rows={3}
                 style={{
                   fontSize: '0.875rem',
-                  fontFamily: 'monospace',
                   marginBottom: '0.5rem'
                 }}
               />
@@ -1283,14 +1272,36 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                             transition: 'background-color 0.2s'
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, flexWrap: 'wrap' }}>
                             <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
                               {song.title}
                             </h3>
-                            <span className={`badge ${getDifficultyColor(song.difficulty)}`}>
-                              {song.difficulty}
-                            </span>
+                            <Chip
+                              text={song.difficulty}
+                              variant="difficulty"
+                            />
+                            <Chip text={song.key} variant="info" />
+                            <Chip text={song.tempo} variant="info" />
                           </div>
+
+                          {/* Admin akční tlačítka - vždy viditelné pro admina */}
+                          {isAdmin && (
+                            editingSong === song.id ? (
+                              // Během editace: Save/Cancel tlačítka
+                              <div style={{ display: 'flex', gap: '0.5rem', marginRight: '0.5rem' }}>
+                                <SaveButton onClick={saveEdit} />
+                                <CancelButton onClick={cancelEdit} />
+                              </div>
+                            ) : (
+                              // Normální stav: Edit/Duplicate/Delete
+                              <ActionButtonGroup
+                                onEdit={() => startEditing(song)}
+                                onDuplicate={() => duplicateSong(song.id)}
+                                onDelete={() => handleDeleteSong(song.id)}
+                                style={{ marginRight: '0.5rem' }}
+                              />
+                            )
+                          )}
 
                           {/* Šipka pro rozbalení/sbalení */}
                           <motion.div
@@ -1301,74 +1312,6 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                             <ChevronDown size={24} color="var(--color-secondary)" />
                           </motion.div>
                         </motion.div>
-
-                        {/* Admin tlačítka - zobrazit vždy když je rozbaleno */}
-                        {isAdmin && editingSong !== song.id && expandedSongs[song.id] && (
-                          <div className="song-actions" style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() => duplicateSong(song.id)}
-                              style={{
-                                background: 'rgba(181, 31, 101, 0.1)',
-                                border: '1px solid rgba(181, 31, 101, 0.3)',
-                                borderRadius: 'var(--radius)',
-                                padding: '0.25rem 0.5rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                fontSize: '0.75rem',
-                                color: 'var(--color-primary)'
-                              }}
-                              title="Duplikovat písničku"
-                            >
-                              <Copy size={14} />
-                              Duplikovat
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() => handleDeleteSong(song.id)}
-                              style={{
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                borderRadius: 'var(--radius)',
-                                padding: '0.25rem 0.5rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                fontSize: '0.75rem',
-                                color: '#ef4444'
-                              }}
-                              title="Smazat písničku"
-                            >
-                              <Trash2 size={14} />
-                              Smazat
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={() => startEditing(song)}
-                              style={{
-                                background: 'rgba(45, 91, 120, 0.2)',
-                                border: '1px solid rgba(45, 91, 120, 0.3)',
-                                borderRadius: 'var(--radius)',
-                                padding: '0.25rem 0.5rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                fontSize: '0.75rem',
-                                color: 'var(--color-secondary)'
-                              }}
-                            >
-                              <Edit3 size={14} />
-                              Upravit
-                            </motion.button>
-                          </div>
-                        )}
 
                 <AnimatePresence>
                   {expandedSongs[song.id] && (
@@ -1405,11 +1348,10 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                         className="form-input"
                         value={editForm.notes}
                         onChange={(e) => handleEditChange('notes', e.target.value)}
-                        placeholder="D_D_E_-_F_|_G_A_H"
+                        placeholder="D D E - F | G A H"
                         rows={3}
                         style={{
                           fontSize: '0.875rem',
-                          fontFamily: 'monospace',
                           marginBottom: '0.5rem'
                         }}
                       />
@@ -1619,54 +1561,22 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                         </div>
                       )}
                     </div>
-
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={saveEdit}
-                        className="btn btn-primary"
-                        style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-                      >
-                        <Save size={16} />
-                        Uložit
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={cancelEdit}
-                        className="btn btn-secondary"
-                        style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-                      >
-                        <X size={16} />
-                        Zrušit
-                      </motion.button>
-                    </div>
                   </div>
                 ) : (
                   <>
-                    <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Tónina:</strong> {song.key}
-                      </span>
-                      <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Tempo:</strong> {song.tempo}
-                      </span>
-                    </div>
-
                     {/* Noty s vizualizací */}
                     <div style={{ marginTop: '1rem' }}>
                       {/* Pokud nejsou noty skryté, zobrazit je */}
                       {!hideNotes[song.id] && (
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     {(() => {
                       // Rozdělit notes na jednotlivé elementy (může být string nebo pole)
                       let notesArray;
                       if (Array.isArray(song.notes)) {
                         notesArray = song.notes;
                       } else {
-                        // String - rozdělit podle podtržítek, rour a nových řádků
-                        notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                        // String - rozdělit podle mezer, rour a nových řádků
+                        notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
                       }
                       return notesArray;
                     })().map((note, noteIndex) => {
@@ -1754,7 +1664,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                               if (Array.isArray(song.notes)) {
                                 notesArray = song.notes;
                               } else {
-                                notesArray = song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                                notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
                               }
                               const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
                               return validNotes.length;
@@ -1801,7 +1711,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                                 // PROCVIČOVÁNÍ: Zvýraznit aktuální notu - nápověda pro uživatele
                                 const notesArray = Array.isArray(song.notes)
                                   ? song.notes
-                                  : song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                                  : song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
                                 const currentIndex = practiceProgress.length;
                                 const currentNote = currentIndex < notesArray.length ? notesArray[currentIndex] : null;
                                 const normalized = currentNote ? normalizeNote(currentNote) : null;
@@ -1814,7 +1724,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                                 // PŘEHRÁVÁNÍ: Zvýraznit aktuálně hranou notu
                                 const notesArray = Array.isArray(song.notes)
                                   ? song.notes
-                                  : song.notes.replace(/\|/g, '_').replace(/\n/g, '_').split('_').map(n => n.trim()).filter(n => n);
+                                  : song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
                                 const currentNote = currentNoteIndex >= 0 && currentNoteIndex < notesArray.length
                                   ? notesArray[currentNoteIndex]
                                   : null;

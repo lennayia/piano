@@ -1038,7 +1038,7 @@ const QuizManager = () => {
                 <div style={{ marginBottom: '0' }}>
                   <FormLabel text="Možnosti odpovědí pro teoretický kvíz (4 možnosti)" />
                   <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', marginBottom: '0.75rem' }}>
-                    💡 Zadejte 4 možnosti pro teoretickou otázku (např. jednotlivé tóny "C", "A", "D", "H" nebo jiné odpovědi). Tyto možnosti jsou SAMOSTATNÉ a neovlivní poslechový kvíz výše.
+                    💡 Zadejte 4 možnosti pro teoretickou otázku (např. jednotlivé tóny C A D H - oddělené mezerou - nebo jiné odpovědi). Tyto možnosti jsou SAMOSTATNÉ a neovlivní poslechový kvíz výše.
                   </p>
                   {formData.theoryOptions.map((option, index) => (
                     <div
@@ -1290,7 +1290,7 @@ const QuizManager = () => {
                   <div style={{ marginBottom: '0' }}>
                     <FormLabel text="Možnosti odpovědí pro teoretický kvíz (4 možnosti)" />
                     <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem', marginBottom: '0.75rem' }}>
-                      💡 Zadejte 4 možnosti pro teoretickou otázku (např. jednotlivé tóny "C", "A", "D", "H" nebo jiné odpovědi). Tyto možnosti jsou SAMOSTATNÉ a neovlivní poslechový kvíz výše.
+                      💡 Zadejte 4 možnosti pro teoretickou otázku (např. jednotlivé tóny C A D H - oddělené mezerou - nebo jiné odpovědi). Tyto možnosti jsou SAMOSTATNÉ a neovlivní poslechový kvíz výše.
                     </p>
                     {formData.theoryOptions.map((option, index) => (
                       <div

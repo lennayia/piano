@@ -100,7 +100,6 @@ export function FormTextarea({ value, onChange, placeholder = '', rows = 3, styl
         border: BORDER.none,
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
         fontSize: '0.875rem',
-        fontFamily: 'inherit',
         resize: 'vertical',
         transition: 'border-color 0.2s ease',
         ...style

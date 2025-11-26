@@ -1,6 +1,6 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 25. listopadu 2025 (večer)
+Datum poslední aktualizace: 26. listopadu 2025
 
 ---
 
@@ -489,6 +489,66 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 ---
 
 ## ✅ Nedávno dokončené úkoly
+
+### Modularizace UI + Unifikace fontů + Migrace not na mezery (26.11.2025)
+**Dokončeno:** ✅
+**Popis:** Kompletní modularizace UI komponent v SongLibrary, unifikace fontů (Google Fonts), změna separátoru not z podtržítek na mezery
+
+**Změny:**
+- ✅ **Modularizace SongLibrary:**
+  - Import a použití Chip, ActionButtonGroup, SaveButton, CancelButton z ButtonComponents
+  - Nový Chip variant "info" pro metadata (tónina, tempo)
+  - Odstranění hardcoded komponent a duplikátního kódu
+
+- ✅ **Odstranění sekce Písničky z Admin panelu:**
+  - Admin rozhraní pro písničky je nyní pouze v sekci Písničky
+  - Cleanup Admin.jsx - odstranění SongLibrary, songCategories, activeCategory
+  - Admin menu nyní: Přehled, Uživatelé, Gamifikace, Odměny, Kvízy
+
+- ✅ **Unifikace fontů - Google Fonts (Lato + Roboto):**
+  - Import Lato (300, 400, 700) a Roboto (400, 500, 700) do index.css
+  - Body: 'Lato', sans-serif
+  - Nadpisy: 'Roboto', sans-serif
+  - Override browser defaults: input, textarea, select, button, code, pre → font-family: inherit
+  - Odstranění všech inline fontFamily deklarací z celé aplikace
+  - Soubory: SongLibrary.jsx, NoteComposer.jsx, AchievementManager.jsx, FormComponents.jsx
+
+- ✅ **Migrace notového zápisu: Podtržítka → Mezery:**
+
+  **Kód:**
+  - SongLibrary.jsx: `split('_')` → `split(/\s+/)`, placeholders s mezerami
+  - NoteComposer.jsx: `_` → mezera v přidávání not, pauz, nových řádků
+  - LessonList.jsx + LessonCard.jsx: `join(', ')` → `join(' ')`, čárky → mezery
+  - Aktualizace help tabulky v NoteComposer (oddělovač: _ → mezera)
+
+  **Databáze:**
+  - Piano songs: SQL UPDATE `REPLACE(notes, '_', ' ')` - migrace proběhla ✅
+  - Piano lessons: Migrace nebyla potřeba (JSON pole zůstává stejné)
+
+  **Výsledek:**
+  - Písničky: `"D D E - F | G A H"` (string s mezerami)
+  - Lekce: `["C", "D", "E"]` (JSON pole, UI s mezerami)
+
+**Soubory:**
+- `src/components/resources/SongLibrary.jsx`
+- `src/components/resources/NoteComposer.jsx`
+- `src/components/lessons/LessonList.jsx`
+- `src/components/lessons/LessonCard.jsx`
+- `src/pages/Admin.jsx`
+- `src/components/admin/AchievementManager.jsx`
+- `src/components/ui/FormComponents.jsx`
+- `src/components/ui/ButtonComponents.jsx` (nový variant: info)
+- `src/styles/index.css`
+- `migrate-notes-to-spaces.js` (nový skript)
+- Dokumentace: `DOKUMENTACE-20251126.md`
+
+**Benefity:**
+- Konzistentní UI napříč aplikací (modularizace)
+- Jednotný font systém (Lato + Roboto) - žádný monospace
+- Intuitivnější notový zápis (mezery místo podtržítek)
+- Snadnější údržba díky modularizaci
+
+---
 
 ### Optimalizace Cvičení + PianoKeyboard vylepšení (25.11.2025 večer)
 **Dokončeno:** ✅

@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { BookOpen, Plus, CheckCircle, AlertCircle, Music, X } from 'lucide-react';
 import { HelpPanel } from '../ui/TabButtons';
 import { RADIUS } from '../../utils/styleConstants';
-import { Chip, ActionButton, AddButton, HelpButton, CancelButton, SaveButton } from '../ui/ButtonComponents';
+import { Chip, ActionButtonGroup, AddButton, HelpButton, CancelButton, SaveButton } from '../ui/ButtonComponents';
 import { RadioLabel, FormLabel, FormTextarea, FormSelect, FormInput, CheckboxLabel, FormContainer } from '../ui/FormComponents';
 import { QuestionCard } from '../ui/CardComponents';
 
@@ -783,20 +783,12 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
                           />
                         ));
                     })()}
-                    <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
-                      <ActionButton
-                        variant="edit"
-                        onClick={() => handleEditQuestion(question)}
-                      />
-                      <ActionButton
-                        variant="duplicate"
-                        onClick={() => handleDuplicateQuestion(question)}
-                      />
-                      <ActionButton
-                        variant="delete"
-                        onClick={() => handleDeleteQuestion(question.id)}
-                      />
-                    </div>
+                    <ActionButtonGroup
+                      onEdit={() => handleEditQuestion(question)}
+                      onDuplicate={() => handleDuplicateQuestion(question)}
+                      onDelete={() => handleDeleteQuestion(question.id)}
+                      style={{ marginLeft: 'auto' }}
+                    />
                   </div>
                 </div>
               </QuestionCard>

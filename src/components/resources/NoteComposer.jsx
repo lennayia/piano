@@ -163,7 +163,7 @@ function NoteComposer({ value, onChange }) {
   const handleNoteClick = (note) => {
     const formattedNote = mapNoteToFormat(note, selectedDuration);
     const currentValue = value || '';
-    const newValue = currentValue ? `${currentValue}_${formattedNote}` : formattedNote;
+    const newValue = currentValue ? `${currentValue} ${formattedNote}` : formattedNote;
     onChange(newValue);
   };
 
@@ -176,22 +176,22 @@ function NoteComposer({ value, onChange }) {
       extraLong: '----'
     };
     const currentValue = value || '';
-    const newValue = currentValue ? `${currentValue}_${pauses[length]}` : pauses[length];
+    const newValue = currentValue ? `${currentValue} ${pauses[length]}` : pauses[length];
     onChange(newValue);
   };
 
   // Přidat nový řádek
   const addNewLine = () => {
     const currentValue = value || '';
-    onChange(`${currentValue}_|`);
+    onChange(`${currentValue} |`);
   };
 
   // Smazat poslední prvek
   const removeLastElement = () => {
     const currentValue = value || '';
-    const elements = currentValue.split('_');
+    const elements = currentValue.split(/\s+/);
     elements.pop();
-    onChange(elements.join('_'));
+    onChange(elements.join(' '));
   };
 
   return (
@@ -237,7 +237,6 @@ function NoteComposer({ value, onChange }) {
                 fontSize: '1rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                fontFamily: 'monospace',
                 minWidth: '50px',
                 display: 'flex',
                 alignItems: 'center',
@@ -609,16 +608,16 @@ function NoteComposer({ value, onChange }) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={{ padding: '0.4rem', textAlign: 'center', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>_</td>
+                    <td style={{ padding: '0.4rem', textAlign: 'center', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>mezera</td>
                     <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>Oddělovač not</td>
-                    <td style={{ padding: '0.4rem', textAlign: 'center', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>_</code></td>
-                    <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>C_D_E</code></td>
+                    <td style={{ padding: '0.4rem', textAlign: 'center', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code> </code></td>
+                    <td style={{ padding: '0.4rem', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>C D E</code></td>
                   </tr>
                   <tr>
                     <td style={{ padding: '0.4rem', textAlign: 'center' }}>| / ↵</td>
                     <td style={{ padding: '0.4rem' }}>Nový řádek</td>
                     <td style={{ padding: '0.4rem', textAlign: 'center' }}><code>| nebo ↵</code></td>
-                    <td style={{ padding: '0.4rem' }}><code>C_D_|_E_F</code></td>
+                    <td style={{ padding: '0.4rem' }}><code>C D | E F</code></td>
                   </tr>
                 </tbody>
               </table>

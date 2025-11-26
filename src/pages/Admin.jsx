@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Shield, BarChart3, Users, Music, Trophy, Gamepad2, Zap } from 'lucide-react';
+import { Shield, BarChart3, Users, Trophy, Gamepad2, Zap } from 'lucide-react';
 import AdminDashboard from '../components/admin/Dashboard';
 import UserList from '../components/admin/UserList';
-import SongLibrary from '../components/resources/SongLibrary';
 import AchievementManager from '../components/admin/AchievementManager';
 import QuizManager from '../components/admin/QuizManager';
 import GamificationManager from '../components/admin/GamificationManager';
@@ -12,13 +11,6 @@ import useUserStore from '../store/useUserStore';
 
 function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeCategory, setActiveCategory] = useState('lidovky');
-
-  const songCategories = [
-    { id: 'lidovky', label: 'Lidovky', icon: Music },
-    { id: 'uzskorolidovky', label: 'Užskorolidovky', icon: Music },
-    { id: 'detske', label: 'Dětské', icon: Music }
-  ];
   const currentUser = useUserStore((state) => state.currentUser);
   const getAllUsers = useUserStore((state) => state.getAllUsers);
 
@@ -51,8 +43,7 @@ function Admin() {
     { id: 'users', label: 'Uživatelé', icon: Users },
     { id: 'gamification', label: 'Gamifikace', icon: Zap },
     { id: 'achievements', label: 'Odměny', icon: Trophy },
-    { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
-    { id: 'songs', label: 'Písničky', icon: Music }
+    { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 }
   ];
 
   return (
@@ -119,19 +110,6 @@ function Admin() {
             </p>
           </div>
 
-          <div style={{
-            background: 'rgba(45, 91, 120, 0.08)',
-            padding: '0.75rem',
-            borderRadius: 'var(--radius)',
-            marginBottom: '1rem',
-            borderLeft: '3px solid var(--color-secondary)'
-          }}>
-            <strong style={{ color: '#1e293b' }}>Písničky</strong>
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.8rem' }}>
-              Přidávejte a upravujte písničky. Používejte notační systém: D_E_F_G pro noty, - pro pauzy.
-            </p>
-          </div>
-
           <h4 style={{ color: '#1e293b', marginTop: '1.5rem', marginBottom: '0.75rem', fontSize: '1rem' }}>
             Tipy
           </h4>
@@ -195,30 +173,6 @@ function Admin() {
       {activeTab === 'gamification' && <GamificationManager />}
       {activeTab === 'achievements' && <AchievementManager />}
       {activeTab === 'quizzes' && <QuizManager />}
-      {activeTab === 'songs' && (
-        <>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>Správa písní</h2>
-            <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
-              Upravujte melodie lidových písní a přidávejte nové skladby
-            </p>
-          </div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <TabButtons
-              tabs={songCategories}
-              activeTab={activeCategory}
-              onTabChange={setActiveCategory}
-              options={{ layout: 'pill' }}
-            />
-          </div>
-          <div style={{
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(45, 91, 120, 0.2), rgba(45, 91, 120, 0.3), rgba(45, 91, 120, 0.2), transparent)',
-            marginBottom: '1.5rem'
-          }} />
-          <SongLibrary activeCategory={activeCategory} showHeader={false} />
-        </>
-      )}
     </div>
     </>
   );

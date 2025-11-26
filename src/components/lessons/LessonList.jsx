@@ -321,14 +321,14 @@ function LessonList() {
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                Tóny (oddělené čárkou)
+                Tóny (oddělené mezerou)
               </label>
               <input
                 type="text"
                 className="form-input"
-                value={newLessonForm.content.notes.join(', ')}
-                onChange={(e) => handleNewLessonChange('content.notes', e.target.value.split(',').map(n => n.trim()).filter(n => n))}
-                placeholder="Např. C, D, E"
+                value={newLessonForm.content.notes.join(' ')}
+                onChange={(e) => handleNewLessonChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
+                placeholder="Např. C D E"
                 style={{ fontSize: '0.875rem' }}
               />
             </div>
