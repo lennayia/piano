@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Music, Play, Pause, BookOpen, Piano, Edit3, Save, X, Plus, GripVertical, Copy, Trash2, Upload, Volume2, XCircle, ChevronDown, ChevronUp, Eye, EyeOff, Trophy, Target } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Plus, GripVertical, Upload, Volume2, XCircle, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -22,7 +22,8 @@ import PianoKeyboard from '../lessons/PianoKeyboard';
 import NoteComposer from './NoteComposer';
 import Confetti from '../common/Confetti';
 import PracticeModeControls from '../ui/PracticeModeControls';
-import { Chip, ActionButtonGroup, SaveButton, CancelButton } from '../ui/ButtonComponents';
+import { Chip, ActionButtonGroup, SaveButton, CancelButton, MelodyNote, AddButton } from '../ui/ButtonComponents';
+import { InfoPanel } from '../ui/CardComponents';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
@@ -903,29 +904,9 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
       {/* Tlačítko pro přidání nové písně (pouze pro adminy) */}
       {isAdmin && !isAddingNew && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={startAddingNew}
-          style={{
-            marginBottom: '1.5rem',
-            padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: 'calc(var(--radius) * 2)',
-            color: '#ffffff',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            boxShadow: '0 4px 16px rgba(45, 91, 120, 0.3)'
-          }}
-        >
-          <Plus size={18} />
-          Přidat novou písničku
-        </motion.button>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AddButton onClick={startAddingNew} />
+        </div>
       )}
 
       {/* Formulář pro přidání nové písně */}
@@ -1142,26 +1123,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={saveNewSong}
-                className="btn btn-primary"
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                <Save size={16} />
-                Přidat písničku
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={cancelAddingNew}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                <X size={16} />
-                Zrušit
-              </motion.button>
+              <SaveButton onClick={saveNewSong} label="Přidat písničku" />
+              <CancelButton onClick={cancelAddingNew} />
             </div>
           </motion.div>
         )}
@@ -1568,7 +1531,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                     <div style={{ marginTop: '1rem' }}>
                       {/* Pokud nejsou noty skryté, zobrazit je */}
                       {!hideNotes[song.id] && (
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.5rem' }}>
                     {(() => {
                       // Rozdělit notes na jednotlivé elementy (může být string nebo pole)
                       let notesArray;
@@ -1585,112 +1548,45 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                       const isNext = false;
 
                       return (
-                        <motion.div
+                        <MelodyNote
                           key={noteIndex}
-                          animate={{
-                            scale: isCurrent ? 1.3 : isNext ? 1.1 : 1,
-                            backgroundColor: isCurrent
-                              ? 'rgba(181, 31, 101, 0.4)'
-                              : isNext
-                              ? 'rgba(181, 31, 101, 0.15)'
-                              : 'rgba(45, 91, 120, 0.1)'
-                          }}
-                          style={{
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: 'var(--radius)',
-                            fontSize: '0.875rem',
-                            fontWeight: 600,
-                            color: isCurrent || isNext ? 'var(--color-primary)' : 'var(--color-secondary)',
-                            border: isCurrent
-                              ? '2px solid var(--color-primary)'
-                              : isNext
-                              ? '2px dashed var(--color-primary)'
-                              : '1px solid rgba(45, 91, 120, 0.2)',
-                            transition: 'all 0.2s',
-                            position: 'relative'
-                          }}
-                        >
-                          {note}
-                          {isNext && (
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: [0.5, 1, 0.5] }}
-                              transition={{ duration: 0.8, repeat: Infinity }}
-                              style={{
-                                position: 'absolute',
-                                top: '-8px',
-                                right: '-8px',
-                                fontSize: '0.75rem'
-                              }}
-                            >
-                              ▶
-                            </motion.div>
-                          )}
-                        </motion.div>
+                          note={note}
+                          isCurrent={isCurrent}
+                          isNext={isNext}
+                        />
                       );
                           })}
                         </div>
                       )}
 
-                      {/* Tlačítka */}
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                        {/* Toggle skrytí/zobrazení not */}
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => toggleHideNotes(song.id)}
-                          disabled={practicingMode === song.id || challengeMode === song.id}
-                          className="btn btn-secondary"
-                          style={{
-                            fontSize: '0.875rem',
-                            padding: '0.5rem 1rem',
-                            opacity: (practicingMode === song.id || challengeMode === song.id) ? 0.5 : 1,
-                            cursor: (practicingMode === song.id || challengeMode === song.id) ? 'not-allowed' : 'pointer'
-                          }}
-                        >
-                          {hideNotes[song.id] ? <Eye size={16} /> : <EyeOff size={16} />}
-                          {hideNotes[song.id] ? 'Zobrazit noty' : 'Skrýt noty'}
-                        </motion.button>
-
-                        {/* Režimy cvičení - univerzální komponenta */}
-                        <div style={{ marginBottom: '0.75rem' }}>
-                          <PracticeModeControls
-                            isPracticing={practicingMode === song.id}
-                            isChallenge={challengeMode === song.id}
-                            practiceErrors={practiceErrors}
-                            progress={practiceProgress.length}
-                            totalNotes={(() => {
-                              let notesArray;
-                              if (Array.isArray(song.notes)) {
-                                notesArray = song.notes;
-                              } else {
-                                notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
-                              }
-                              const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
-                              return validNotes.length;
-                            })()}
-                            onStartPractice={() => startPractice(song)}
-                            onStartChallenge={() => startChallenge(song)}
-                            onStop={stopPractice}
-                            showStopButton={true}
-                          />
-                        </div>
-
-                        {/* Klavír toggle */}
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => toggleKeyboard(song.id)}
-                          className="btn btn-secondary"
-                          style={{
-                            fontSize: '0.875rem',
-                            padding: '0.5rem 1rem'
-                          }}
-                        >
-                          <Piano size={16} />
-                          {showKeyboard === song.id ? 'Skrýt klavír' : 'Zkusit na klavíru'}
-                        </motion.button>
-                      </div>
+                      {/* Režimy cvičení - univerzální komponenta s všemi tlačítky */}
+                      <PracticeModeControls
+                        isPracticing={practicingMode === song.id}
+                        isChallenge={challengeMode === song.id}
+                        practiceErrors={practiceErrors}
+                        progress={practiceProgress.length}
+                        totalNotes={(() => {
+                          let notesArray;
+                          if (Array.isArray(song.notes)) {
+                            notesArray = song.notes;
+                          } else {
+                            notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
+                          }
+                          const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
+                          return validNotes.length;
+                        })()}
+                        onStartPractice={() => startPractice(song)}
+                        onStartChallenge={() => startChallenge(song)}
+                        onStop={stopPractice}
+                        showStopButton={true}
+                        showHideNotesButton={true}
+                        hideNotes={hideNotes[song.id]}
+                        onToggleHideNotes={() => toggleHideNotes(song.id)}
+                        hideNotesDisabled={practicingMode === song.id || challengeMode === song.id}
+                        showKeyboardButton={true}
+                        keyboardVisible={showKeyboard === song.id}
+                        onToggleKeyboard={() => toggleKeyboard(song.id)}
+                      />
                 </div>
 
                 <AnimatePresence>
@@ -1739,56 +1635,26 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                   )}
                 </AnimatePresence>
 
-                <AnimatePresence>
-                  {playingSong === song.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{
-                        padding: '1rem',
-                        background: 'rgba(45, 91, 120, 0.15)',
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        borderRadius: 'var(--radius)',
-                        marginTop: '0.75rem',
-                        border: '2px solid rgba(45, 91, 120, 0.3)',
-                        boxShadow: '0 4px 16px rgba(45, 91, 120, 0.2)'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <BookOpen size={16} color="var(--color-secondary)" />
-                        <strong style={{ fontSize: '0.875rem', color: '#1e293b' }}>Tip pro harmonizaci:</strong>
-                      </div>
-                      <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                        {song.tips}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Tip pro harmonizaci */}
+                {song.tips && (
+                  <InfoPanel
+                    title="Tip pro harmonizaci:"
+                    icon={BookOpen}
+                    variant="secondary"
+                  >
+                    {song.tips}
+                  </InfoPanel>
+                )}
 
                 {/* Text písničky (lyrics) */}
                 {song.lyrics && (
-                  <div
-                    style={{
-                      padding: '1rem',
-                      background: 'rgba(181, 31, 101, 0.08)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      borderRadius: 'var(--radius)',
-                      marginTop: '0.75rem',
-                      border: '2px solid rgba(181, 31, 101, 0.2)',
-                      boxShadow: '0 4px 16px rgba(181, 31, 101, 0.15)'
-                    }}
+                  <InfoPanel
+                    title="Text písničky:"
+                    icon={Music}
+                    variant="primary"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      <Music size={16} color="var(--color-primary)" />
-                      <strong style={{ fontSize: '0.875rem', color: '#1e293b' }}>Text písničky:</strong>
-                    </div>
-                    <div style={{ fontSize: '0.875rem', color: '#475569', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-                      {song.lyrics}
-                    </div>
-                  </div>
+                    {song.lyrics}
+                  </InfoPanel>
                 )}
                   </>
                 )}

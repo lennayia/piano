@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { Target, Trophy, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Target, Trophy, X, Eye, EyeOff, Piano, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { RADIUS } from '../../utils/styleConstants';
 
 /**
@@ -19,9 +19,28 @@ function PracticeModeControls({
   onStartChallenge,            // callback pro start výzvy
   onStop,                      // callback pro ukončení
 
+  // Feedback ikony (✓ / ✗)
+  showSuccess = false,         // zobrazit ikonu úspěchu
+  showError = false,           // zobrazit ikonu chyby
+  onReset,                     // callback pro reset/znovu (tlačítko "Znovu")
+
+  // Skrýt noty tlačítko
+  showHideNotesButton = false, // zobrazit tlačítko "Skrýt noty"
+  hideNotes = false,           // jsou noty skryté?
+  onToggleHideNotes,           // callback pro toggle skrytí not
+  hideNotesDisabled = false,   // je tlačítko disabled?
+
+  // Klavír tlačítko
+  showKeyboardButton = false,  // zobrazit tlačítko "Zkusit na klavíru"
+  keyboardVisible = false,     // je klavír viditelný?
+  onToggleKeyboard,            // callback pro toggle klavíru
+
   // Styling
   showStopButton = true,       // zobrazit tlačítko "Ukončit"
-  style = {}
+  style = {},
+
+  // Extra obsah
+  children                     // extra tlačítka nebo obsah k zobrazení před hlavními tlačítky
 }) {
   const isActive = isPracticing || isChallenge;
 
@@ -36,6 +55,36 @@ function PracticeModeControls({
         flexWrap: 'wrap',
         ...style
       }}>
+        {/* Extra tlačítka (např. přehrávací) */}
+        {children}
+
+        {/* Tlačítko Skrýt noty */}
+        {showHideNotesButton && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onToggleHideNotes}
+            disabled={hideNotesDisabled}
+            className="btn"
+            style={{
+              fontSize: '0.875rem',
+              padding: '0.5rem 1rem',
+              background: 'rgba(45, 91, 120, 0.1)',
+              color: 'var(--color-secondary)',
+              border: 'none',
+              borderRadius: RADIUS.md,
+              opacity: hideNotesDisabled ? 0.5 : 1,
+              cursor: hideNotesDisabled ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            {hideNotes ? <Eye size={16} /> : <EyeOff size={16} />}
+            {hideNotes ? 'Zobrazit noty' : 'Skrýt noty'}
+          </motion.button>
+        )}
+
         {/* Pokud je aktivní režim, zobrazit tlačítko Ukončit */}
         {isActive && showStopButton ? (
           <motion.button
@@ -46,8 +95,12 @@ function PracticeModeControls({
             style={{
               fontSize: '0.875rem',
               padding: '0.5rem 1rem',
-              background: 'var(--color-danger)',
-              border: 'none'
+              background: 'var(--color-primary)',
+              border: 'none',
+              borderRadius: RADIUS.md,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
             }}
           >
             <X size={16} />
@@ -64,9 +117,10 @@ function PracticeModeControls({
               style={{
                 padding: '0.5rem 1rem',
                 fontSize: '0.875rem',
-                background: isPracticing ? 'var(--color-secondary)' : 'transparent',
-                color: isPracticing ? 'white' : 'var(--color-secondary)',
-                border: isPracticing ? 'none' : '2px solid var(--color-secondary)',
+                background: 'var(--color-secondary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: RADIUS.md,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
@@ -85,11 +139,10 @@ function PracticeModeControls({
               style={{
                 padding: '0.5rem 1rem',
                 fontSize: '0.875rem',
-                background: isChallenge
-                  ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
-                  : 'transparent',
-                color: isChallenge ? 'white' : 'var(--color-primary)',
-                border: isChallenge ? 'none' : '2px solid var(--color-primary)',
+                background: 'var(--color-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: RADIUS.md,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
@@ -100,28 +153,48 @@ function PracticeModeControls({
             </motion.button>
           </>
         )}
+
+        {/* Tlačítko Zkusit na klavíru */}
+        {showKeyboardButton && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onToggleKeyboard}
+            className="btn"
+            style={{
+              fontSize: '0.875rem',
+              padding: '0.5rem 1rem',
+              background: 'rgba(45, 91, 120, 0.1)',
+              color: 'var(--color-secondary)',
+              border: 'none',
+              borderRadius: RADIUS.md,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            <Piano size={16} />
+            {keyboardVisible ? 'Skrýt klavír' : 'Zkusit na klavíru'}
+          </motion.button>
+        )}
       </div>
 
-      {/* Progress karta - zobrazit jen když je aktivní režim a jsou nějaké data */}
-      {isActive && (progress > 0 || practiceErrors > 0) && (
+      {/* Progress karta - zobrazit jen když je aktivní režim */}
+      {isActive && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
             padding: '1rem',
-            background: isChallenge
-              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(181, 31, 101, 0.15))'
-              : 'rgba(45, 91, 120, 0.1)',
+            background: 'rgba(181, 31, 101, 0.08)',
             borderRadius: RADIUS.lg,
             marginBottom: '1rem',
-            border: isChallenge
-              ? '2px solid #FFD700'
-              : '2px solid var(--color-secondary)'
+            border: 'none'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            {isChallenge ? <Trophy size={20} color="#FFD700" /> : <Target size={20} color="var(--color-secondary)" />}
-            <span style={{ fontWeight: 600, color: isChallenge ? '#FFD700' : 'var(--color-secondary)' }}>
+            {isChallenge ? <Trophy size={20} color="var(--color-primary)" /> : <Target size={20} color="var(--color-secondary)" />}
+            <span style={{ fontWeight: 600, color: isChallenge ? 'var(--color-primary)' : 'var(--color-secondary)' }}>
               {isChallenge ? 'Režim výzvy - Hraj bez nápovědy!' : 'Režim procvičování - S nápovědou'}
             </span>
           </div>
@@ -135,6 +208,64 @@ function PracticeModeControls({
             Postup: <strong>{progress}</strong> / <strong>{totalNotes}</strong>
           </div>
         </motion.div>
+      )}
+
+      {/* Feedback ikony a tlačítko Znovu - zobrazit když je aktivní režim a callback existuje */}
+      {isActive && onReset && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          marginTop: '1rem'
+        }}>
+          {/* Ikona úspěchu - BĚŽNÉ HRANÍ + PROCVIČOVÁNÍ (ne výzva) */}
+          <AnimatePresence>
+            {showSuccess && !isChallenge && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <CheckCircle size={24} color="var(--color-secondary)" fill="rgba(45, 91, 120, 0.15)" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Ikona chyby */}
+          <AnimatePresence>
+            {showError && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <motion.div
+                  animate={{ rotate: [0, -10, 10, -10, 0] }}
+                  transition={{ duration: 0.5, ease: 'easeInOut' }}
+                >
+                  <XCircle size={24} color="var(--color-primary)" fill="rgba(181, 31, 101, 0.15)" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Tlačítko Znovu */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onReset}
+            className="btn btn-secondary"
+            style={{ padding: '0.5rem 1rem' }}
+          >
+            <RotateCcw size={16} />
+            Znovu
+          </motion.button>
+        </div>
       )}
     </>
   );

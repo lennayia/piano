@@ -11,6 +11,8 @@ import Lesson from './pages/Lesson';
 import History from './pages/History';
 import Cviceni from './pages/Cviceni';
 import TheoryQuizzes from './pages/TheoryQuizzes';
+import NavigationVariantsDemo from './pages/NavigationVariantsDemo';
+import TextDemo from './pages/TextDemo';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import useUserStore from './store/useUserStore';
 import './styles/index.css';
@@ -31,6 +33,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="/piano-login" element={<PianoLogin />} />
+
+          {/* DEMO stránky - smazat po dokončení */}
+          <Route path="/navigation-demo" element={<NavigationVariantsDemo />} />
+          <Route path="/text-demo" element={<TextDemo />} />
 
           {/* Chráněné routes - vyžadují přihlášení */}
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />

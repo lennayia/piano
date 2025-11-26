@@ -6,12 +6,14 @@ import {
   Settings, Save, HelpCircle, Crown,
   Zap, Music, BookOpen, Target
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import TabButtons, { HelpPanel } from '../ui/TabButtons';
 import { HelpButton } from '../ui/ButtonComponents';
 
 const GamificationManager = () => {
   const [activeTab, setActiveTab] = useState('xp-rules');
   const [leaderboard, setLeaderboard] = useState([]);
+  const [achievements, setAchievements] = useState([]); // Dynamické achievements z DB
   const [xpRules, setXpRules] = useState({
     lesson_completion: 10,
     quiz_correct: 5,
@@ -40,8 +42,24 @@ const GamificationManager = () => {
   useEffect(() => {
     if (activeTab === 'leaderboard') {
       fetchLeaderboard();
+    } else if (activeTab === 'xp-rules') {
+      fetchAchievements();
     }
   }, [activeTab]);
+
+  const fetchAchievements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('piano_achievements')
+        .select('id, title, description, icon_type, xp_reward')
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+      setAchievements(data || []);
+    } catch (err) {
+      console.error('Error fetching achievements:', err);
+    }
+  };
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -304,6 +322,84 @@ const GamificationManager = () => {
                 </div>
               </div>
             </div>
+
+            {/* Dynamické XP pravidla - Achievements */}
+            {achievements.length > 0 && (
+              <>
+                <h3 style={{
+                  marginTop: '2.5rem',
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  paddingTop: '2rem',
+                  borderTop: '2px solid rgba(45, 91, 120, 0.2)'
+                }}>
+                  <Award size={20} color="var(--color-primary)" />
+                  Odměny (Achievements)
+                </h3>
+                <div style={{ display: 'grid', gap: '1.5rem' }}>
+                  {achievements.map((achievement) => {
+                    const IconComponent = (achievement.icon_type && LucideIcons[achievement.icon_type]) || Trophy;
+
+                    return (
+                      <div
+                        key={achievement.id}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.6)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(181, 31, 101, 0.2)',
+                          borderRadius: 'var(--radius)',
+                          padding: '1.25rem'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                          {IconComponent && <IconComponent size={20} color="var(--color-primary)" />}
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ margin: 0, marginBottom: '0.25rem' }}>{achievement.title}</h4>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                              {achievement.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '1rem',
+                          background: 'rgba(45, 91, 120, 0.05)',
+                          padding: '0.75rem',
+                          borderRadius: 'var(--radius-sm)',
+                          marginTop: '0.75rem'
+                        }}>
+                          <Zap size={16} color="var(--color-secondary)" />
+                          <span style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '1.125rem' }}>
+                            {achievement.xp_reward} XP
+                          </span>
+                          <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                            za odemčení této odměny
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{
+                  marginTop: '1.5rem',
+                  padding: '1rem',
+                  background: 'rgba(45, 91, 120, 0.08)',
+                  borderRadius: 'var(--radius)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem'
+                }}>
+                  <HelpCircle size={20} color="var(--color-secondary)" />
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
+                    <strong>Info:</strong> Pro úpravu XP hodnot u achievements přejděte do záložky <strong>"Odměny"</strong> v hlavní navigaci.
+                  </p>
+                </div>
+              </>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.02 }}

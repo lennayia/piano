@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
  */
 function TheoryQuizHub() {
   const [activeMainTab, setActiveMainTab] = useState('quizzes');
-  const [activeSubTab, setActiveSubTab] = useState('interval');
+  const [activeSubTab, setActiveSubTab] = useState('chord');
 
   // Konfigurace hlavních sekcí
   const MAIN_SECTIONS = [
@@ -31,11 +31,11 @@ function TheoryQuizHub() {
   // Konfigurace všech typů kvízů
   const QUIZ_TYPES = [
     {
-      id: 'theory',
-      label: 'Teoretický kvíz',
-      icon: Brain,
-      title: 'Kvíz: Hudební teorie',
-      description: 'Obecné otázky z hudební teorie'
+      id: 'chord',
+      label: 'Akordy',
+      icon: Music,
+      title: 'Kvíz: Akordy',
+      description: 'Rozpoznávejte a pojmenovávejte hudební akordy'
     },
     {
       id: 'interval',
@@ -52,18 +52,18 @@ function TheoryQuizHub() {
       description: 'Otestujte své znalosti durových a mollových stupnic'
     },
     {
-      id: 'chord',
-      label: 'Akordy',
-      icon: Music,
-      title: 'Kvíz: Akordy',
-      description: 'Rozpoznávejte a pojmenovávejte hudební akordy'
-    },
-    {
       id: 'rhythm',
       label: 'Rytmus',
       icon: Sparkles,
       title: 'Kvíz: Rytmus',
       description: 'Procvičte si notové hodnoty a rytmické vzorce'
+    },
+    {
+      id: 'theory',
+      label: 'Teoretický kvíz',
+      icon: Brain,
+      title: 'Kvíz: Hudební teorie',
+      description: 'Obecné otázky z hudební teorie'
     },
     {
       id: 'mixed',
@@ -91,7 +91,7 @@ function TheoryQuizHub() {
     setActiveMainTab(newTab);
     // Nastavit výchozí sub tab podle sekce
     if (newTab === 'quizzes') {
-      setActiveSubTab('interval');
+      setActiveSubTab('chord');
     } else if (newTab === 'materials') {
       setActiveSubTab('templates');
     }
@@ -99,6 +99,32 @@ function TheoryQuizHub() {
 
   // Najít aktuální kvíz
   const currentQuiz = QUIZ_TYPES.find(q => q.id === activeSubTab);
+
+  // Dynamický obsah podle aktivních tabů
+  const getSectionContent = () => {
+    if (activeMainTab === 'quizzes') {
+      const quiz = QUIZ_TYPES.find(q => q.id === activeSubTab);
+      return {
+        title: quiz?.title || '',
+        description: quiz?.description || ''
+      };
+    } else if (activeMainTab === 'materials') {
+      const materialContent = {
+        templates: {
+          title: 'Šablony harmonizace',
+          description: 'Připravené harmonické postupy pro různé tóniny. Můžete si je přehrát a použít jako inspiraci.'
+        },
+        glossary: {
+          title: 'Hudební slovníček',
+          description: 'Přehled hudebních pojmů a jejich vysvětlení pro lepší pochopení teorie.'
+        }
+      };
+      return materialContent[activeSubTab] || { title: '', description: '' };
+    }
+    return { title: '', description: '' };
+  };
+
+  const sectionContent = getSectionContent();
 
   return (
     <PageSection
@@ -112,6 +138,8 @@ function TheoryQuizHub() {
       activeSubTab={activeSubTab}
       onMainTabChange={handleMainTabChange}
       onSubTabChange={setActiveSubTab}
+      sectionTitle={sectionContent.title}
+      sectionDescription={sectionContent.description}
     >
       {/* Obsah podle aktivní sekce a sub tabu */}
       {activeMainTab === 'quizzes' && currentQuiz && (

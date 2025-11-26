@@ -1,21 +1,45 @@
 import { useState, useEffect } from 'react';
-import { Shield, BarChart3, Users, Trophy, Gamepad2, Zap } from 'lucide-react';
+import { Shield, BarChart3, Users, Trophy, Gamepad2, Zap, Eye, Settings } from 'lucide-react';
 import AdminDashboard from '../components/admin/Dashboard';
 import UserList from '../components/admin/UserList';
 import AchievementManager from '../components/admin/AchievementManager';
 import QuizManager from '../components/admin/QuizManager';
 import GamificationManager from '../components/admin/GamificationManager';
-import TabButtons from '../components/ui/TabButtons';
+import PageSection from '../components/ui/PageSection';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
 
 function Admin() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Hlavní navigace
+  const [activeMainTab, setActiveMainTab] = useState('overview');
+  const [activeSubTab, setActiveSubTab] = useState('stats');
+
   const currentUser = useUserStore((state) => state.currentUser);
   const getAllUsers = useUserStore((state) => state.getAllUsers);
 
   // Kontrola, zda je uživatel admin
   const isAdmin = currentUser?.is_admin === true;
+
+  // Sub tabs pro každý main tab
+  const subTabs = {
+    overview: [
+      { id: 'stats', label: 'Statistiky', icon: BarChart3 },
+      { id: 'users', label: 'Uživatelé', icon: Users },
+      { id: 'gamification', label: 'Gamifikace', icon: Zap }
+    ],
+    management: [
+      { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
+      { id: 'xp-rules', label: 'XP body', icon: Zap },
+      { id: 'achievements', label: 'Odměny', icon: Trophy }
+    ]
+  };
+
+  // Při změně hlavního tabu nastav první pod-tab
+  useEffect(() => {
+    if (subTabs[activeMainTab]?.[0]?.id) {
+      setActiveSubTab(subTabs[activeMainTab][0].id);
+    }
+  }, [activeMainTab]);
 
   // Načíst všechny uživatele při otevření Admin stránky
   useEffect(() => {
@@ -38,13 +62,49 @@ function Admin() {
     );
   }
 
-  const tabs = [
-    { id: 'dashboard', label: 'Přehled', icon: BarChart3 },
-    { id: 'users', label: 'Uživatelé', icon: Users },
-    { id: 'gamification', label: 'Gamifikace', icon: Zap },
-    { id: 'achievements', label: 'Odměny', icon: Trophy },
-    { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 }
+  // Main tabs
+  const mainTabs = [
+    { id: 'overview', label: 'Přehled', icon: Eye },
+    { id: 'management', label: 'Správa', icon: Settings }
   ];
+
+  // Dynamický obsah podle aktivních tabů
+  const getSectionContent = () => {
+    const mainTabContent = {
+      overview: {
+        stats: {
+          title: 'Statistiky aplikace',
+          description: 'Přehled celkové aktivity uživatelů, získaných XP a pokroku v lekcích.'
+        },
+        users: {
+          title: 'Přehled uživatelů',
+          description: 'Seznam všech registrovaných uživatelů a jejich statistiky.'
+        },
+        gamification: {
+          title: 'Přehled gamifikace',
+          description: 'Celkový přehled XP pravidel a odměn v aplikaci.'
+        }
+      },
+      management: {
+        quizzes: {
+          title: 'Správa kvízů',
+          description: 'Přidávejte, upravujte a organizujte otázky pro teoretické kvízy.'
+        },
+        'xp-rules': {
+          title: 'Správa XP pravidel',
+          description: 'Nastavte body za opakované akce - dokončení lekce, správná odpověď v kvízu atd.'
+        },
+        achievements: {
+          title: 'Správa odměn',
+          description: 'Vytvářejte a upravujte jednorázové odměny za dosažené milníky.'
+        }
+      }
+    };
+
+    return mainTabContent[activeMainTab]?.[activeSubTab] || { title: '', description: '' };
+  };
+
+  const sectionContent = getSectionContent();
 
   return (
     <>
@@ -128,52 +188,54 @@ function Admin() {
         </div>
       </FloatingHelpButton>
 
-      <div className="container">
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '2rem',
-        paddingBottom: '1rem',
-        borderBottom: '2px solid var(--color-border)'
-      }}>
-        <div style={{
-          width: '48px',
-          height: '48px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: 'var(--radius)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '2px solid rgba(181, 31, 101, 0.2)',
-          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
-        }}>
-          <Shield size={24} color="var(--color-primary)" />
-        </div>
-        <div>
-          <h1 style={{ marginBottom: '0.25rem', color: '#1e293b' }}>Admin panel</h1>
-          <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
-            Správa uživatelů, statistik a obsahu aplikace
-          </p>
-        </div>
-      </div>
+      <PageSection
+        icon={Shield}
+        title="Admin panel"
+        description="Správa uživatelů, statistik a obsahu aplikace"
+        mainTabs={mainTabs}
+        subTabs={subTabs}
+        activeMainTab={activeMainTab}
+        activeSubTab={activeSubTab}
+        onMainTabChange={setActiveMainTab}
+        onSubTabChange={setActiveSubTab}
+        mainTabsSize="md"
+        sectionTitle={sectionContent.title}
+        sectionDescription={sectionContent.description}
+      >
+        {/* PŘEHLED - Statistiky */}
+        {activeMainTab === 'overview' && activeSubTab === 'stats' && (
+          <AdminDashboard />
+        )}
 
-      <TabButtons
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        options={{
-          size: 'md',
-          style: { marginBottom: '2rem' }
-        }}
-      />
+        {/* PŘEHLED - Uživatelé */}
+        {activeMainTab === 'overview' && activeSubTab === 'users' && (
+          <UserList />
+        )}
 
-      {activeTab === 'dashboard' && <AdminDashboard />}
-      {activeTab === 'users' && <UserList />}
-      {activeTab === 'gamification' && <GamificationManager />}
-      {activeTab === 'achievements' && <AchievementManager />}
-      {activeTab === 'quizzes' && <QuizManager />}
-    </div>
+        {/* PŘEHLED - Gamifikace */}
+        {activeMainTab === 'overview' && activeSubTab === 'gamification' && (
+          <GamificationManager />
+        )}
+
+        {/* SPRÁVA - Kvízy */}
+        {activeMainTab === 'management' && activeSubTab === 'quizzes' && (
+          <QuizManager />
+        )}
+
+        {/* SPRÁVA - XP body */}
+        {activeMainTab === 'management' && activeSubTab === 'xp-rules' && (
+          <div style={{ padding: '1rem', background: 'rgba(181, 31, 101, 0.1)', borderRadius: '8px' }}>
+            <h3>⚡ XP body - CRUD operace</h3>
+            <p>Tady bude NOVÁ komponenta pro správu XP pravidel</p>
+            <p>S možností přidat, upravit, duplikovat, smazat</p>
+          </div>
+        )}
+
+        {/* SPRÁVA - Odměny */}
+        {activeMainTab === 'management' && activeSubTab === 'achievements' && (
+          <AchievementManager />
+        )}
+      </PageSection>
     </>
   );
 }

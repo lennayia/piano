@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Save, X, Trash2, GripVertical } from 'lucide-react';
+import { Plus, GripVertical } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -21,6 +21,7 @@ import LessonCard from './LessonCard';
 import LessonModal from './LessonModal';
 import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
+import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
 
 // Sortable Lesson Wrapper
 function SortableLessonCard({ lesson, children }) {
@@ -37,6 +38,7 @@ function SortableLessonCard({ lesson, children }) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    height: '100%',
   };
 
   return (
@@ -202,39 +204,14 @@ function LessonList() {
 
   return (
     <div>
-      <motion.h2
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        style={{ marginBottom: '1.5rem', color: '#1e293b' }}
-      >
-        Dostupné lekce
-      </motion.h2>
-
       {/* Tlačítko pro přidání nové lekce (pouze pro adminy) */}
       {isAdmin && !isAddingNew && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={startAddingNew}
-          style={{
-            marginBottom: '1.5rem',
-            padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: 'calc(var(--radius) * 2)',
-            color: '#ffffff',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            boxShadow: '0 4px 16px rgba(45, 91, 120, 0.3)'
-          }}
-        >
-          <Plus size={18} />
-          Přidat novou lekci
-        </motion.button>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AddButton
+            onClick={startAddingNew}
+            label="Přidat novou lekci"
+          />
+        </div>
       )}
 
       {/* Formulář pro přidání nové lekce */}
@@ -261,7 +238,7 @@ function LessonList() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                <label className="form-label" style={{ color: '#1e293b' }}>
                   Název lekce
                 </label>
                 <input
@@ -270,19 +247,17 @@ function LessonList() {
                   value={newLessonForm.title}
                   onChange={(e) => handleNewLessonChange('title', e.target.value)}
                   placeholder="Např. První tóny"
-                  style={{ fontSize: '0.875rem' }}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                <label className="form-label" style={{ color: '#1e293b' }}>
                   Obtížnost
                 </label>
                 <select
                   className="form-input"
                   value={newLessonForm.difficulty}
                   onChange={(e) => handleNewLessonChange('difficulty', e.target.value)}
-                  style={{ fontSize: '0.875rem' }}
                 >
                   <option value="začátečník">začátečník</option>
                   <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
@@ -291,7 +266,7 @@ function LessonList() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                <label className="form-label" style={{ color: '#1e293b' }}>
                   Délka
                 </label>
                 <input
@@ -300,13 +275,12 @@ function LessonList() {
                   value={newLessonForm.duration}
                   onChange={(e) => handleNewLessonChange('duration', e.target.value)}
                   placeholder="Např. 5 min"
-                  style={{ fontSize: '0.875rem' }}
                 />
               </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+              <label className="form-label" style={{ color: '#1e293b' }}>
                 Popis
               </label>
               <textarea
@@ -315,12 +289,11 @@ function LessonList() {
                 onChange={(e) => handleNewLessonChange('description', e.target.value)}
                 rows={2}
                 placeholder="Popis lekce"
-                style={{ fontSize: '0.875rem' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+              <label className="form-label" style={{ color: '#1e293b' }}>
                 Tóny (oddělené mezerou)
               </label>
               <input
@@ -329,12 +302,11 @@ function LessonList() {
                 value={newLessonForm.content.notes.join(' ')}
                 onChange={(e) => handleNewLessonChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
                 placeholder="Např. C D E"
-                style={{ fontSize: '0.875rem' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+              <label className="form-label" style={{ color: '#1e293b' }}>
                 Instrukce (jedna na řádek)
               </label>
               <textarea
@@ -343,31 +315,12 @@ function LessonList() {
                 onChange={(e) => handleNewLessonChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
                 rows={3}
                 placeholder="Zadejte instrukce&#10;Každá na nový řádek"
-                style={{ fontSize: '0.875rem' }}
               />
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={saveNewLesson}
-                className="btn btn-primary"
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                <Save size={16} />
-                Přidat lekci
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={cancelAddingNew}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                <X size={16} />
-                Zrušit
-              </motion.button>
+              <SaveButton onClick={saveNewLesson} label="Přidat lekci" />
+              <CancelButton onClick={cancelAddingNew} />
             </div>
           </motion.div>
         )}
@@ -384,12 +337,13 @@ function LessonList() {
         >
           <motion.div
             className="grid grid-cols-2"
+            style={{ gridAutoRows: '1fr' }}
             variants={container}
             initial="hidden"
             animate="show"
           >
             {lessons.map((lesson, index) => (
-              <div key={lesson.id} style={{ gridColumn: editingLesson === lesson.id ? '1 / -1' : 'auto' }}>
+              <div key={lesson.id} style={{ gridColumn: editingLesson === lesson.id ? '1 / -1' : 'auto', height: '100%' }}>
                 <SortableLessonCard lesson={lesson}>
                   {(dragAttributes, dragListeners) => (
                     <motion.div
@@ -397,6 +351,7 @@ function LessonList() {
                         hidden: { opacity: 0, y: 20 },
                         show: { opacity: 1, y: 0 }
                       }}
+                      style={{ height: '100%' }}
                     >
                       <LessonCard
                         lesson={lesson}

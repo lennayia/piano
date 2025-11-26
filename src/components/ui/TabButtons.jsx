@@ -104,8 +104,8 @@ function TabButtons({
       background: isActive
         ? variantConfig.pillActiveBackground
         : isHovered
-          ? 'rgba(0, 0, 0, 0.05)'
-          : 'transparent',
+          ? 'rgba(45, 91, 120, 0.08)' // Light secondary hover
+          : 'rgba(255, 255, 255, 0.9)', // Bílá pro neaktivní
       border: 'none',
       borderRadius: '10px',
       cursor: 'pointer',
@@ -121,23 +121,23 @@ function TabButtons({
           ? variantConfig.pillHoverColor
           : variantConfig.inactiveColor,
       boxShadow: isActive
-        ? '0 2px 8px rgba(0, 0, 0, 0.15)'
-        : '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        ? '0 2px 8px rgba(0, 0, 0, 0.15)' // Aktivní se stínem
+        : 'none', // Neaktivní bez stínu
       position: 'relative',
       overflow: 'hidden'
     };
 
-    // Default layout - původní styly
+    // Default layout - vylepšené styly (jako Varianta 7)
     const defaultButtonStyle = {
       padding: sizeConfig.padding,
       background: isActive
         ? variantConfig.activeBackground
         : isHovered
-          ? variantConfig.hoverBackground
-          : 'rgba(255, 255, 255, 0.8)',
+          ? 'rgba(45, 91, 120, 0.08)' // Light secondary hover
+          : 'rgba(255, 255, 255, 0.9)', // Bílá pro neaktivní
       backdropFilter: 'blur(12px)',
       WebkitBackdropFilter: 'blur(12px)',
-      border: 'none',
+      border: '0px', // Bez borderu
       borderRadius: sizeConfig.borderRadius,
       cursor: 'pointer',
       display: 'flex',
@@ -152,10 +152,8 @@ function TabButtons({
           ? variantConfig.hoverColor
           : variantConfig.inactiveColor,
       boxShadow: isActive
-        ? variantConfig.activeShadow
-        : isHovered
-          ? variantConfig.hoverShadow
-          : '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        ? '0 2px 8px rgba(0, 0, 0, 0.15)' // Aktivní s modulárním stínem
+        : 'none', // Neaktivní bez stínu
       position: 'relative',
       overflow: 'hidden'
     };
@@ -221,11 +219,12 @@ function TabButtons({
           flexWrap: 'wrap',
           gap: '0.25rem',
           padding: '0.3rem',
-          background: 'rgba(255, 255, 255, 0.7)',
+          background: 'transparent', // Plně průhledná
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           borderRadius: '14px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+          border: '0px', // Bez borderu
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' // Modulární stín
         }}>
           {renderButtons()}
         </div>
@@ -233,15 +232,23 @@ function TabButtons({
     );
   }
 
-  // Default layout
+  // Default layout - s bílým pozadím jako pills
   return (
-    <div style={{
-      display: 'flex',
-      gap: gap,
-      flexWrap: 'wrap',
-      ...style
-    }}>
-      {renderButtons()}
+    <div style={{ display: 'flex', justifyContent: 'flex-start', ...style }}>
+      <div style={{
+        display: 'inline-flex',
+        flexWrap: 'wrap',
+        gap: gap,
+        padding: '0.3rem',
+        background: 'transparent', // Plně průhledná
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderRadius: '14px',
+        border: '0px', // Bez borderu
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' // Modulární stín
+      }}>
+        {renderButtons()}
+      </div>
     </div>
   );
 }

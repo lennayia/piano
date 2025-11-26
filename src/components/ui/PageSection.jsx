@@ -73,7 +73,7 @@ export function PageSection({
                 gap: '0.75rem',
                 marginBottom: description ? '0.5rem' : '0'
               }}>
-                {Icon && <Icon size={32} color="var(--color-primary)" />}
+                {Icon && <Icon size={32} color="#475569" />}
                 {title}
               </h1>
             )}
@@ -113,7 +113,7 @@ export function PageSection({
       {/* Content header sekce */}
       {sectionTitle && (
         <>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', marginBottom: '0.5rem' }}>
+          <h2 style={{ margin: 0, marginBottom: '0.5rem' }}>
             {sectionTitle}
           </h2>
 

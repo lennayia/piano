@@ -169,10 +169,10 @@ export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIco
  * @param {function} onClick - Callback funkce
  * @param {string} label - Text tlačítka (default: 'Přidat novou otázku')
  * @param {object} icon - Custom ikona (default: Plus)
- * @param {boolean} iconOnly - Zobrazit jen ikonu bez textu (default: false)
+ * @param {boolean} iconOnly - Zobrazit jen ikonu bez textu (default: true)
  * @param {object} style - Dodatečné styly
  */
-export function AddButton({ onClick, label = 'Přidat novou otázku', icon: CustomIcon, iconOnly = false, style = {}, ...props }) {
+export function AddButton({ onClick, label = 'Přidat novou otázku', icon: CustomIcon, iconOnly = true, style = {}, ...props }) {
   const Icon = CustomIcon || Plus;
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -577,7 +577,9 @@ export function ActionButtonGroup({
     <div
       style={{
         display: 'flex',
-        gap: '0.5rem',
+        gap: '0.25rem',
+        justifyContent: 'flex-end',
+        width: '100%',
         ...style
       }}
       {...props}
@@ -649,5 +651,59 @@ export function BackButton({
       style={style}
       {...props}
     />
+  );
+}
+
+/**
+ * MelodyNote - animovaný chip pro zobrazení noty v melodii písničky
+ * Používá se pro vizualizaci melodie s podporou zvýraznění aktuální/následující/zahrané noty
+ *
+ * @param {string} note - Text noty (např. "C", "E", "GG", "-")
+ * @param {boolean} isCurrent - Je to právě hraná nota? (default: false)
+ * @param {boolean} isNext - Je to následující nota? (default: false)
+ * @param {boolean} isPlayed - Byla nota už správně zahraná? (default: false) - pro akordy
+ * @param {object} style - Dodatečné styly
+ */
+export function MelodyNote({ note, isCurrent = false, isNext = false, isPlayed = false, style = {}, ...props }) {
+  return (
+    <motion.div
+      animate={{
+        scale: isCurrent ? 1.3 : isNext ? 1.1 : 1
+      }}
+      style={{
+        padding: '0.5rem 0.75rem',
+        borderRadius: RADIUS.md,
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        color: isPlayed || isCurrent || isNext ? 'var(--color-primary)' : 'var(--color-secondary)',
+        background: isCurrent
+          ? 'rgba(181, 31, 101, 0.4)'
+          : isNext
+          ? 'rgba(181, 31, 101, 0.15)'
+          : 'rgba(45, 91, 120, 0.1)',
+        border: 'none',
+        transition: 'all 0.2s',
+        position: 'relative',
+        ...style
+      }}
+      {...props}
+    >
+      {note}
+      {isNext && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 0.8, repeat: Infinity }}
+          style={{
+            position: 'absolute',
+            top: '-8px',
+            right: '-8px',
+            fontSize: '0.75rem'
+          }}
+        >
+          ▶
+        </motion.div>
+      )}
+    </motion.div>
   );
 }

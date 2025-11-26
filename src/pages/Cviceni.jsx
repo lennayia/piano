@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Play, RotateCcw, CheckCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target, Brain, Trophy } from 'lucide-react';
+import { Music, Play, RotateCcw, CheckCircle, XCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
 import TabButtons from '../components/ui/TabButtons';
-import { IconButton } from '../components/ui/ButtonComponents';
+import { IconButton, MelodyNote } from '../components/ui/ButtonComponents';
+import { ProgressBar, InfoPanel } from '../components/ui/CardComponents';
 import PracticeModeControls from '../components/ui/PracticeModeControls';
 import { RADIUS, SHADOW, BORDER } from '../utils/styleConstants';
 import SongLibrary from '../components/resources/SongLibrary';
@@ -14,6 +15,8 @@ import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import audioEngine from '../utils/audio';
 import { getChordNotesWithOctaves, shuffleArray } from '../utils/noteUtils';
 import { supabase } from '../lib/supabase';
+import useProgressTracking from '../hooks/useProgressTracking';
+import PracticeCelebration from '../components/practice/PracticeCelebration';
 
 function Cviceni() {
   const navigate = useNavigate();
@@ -29,10 +32,18 @@ function Cviceni() {
   const [challengeMode, setChallengeMode] = useState(false); // režim výzvy BEZ nápovědy (pro odměny)
   const [practiceErrors, setPracticeErrors] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Hook pro sledování pokroku (dokončených akordů)
+  const { completedCount, incrementCompleted, resetProgress } = useProgressTracking();
+  const [completedChordIds, setCompletedChordIds] = useState(new Set()); // Set ID akordů dokončených v této sérii
   const [selectedDifficulty, setSelectedDifficulty] = useState('all'); // 'all', 'easy', 'medium'
   const [isShuffled, setIsShuffled] = useState(false);
   const [activeSection, setActiveSection] = useState('chords'); // 'chords', 'quiz', 'theory', 'songs'
   const [activeSongCategory, setActiveSongCategory] = useState('lidovky');
+  const [playingNoteIndex, setPlayingNoteIndex] = useState(-1); // Index přehrávané noty při poslechu (-1 = nepřehrává se)
+  const [isPlayingFullChord, setIsPlayingFullChord] = useState(false); // true = přehrává se celý akord najednou
 
   useEffect(() => {
     if (!currentUser) {
@@ -73,8 +84,55 @@ function Cviceni() {
 
     setChords(filtered);
     setCurrentChordIndex(0);
+    resetProgress(); // Reset počítadla dokončených akordů
+    setCompletedChordIds(new Set()); // Reset seznamu dokončených akordů v nové sérii
     resetPractice();
   }, [selectedDifficulty, allChords, isShuffled]);
+
+  // Sledování dokončení všech akordů - VELKÁ OSLAVA! 🎉 (JEN v režimu Výzvy)
+  useEffect(() => {
+    if (challengeMode && completedCount > 0 && chords.length > 0 && completedCount === chords.length) {
+      // Všechny akordy dokončeny v režimu Výzvy! Spustit oslavný zvuk a uložit do DB
+      setTimeout(async () => {
+        audioEngine.playSuccess();
+        setShowCelebration(true);
+        setShowSuccessModal(true);
+
+        // Uložit do databáze - statistiky + XP
+        try {
+          const { data: stats, error: statsError } = await supabase
+            .from('piano_user_stats')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+
+          if (stats && !statsError) {
+            const xpEarned = chords.length * 10; // 10 XP za akord
+            const { error: updateError } = await supabase
+              .from('piano_user_stats')
+              .update({
+                chords_completed: (stats.chords_completed || 0) + chords.length,
+                total_xp: (stats.total_xp || 0) + xpEarned,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', currentUser.id);
+
+            if (updateError) {
+              console.error('Chyba při aktualizaci statistik:', updateError);
+            } else {
+              // Aktualizovat lokální store
+              const updateUserStats = useUserStore.getState().updateUserStats;
+              if (updateUserStats) {
+                updateUserStats();
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Chyba při ukládání dokončení akordů:', error);
+        }
+      }, 500);
+    }
+  }, [challengeMode, completedCount, chords.length, currentUser]);
 
   const currentChord = chords[currentChordIndex];
 
@@ -86,9 +144,16 @@ function Cviceni() {
   const playFullChord = () => {
     if (!currentChord) return;
 
+    // Vizuálně zvýraznit všechny noty najednou
+    setIsPlayingFullChord(true);
+
     chordNotesWithOctaves.forEach((note, index) => {
       setTimeout(() => {
         audioEngine.playNote(note, 1.0);
+        // Reset po posledním tónu
+        if (index === chordNotesWithOctaves.length - 1) {
+          setTimeout(() => setIsPlayingFullChord(false), 300);
+        }
       }, index * 50); // Malé zpoždění pro "rozložený" zvuk
     });
   };
@@ -99,7 +164,12 @@ function Cviceni() {
 
     chordNotesWithOctaves.forEach((note, index) => {
       setTimeout(() => {
+        setPlayingNoteIndex(index); // Vizuálně zvýraznit
         audioEngine.playNote(note, 1.0);
+        // Reset po posledním tónu
+        if (index === chordNotesWithOctaves.length - 1) {
+          setTimeout(() => setPlayingNoteIndex(-1), 300);
+        }
       }, index * 400);
     });
   };
@@ -111,33 +181,43 @@ function Cviceni() {
     const requiredNotes = chordNotesWithOctaves;
 
     // Kontrola: je aktuální nota správná? (odpovídá notě na dané pozici)
-    const currentIndex = playedNotes.length;
+    // Použijeme modulo pro umožnění opakování akordu
+    const currentIndex = playedNotes.length % requiredNotes.length;
     const expectedNote = requiredNotes[currentIndex];
 
     if (note !== expectedNote) {
-      // Špatná nota! Přehrát chybový zvuk, zobrazit chybu a resetovat
+      // Špatná nota! Přehrát chybový zvuk, zobrazit chybu
+      // NECHAT playedNotes - uživatel může pokračovat, ale bez úspěchu
       audioEngine.playError();
       setShowError(true);
       setPracticeErrors(prev => prev + 1);
+      // Skrýt ikonu chyby po animaci
       setTimeout(() => {
-        setPlayedNotes([]);
         setShowError(false);
-      }, 1500);
+      }, 1000);
       return;
     }
 
     const newPlayedNotes = [...playedNotes, note];
     setPlayedNotes(newPlayedNotes);
 
-    // Kontrola: všechny noty zahrány správně v pořadí?
-    const isCorrect = newPlayedNotes.length === requiredNotes.length;
+    // Kontrola: všechny noty zahrány správně v pořadí poprvé?
+    const isFirstCompletion = newPlayedNotes.length === requiredNotes.length;
+    // Úspěch JEN když nebyly žádné chyby!
+    const isPerfect = practiceErrors === 0;
 
-    // Přehrát zvuk úspěchu jen pokud ještě nebyl úspěch a všechny noty jsou správně v pořadí
-    if (!showSuccess && isCorrect) {
+    // Přehrát zvuk úspěchu jen pokud ještě nebyl úspěch, všechny noty jsou správně a NENÍ ŽÁDNÁ CHYBA
+    if (!showSuccess && isFirstCompletion && isPerfect) {
       // Úspěch! Přehrát zvuk úspěchu
       setTimeout(() => {
         audioEngine.playSuccess();
         setShowSuccess(true);
+
+        // Zvýšit počítadlo JEN v režimu Výzvy (challengeMode) a jen pokud akord ještě nebyl dokončen
+        if (challengeMode && !completedChordIds.has(currentChord.id)) {
+          incrementCompleted();
+          setCompletedChordIds(prev => new Set(prev).add(currentChord.id));
+        }
       }, 300);
     }
   };
@@ -146,6 +226,8 @@ function Cviceni() {
   const resetPractice = () => {
     setPlayedNotes([]);
     setShowSuccess(false);
+    setShowError(false);
+    setPracticeErrors(0); // Reset počtu chyb pro nový pokus
   };
 
   // Přejít na další akord
@@ -353,53 +435,15 @@ function Cviceni() {
       </motion.div>
 
       {/* Progress bar */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        style={{
-          marginBottom: '2rem',
-          padding: '1rem',
-          background: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: RADIUS.lg,
-          border: '1px solid rgba(255, 255, 255, 0.3)'
-        }}
-      >
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '0.5rem'
-        }}>
-          <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-            Akord {currentChordIndex + 1} z {chords.length}
-          </span>
-          <span style={{
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            color: 'var(--color-primary)'
-          }}>
-            {currentChord?.difficulty === 'easy' ? 'Základní' :
-             currentChord?.difficulty === 'medium' ? 'Pokročilý' : 'Těžký'}
-          </span>
-        </div>
-        <div style={{
-          height: '8px',
-          background: 'rgba(181, 31, 101, 0.1)',
-          borderRadius: RADIUS.sm,
-          overflow: 'hidden'
-        }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentChordIndex + 1) / chords.length) * 100}%` }}
-            style={{
-              height: '100%',
-              background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
-              borderRadius: RADIUS.sm
-            }}
-          />
-        </div>
-      </motion.div>
+      <ProgressBar
+        current={completedCount}
+        total={chords.length}
+        title="Dokončeno"
+        label={
+          currentChord?.difficulty === 'easy' ? 'Základní' :
+          currentChord?.difficulty === 'medium' ? 'Pokročilý' : 'Těžký'
+        }
+      />
 
       {/* Hlavní karta cvičení */}
       <motion.div
@@ -411,9 +455,11 @@ function Cviceni() {
           background: 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(30px)',
           WebkitBackdropFilter: 'blur(30px)',
-          border: '2px solid rgba(181, 31, 101, 0.2)',
+          border: 'none',
+          borderRadius: RADIUS.xl,
           boxShadow: SHADOW.lg,
-          marginBottom: '2rem'
+          marginBottom: '2rem',
+          paddingBottom: '1rem'
         }}
       >
         {/* Název akordu s navigací */}
@@ -455,11 +501,18 @@ function Cviceni() {
             display: 'flex',
             justifyContent: 'center',
             gap: '1rem',
-            marginBottom: '2rem',
-            flexWrap: 'wrap'
+            marginBottom: '1rem',
+            flexWrap: 'wrap',
+            padding: '0.5rem'
           }}>
             {chordNotesWithOctaves.map((note, index) => {
               const isPlayed = playedNotes.includes(note);
+              // isCurrent = buď nota při cvičení, nebo nota při přehrávání
+              const isCurrent = (practicingMode || challengeMode)
+                ? playedNotes.length === index // V režimu cvičení: nota, kterou má uživatel zahrát
+                : isPlayingFullChord // Při přehrávání celého akordu: všechny noty najednou
+                ? true
+                : playingNoteIndex === index; // Při přehrávání postupně: jen aktuální nota
               // Zobrazit původní název noty (bez oktávové notace)
               const displayNote = currentChord?.notes[index] || note;
               return (
@@ -468,33 +521,18 @@ function Cviceni() {
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ delay: index * 0.1, type: 'spring' }}
-                  whileHover={{ scale: 1.1 }}
                   onClick={() => audioEngine.playNote(note, 1.0)}
                   style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: isPlayed
-                      ? 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))'
-                      : 'rgba(255, 255, 255, 0.9)',
-                    border: isPlayed
-                      ? '3px solid var(--color-primary)'
-                      : '3px solid rgba(181, 31, 101, 0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    color: isPlayed ? 'white' : 'var(--color-primary)',
                     cursor: 'pointer',
-                    boxShadow: isPlayed
-                      ? '0 8px 24px rgba(181, 31, 101, 0.4)'
-                      : '0 4px 16px rgba(181, 31, 101, 0.15)',
-                    transition: 'all 0.3s ease',
                     position: 'relative'
                   }}
                 >
-                  {displayNote}
+                  <MelodyNote
+                    note={displayNote}
+                    isCurrent={isCurrent}
+                    isNext={false}
+                    isPlayed={isPlayed}
+                  />
                   {isPlayed && (
                     <motion.div
                       initial={{ scale: 0 }}
@@ -514,7 +552,7 @@ function Cviceni() {
           </div>
         )}
 
-        {/* Režimy cvičení - univerzální komponenta */}
+        {/* Režimy cvičení s přehrávacími tlačítky - univerzální komponenta */}
         <PracticeModeControls
           isPracticing={practicingMode}
           isChallenge={challengeMode}
@@ -542,49 +580,63 @@ function Cviceni() {
             setPlayedNotes([]);
             setShowSuccess(false);
           }}
-          showStopButton={false}
-        />
-
-        {/* Tlačítka pro přehrání */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '1rem',
-          marginBottom: '2rem',
-          flexWrap: 'wrap'
-        }}>
+          showStopButton={true}
+          showSuccess={showSuccess}
+          showError={showError}
+          onReset={resetPractice}
+        >
+          {/* Přehrávací tlačítka */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: 'inset 0 0 16px rgba(45, 91, 120, 0.3)'
+            }}
             whileTap={{ scale: 0.95 }}
             onClick={playArpeggio}
-            className="btn btn-secondary"
-            style={{ padding: '0.75rem 1.5rem' }}
+            className="btn"
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              background: 'rgba(45, 91, 120, 0.1)',
+              color: 'var(--color-secondary)',
+              border: 'none',
+              borderRadius: RADIUS.md,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
           >
-            <Play size={18} />
+            <Play size={16} />
             Přehrát postupně
           </motion.button>
+
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: 'inset 0 0 16px rgba(45, 91, 120, 0.3)'
+            }}
             whileTap={{ scale: 0.95 }}
             onClick={playFullChord}
-            className="btn btn-primary"
-            style={{ padding: '0.75rem 1.5rem' }}
+            className="btn"
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              background: 'rgba(45, 91, 120, 0.1)',
+              color: 'var(--color-secondary)',
+              border: 'none',
+              borderRadius: RADIUS.md,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
           >
-            <Volume2 size={18} />
+            <Volume2 size={16} />
             Přehrát akord
           </motion.button>
-        </div>
+        </PracticeModeControls>
 
         {/* Klaviatura */}
-        <div style={{ marginBottom: '2rem' }}>
-          <p style={{
-            textAlign: 'center',
-            marginBottom: '1rem',
-            color: '#64748b',
-            fontSize: '0.875rem'
-          }}>
-            Klikněte na klávesy a zahrajte tóny akordu:
-          </p>
+        <div style={{ marginBottom: '1rem' }}>
           <PianoKeyboard
             highlightedNotes={
               challengeMode
@@ -615,97 +667,42 @@ function Cviceni() {
           </motion.div>
         )}
 
-        {/* Úspěch! */}
+        {/* Úspěch! - VÝZVA: InfoPanel s oslavou */}
         <AnimatePresence>
-          {showSuccess && (
+          {showSuccess && challengeMode && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              style={{
-                textAlign: 'center',
-                padding: '2rem',
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2))',
-                borderRadius: RADIUS.lg,
-                border: '2px solid rgba(16, 185, 129, 0.3)'
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', delay: 0.1 }}
-              >
-                <CheckCircle size={64} color="var(--color-success)" style={{ marginBottom: '1rem' }} />
-              </motion.div>
-              <h3 style={{ color: 'var(--color-success)', marginBottom: '0.5rem' }}>
-                Výborně!
-              </h3>
-              <p style={{ color: '#64748b', marginBottom: '1rem' }}>
-                Správně jste zahráli akord <strong>{currentChord?.name}</strong>
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={nextChord}
-                className="btn btn-primary"
-                style={{ padding: '0.75rem 2rem' }}
-              >
-                Další akord
-                <ChevronRight size={18} />
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Chyba! */}
-        <AnimatePresence>
-          {showError && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, x: -10 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              style={{
-                textAlign: 'center',
-                padding: '1.5rem',
-                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.2))',
-                borderRadius: RADIUS.lg,
-                border: '2px solid rgba(239, 68, 68, 0.4)',
-                marginBottom: '1rem'
-              }}
             >
-              <motion.div
-                initial={{ rotate: 0 }}
-                animate={{ rotate: [0, -10, 10, -10, 0] }}
-                transition={{ duration: 0.5 }}
+              <InfoPanel
+                variant="secondary"
+                style={{ textAlign: 'center', padding: '2rem 1.5rem', borderRadius: RADIUS.xl }}
               >
-                <RotateCcw size={48} color="var(--color-danger)" style={{ marginBottom: '0.75rem' }} />
-              </motion.div>
-              <h4 style={{ color: 'var(--color-danger)', marginBottom: '0.25rem', fontSize: '1.125rem' }}>
-                Špatná nota!
-              </h4>
-              <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                Zkus to znovu - zahrávej tóny v přesném pořadí
-              </p>
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', delay: 0.1, stiffness: 200 }}
+                  style={{ marginBottom: '1rem' }}
+                >
+                  <CheckCircle size={56} color="var(--color-secondary)" style={{ margin: '0 auto' }} />
+                </motion.div>
+                <h3 style={{
+                  color: 'var(--color-secondary)',
+                  marginBottom: '0.5rem',
+                  fontSize: '1.5rem',
+                  fontWeight: 700
+                }}>
+                  Výborně!
+                </h3>
+                <p style={{ fontSize: '1rem', color: '#475569' }}>
+                  Správně jste zahráli akord <strong style={{ color: 'var(--color-secondary)' }}>{currentChord?.name}</strong>
+                </p>
+              </InfoPanel>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Reset tlačítko */}
-        {playedNotes.length > 0 && !showSuccess && (
-          <div style={{ textAlign: 'center' }}>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={resetPractice}
-              className="btn btn-secondary"
-              style={{ padding: '0.5rem 1rem' }}
-            >
-              <RotateCcw size={16} />
-              Začít znovu
-            </motion.button>
-          </div>
-        )}
       </motion.div>
         </>
       )}
@@ -734,6 +731,19 @@ function Cviceni() {
         </>
       )}
       </div>
+
+      {/* Oslava po dokončení všech akordů */}
+      <PracticeCelebration
+        showCelebration={showCelebration}
+        showSuccessModal={showSuccessModal}
+        completedItemTitle={`Všechny akordy (${chords.length} akordů)`}
+        xpAwarded={chords.length * 10}
+        onClose={() => {
+          setShowCelebration(false);
+          setShowSuccessModal(false);
+          resetProgress();
+        }}
+      />
     </>
   );
 }
