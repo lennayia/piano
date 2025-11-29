@@ -250,11 +250,17 @@ export function AddButton({ onClick, label = 'Přidat novou otázku', icon: Cust
 export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápovědu', style = {}, ...props }) {
   const [isHovered, setIsHovered] = React.useState(false);
 
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) onClick(e);
+  };
+
   return (
     <motion.button
+      type="button"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      onClick={onClick}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       title={title}
