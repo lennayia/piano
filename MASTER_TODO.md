@@ -6,36 +6,9 @@ Datum poslední aktualizace: 29. listopadu 2025
 
 ## 🔥 Priorita 1 - Kritické (Nutné pro správné fungování)
 
-### 1. ⏳ Fix: Statistiky kvízů nefungují správně
-**Status:** Pending
-**Priorita:** 🔴 Kritická
-
-**Problém:**
-- Ne všechny kvízy správně ukládají statistiky
-- Dashboard nezobrazuje kompletní data
-- Odměny se nepřidělují správně
-- Historie kvízů je neúplná
-
-**Co opravit:**
-- ChordQuiz ✅ (ukládá správně)
-- UniversalTheoryQuiz ❓ (zkontrolovat)
-- Další typy kvízů ❓
-
-**Soubory k ověření:**
-- `src/components/games/ChordQuiz.jsx` - `saveQuizCompletion()`
-- `src/components/games/UniversalTheoryQuiz.jsx` - ukládání statistik
-- `src/store/useUserStore.js` - `updateUserStats()`
-- Databázové tabulky: `piano_quiz_completions`, `piano_user_stats`
-
-**Akční kroky:**
-1. Projít všechny typy kvízů a ověřit ukládání statistik
-2. Zkontrolovat RLS policies pro INSERT operace
-3. Ověřit správné přidělování XP a achievementů
-4. Testovat zobrazení na dashboardu
-
 ---
 
-### 2. ⏳ Vlastní systém notifikací
+### 1. ⏳ Vlastní systém notifikací
 **Status:** Pending
 **Priorita:** 🔴 Kritická
 
@@ -87,7 +60,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ## 🔥 Priorita 2 - Vysoká (Důležité pro UX)
 
-### 3. ⏳ Dokončit refaktoring TabButtons
+### 2. ⏳ Dokončit refaktoring TabButtons
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -105,7 +78,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 4. ⏳ Paginace pro dlouhé seznamy
+### 3. ⏳ Paginace pro dlouhé seznamy
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -134,7 +107,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 5. ⏳ Free/Premium obsah v admin panelu
+### 4. ⏳ Free/Premium obsah v admin panelu
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -166,7 +139,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 6. ⏳ Drag & Drop pro pořadí otázek v admin panelu
+### 5. ⏳ Drag & Drop pro pořadí otázek v admin panelu
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -197,7 +170,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 7. ⏳ Zobrazit teoretické otázky pro akordy v UI
+### 6. ⏳ Zobrazit teoretické otázky pro akordy v UI
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -218,7 +191,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ## 🔥 Priorita 3 - Střední (Nice to have)
 
-### 8. ⏳ Breadcrumb navigace
+### 7. ⏳ Breadcrumb navigace
 **Status:** Pending
 **Priorita:** 🟡 Střední
 
@@ -251,7 +224,7 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 9. ⏳ Nácvik stupnic
+### 8. ⏳ Nácvik stupnic
 **Status:** Pending
 **Priorita:** 🟡 Střední
 
@@ -276,23 +249,6 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 - `piano_scale_completions` - historie procvičování
 
 ---
-
-### 10. ⏳ Přidat správu gamifikace do admin panelu
-**Status:** Pending (částečně hotovo)
-**Priorita:** 🟡 Střední
-
-**Popis:**
-- Správa bodů (XP) a levelů uživatelů
-- Správa achievementů/odměn
-- Nastavení pravidel gamifikace (kolik XP za co)
-- Leaderboard/žebříčky
-
-**Soubory k úpravě:**
-- `src/pages/Admin.jsx` - záložka Gamifikace už existuje (řádek 195)
-- `src/components/admin/GamificationManager.jsx` - ověřit funkčnost
-- Databáze: tabulky `piano_user_stats`, `piano_achievements`
-
-**Note:** GamificationManager už existuje, potřeba otestovat a případně vylepšit.
 
 ---
 
@@ -521,6 +477,81 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 **Dokumentace:**
 - `SESSION_CONTEXT-20251129.md`
 - `DOKUMENTACE-20251129.md`
+
+---
+
+### Database Integration - Quiz Results & Leaderboards (29.11.2025 odpoledne)
+**Dokončeno:** ✅
+**Popis:** Migrace z localStorage na Supabase pro statistiky kvízů a žebříčky
+
+**Změny:**
+- ✅ **Vytvoření utility funkce saveQuizResults.js:**
+  - Centralizovaná logika pro ukládání výsledků kvízů
+  - Insert do piano_quiz_scores (user_id, quiz_type, score, total_questions, streak)
+  - Update/insert piano_user_stats (total_xp, level, current_streak, best_streak)
+  - Automatický výpočet levelu podle XP (Level 1-5, thresholdy: 100, 250, 500, 1000)
+  - Error handling s graceful degradation
+
+- ✅ **Aktualizace ChordQuiz pro ukládání výsledků:**
+  - Import a použití saveQuizResults()
+  - Předání parametrů: 'chord_quiz', score, totalQuestions, bestStreak, xpEarned
+  - Odstranění závislosti na piano_quiz_completions tabulce
+  - Konzistentní error handling
+
+- ✅ **Aktualizace UniversalTheoryQuiz:**
+  - Zachování detailního trackingu jednotlivých otázek (completionsTable)
+  - Přidání agregovaného ukládání pro žebříčky (saveQuizResults)
+  - Quiz type: `theory_${quizType}` (např. theory_interval, theory_scale)
+  - Dual-mode: detailní analýza + celkové statistiky
+
+- ✅ **SQL migrace pro XP bonusy:**
+  - Soubor: `supabase/migrations/002_add_quiz_xp_bonuses.sql`
+  - 4 nové záznamy v piano_rewards_config:
+    - quiz_perfect (100 XP) - 100% správně
+    - quiz_excellent (75 XP) - 80%+ správně
+    - quiz_good (50 XP) - 70%+ správně
+    - quiz_decent (25 XP) - 50%+ správně
+  - ON CONFLICT handling pro opakované migrace
+
+- ✅ **Integrace s GamificationManager:**
+  - Import useQuizXPStore (loadQuizBonuses, saveQuizBonuses, error handling)
+  - Temporary state pattern (tempQuizBonuses) pro editaci před save
+  - 4 input fields s color-coded borders (zelená, oranžová, modrá, fialová)
+  - Save button s loading state a success/error notifikacemi
+  - Admin může upravit XP hodnoty pro všechny výkonnostní úrovně
+
+**Soubory:**
+- `src/utils/saveQuizResults.js` (+119 řádků, nový soubor)
+- `src/components/games/ChordQuiz.jsx` (~30 řádků změněno)
+- `src/components/games/UniversalTheoryQuiz.jsx` (~60 řádků změněno)
+- `src/components/admin/GamificationManager.jsx` (+170 řádků)
+- `supabase/migrations/002_add_quiz_xp_bonuses.sql` (+23 řádků, nový soubor)
+- Net změna: +402 řádků kódu
+
+**Výsledky:**
+✅ Žebříčky napříč uživateli fungují (TOP 50 podle total_xp)
+✅ Perzistentní statistiky v databázi s RLS policies
+✅ Admin kontrola XP bonusů (configurable rewards)
+✅ Odstranění localStorage pro quiz data
+✅ Automatický výpočet levelů a streaks
+✅ Konzistentní data flow: Quiz → saveQuizResults → piano_quiz_scores + piano_user_stats
+
+**Dokumentace:**
+- `DOKUMENTACE-20251129.md` (přidáno +439 řádků s kompletním popisem implementace)
+
+**Git:**
+- Branch: `feature/database-quiz-integration-20251129`
+- Commit: `5c59136`
+- Pushnuto do: main + feature branch
+- PR: https://github.com/username/piano/pull/XX
+
+**Testování:**
+- ✅ ChordQuiz ukládá výsledky do databáze
+- ✅ UniversalTheoryQuiz ukládá výsledky + detail tracking
+- ✅ piano_user_stats se správně aktualizuje (XP, level, streak)
+- ✅ Žebříček v Admin → Gamifikace zobrazuje data
+- ✅ XP bonusy lze editovat v admin panelu
+- ✅ localStorage neobsahuje žádná quiz data
 
 ---
 
