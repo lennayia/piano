@@ -131,7 +131,10 @@ export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIco
     <motion.button
       whileHover={{ scale: 1.03, y: -1 }}
       whileTap={{ scale: 0.97 }}
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onClick) onClick(e);
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -296,11 +299,14 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
  * @param {object} style - Dodatečné styly
  */
 export function CancelButton({ onClick, label = 'Zrušit', style = {}, ...props }) {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) onClick(e);
+  };
+
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
+    <button
+      onClick={handleClick}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -321,7 +327,7 @@ export function CancelButton({ onClick, label = 'Zrušit', style = {}, ...props 
     >
       <X size={14} />
       {label}
-    </motion.button>
+    </button>
   );
 }
 
@@ -333,11 +339,14 @@ export function CancelButton({ onClick, label = 'Zrušit', style = {}, ...props 
  * @param {object} style - Dodatečné styly
  */
 export function SaveButton({ onClick, label = 'Uložit', style = {}, ...props }) {
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) onClick(e);
+  };
+
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
+    <button
+      onClick={handleClick}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -358,7 +367,7 @@ export function SaveButton({ onClick, label = 'Uložit', style = {}, ...props })
     >
       <Save size={14} />
       {label}
-    </motion.button>
+    </button>
   );
 }
 
@@ -573,13 +582,22 @@ export function ActionButtonGroup({
   style = {},
   ...props
 }) {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div
+      className="action-button-group"
       style={{
         display: 'flex',
-        gap: '0.25rem',
-        justifyContent: 'flex-end',
-        width: '100%',
+        gap: isMobile ? '0.1rem' : '0.25rem',
+        justifyContent: isMobile ? 'flex-start' : 'flex-end',
+        width: isMobile ? 'auto' : '100%',
         ...style
       }}
       {...props}

@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import LessonCard from './LessonCard';
 import LessonModal from './LessonModal';
+import { useItemEdit } from '../../hooks/useItemEdit';
 import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
 import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
@@ -38,7 +39,6 @@ function SortableLessonCard({ lesson, children }) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    height: '100%',
   };
 
   return (
@@ -49,6 +49,17 @@ function SortableLessonCard({ lesson, children }) {
 }
 
 function LessonList() {
+  // Použití custom hooku pro editaci a expanzi položek
+  const {
+    editingItem: editingLesson,
+    editForm,
+    startEditing,
+    cancelEdit,
+    updateEditForm,
+    setEditingItem: setEditingLesson,
+    setEditForm
+  } = useItemEdit();
+
   const lessons = useLessonStore((state) => state.lessons);
   const fetchLessons = useLessonStore((state) => state.fetchLessons);
   const addLesson = useLessonStore((state) => state.addLesson);
@@ -60,7 +71,6 @@ function LessonList() {
 
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [editingLesson, setEditingLesson] = useState(null);
 
   const isAdmin = currentUser?.is_admin === true;
 
@@ -98,7 +108,6 @@ function LessonList() {
       instructions: []
     }
   });
-  const [editForm, setEditForm] = useState(null);
 
   const container = {
     hidden: { opacity: 0 },
@@ -158,28 +167,19 @@ function LessonList() {
     setIsAddingNew(false);
   };
 
+  // Wrapper funkce pro startEditing s custom mapováním na editForm
   const startEditingLesson = (lesson) => {
-    setEditingLesson(lesson.id);
-    setEditForm({
+    startEditing(lesson, (lesson) => ({
       title: lesson.title,
       description: lesson.description,
       difficulty: lesson.difficulty,
       duration: lesson.duration,
       content: { ...lesson.content }
-    });
+    }));
   };
 
-  const handleEditFormChange = (field, value) => {
-    if (field.startsWith('content.')) {
-      const contentField = field.split('.')[1];
-      setEditForm(prev => ({
-        ...prev,
-        content: { ...prev.content, [contentField]: value }
-      }));
-    } else {
-      setEditForm(prev => ({ ...prev, [field]: value }));
-    }
-  };
+  // handleEditFormChange používá updateEditForm z hooku
+  const handleEditFormChange = updateEditForm;
 
   const saveEditedLesson = () => {
     if (!editForm.title || !editForm.description) {
@@ -187,14 +187,10 @@ function LessonList() {
       return;
     }
     updateLesson(editingLesson, editForm);
-    setEditingLesson(null);
-    setEditForm(null);
+    cancelEdit(); // Použít hook cancelEdit místo manuálního nastavování
   };
 
-  const cancelEditingLesson = () => {
-    setEditingLesson(null);
-    setEditForm(null);
-  };
+  // cancelEditingLesson je poskytnut hookem jako cancelEdit
 
   const handleDeleteLesson = (lessonId) => {
     if (confirm('Když to teď smažete, už to nepůjde nikdy, ale vůbec nikdy vrátit. Vážně chcete tuhle lekci smazat?')) {
@@ -336,14 +332,13 @@ function LessonList() {
           strategy={rectSortingStrategy}
         >
           <motion.div
-            className="grid grid-cols-2"
-            style={{ gridAutoRows: '1fr' }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
             variants={container}
             initial="hidden"
             animate="show"
           >
             {lessons.map((lesson, index) => (
-              <div key={lesson.id} style={{ gridColumn: editingLesson === lesson.id ? '1 / -1' : 'auto', height: '100%' }}>
+              <div key={lesson.id}>
                 <SortableLessonCard lesson={lesson}>
                   {(dragAttributes, dragListeners) => (
                     <motion.div
@@ -351,7 +346,6 @@ function LessonList() {
                         hidden: { opacity: 0, y: 20 },
                         show: { opacity: 1, y: 0 }
                       }}
-                      style={{ height: '100%' }}
                     >
                       <LessonCard
                         lesson={lesson}
@@ -366,7 +360,7 @@ function LessonList() {
                         editForm={editingLesson === lesson.id ? editForm : null}
                         onEditFormChange={handleEditFormChange}
                         onSaveEdit={saveEditedLesson}
-                        onCancelEdit={cancelEditingLesson}
+                        onCancelEdit={cancelEdit}
                       />
                     </motion.div>
                   )}

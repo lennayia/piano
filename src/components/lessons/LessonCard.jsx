@@ -49,13 +49,11 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
 
   // Header actions pro adminy
   const headerActions = isAdmin && (
-    <div style={{ flex: 1 }} onClick={(e) => e.stopPropagation()}>
-      <ActionButtonGroup
-        onEdit={() => onEdit(lesson)}
-        onDuplicate={() => onDuplicate(lesson.id)}
-        onDelete={() => onDelete(lesson.id)}
-      />
-    </div>
+    <ActionButtonGroup
+      onEdit={() => onEdit(lesson)}
+      onDuplicate={() => onDuplicate(lesson.id)}
+      onDelete={() => onDelete(lesson.id)}
+    />
   );
 
   // Footer s obtížností a délkou

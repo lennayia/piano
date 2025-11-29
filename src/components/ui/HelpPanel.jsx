@@ -31,6 +31,7 @@ export function HelpPanel({ isOpen = false, title = "Nápověda", content, child
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
+          onClick={(e) => e.stopPropagation()}
           style={{
             marginBottom: '2rem',
             padding: '1.25rem',

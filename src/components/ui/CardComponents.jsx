@@ -196,14 +196,25 @@ export function ProgressBar({ current, total, title = 'Položka', label, style =
 
 /**
  * ItemCard - univerzální karta pro zobrazení položek (lekce, písničky, atd.)
- * s chevron ikonou vpravo dolů
+ *
+ * LAYOUT 'list':
+ * - Řádek 1: Nadpis (vlevo) + chips (délka, úroveň) + šipka (vpravo)
+ * - Řádek 2: Jemný divider
+ * - Řádek 3: Description/chips (vlevo) + akční tlačítka (vpravo)
+ * - Responsivní: na menších obrazovkách se vše skládá pod sebe
+ * - leftControls: Pokud je zadáno, vytvoří samostatnou levou sekci (pro play button atd.)
+ *
+ * LAYOUT 'grid':
+ * - Původní struktura s full height a flexbox
  *
  * @param {string} title - Nadpis karty
- * @param {string} description - Popis položky
- * @param {React.ReactNode} headerActions - Akční tlačítka v hlavičce (např. ActionButtonGroup)
- * @param {React.ReactNode} footer - Obsah footeru (obtížnost, délka, atd.)
- * @param {React.ReactNode} dragHandle - Drag handle pro přetahování
+ * @param {string} description - Popis položky nebo další chipy
+ * @param {React.ReactNode} headerActions - Akční tlačítka pro admina (např. ActionButtonGroup)
+ * @param {React.ReactNode} footer - Chipy (obtížnost, délka, atd.)
+ * @param {React.ReactNode} dragHandle - Drag handle pro přetahování (malý, inline s nadpisem)
+ * @param {React.ReactNode} leftControls - Levá ovládací sekce (play button, drag handle, atd.)
  * @param {boolean} isExpanded - Je karta rozbalená? (chevron rotace)
+ * @param {string} layout - 'list' | 'grid' - layout typ (default: 'list')
  * @param {function} onClick - Callback při kliknutí na kartu
  * @param {object} style - Dodatečné styly
  */
@@ -213,12 +224,17 @@ export function ItemCard({
   headerActions,
   footer,
   dragHandle,
+  leftControls,
   isExpanded = false,
+  layout = 'list',
   onClick,
   style = {},
   children,
   ...props
 }) {
+  const isGrid = layout === 'grid';
+  const isList = layout === 'list';
+
   return (
     <motion.div
       onClick={onClick}
@@ -231,6 +247,7 @@ export function ItemCard({
         transition: { duration: 0.2 }
       }}
       whileTap={{ scale: 0.98 }}
+      className={isList ? 'item-card-responsive' : ''}
       style={{
         cursor: 'pointer',
         background: 'rgba(255, 255, 255, 0.75)',
@@ -242,53 +259,179 @@ export function ItemCard({
         padding: '1.25rem',
         overflow: 'hidden',
         position: 'relative',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        ...(isGrid && {
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }),
         ...style
       }}
       {...props}
     >
-      {/* Header */}
-      <div style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          {dragHandle}
+      {isList ? (
+        // LIST LAYOUT - nová struktura
+        <>
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            flexWrap: 'wrap', // Povolit wrap pro menší obrazovky
+            alignItems: 'flex-start'
+          }}>
+            {/* Levá ovládací sekce (play button, drag handle atd.) */}
+            {leftControls && (
+              <div className="item-card-left-controls" style={{
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                alignSelf: 'stretch'
+              }}>
+                {leftControls}
+              </div>
+            )}
 
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>{title}</h3>
-              {headerActions}
+            {/* Hlavní obsah vpravo */}
+            <div className="item-card-main-content" style={{
+              flex: 1,
+              minWidth: leftControls ? '300px' : 0 // Jen pokud jsou leftControls, jinak bez omezení
+            }}>
+              {/* Řádek 1: Nadpis + chips + šipka */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                flexWrap: 'wrap' // Povolit zalamování chipů pod nadpis
+              }}>
+                {/* Vlevo: Drag handle + Nadpis */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  flex: '1 1 auto',
+                  minWidth: '150px' // Minimální šířka pro nadpis
+                }}>
+                  {dragHandle}
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: '1.125rem',
+                    wordBreak: 'break-word' // Zalomit dlouhý nadpis
+                  }}>{title}</h3>
+                </div>
+
+                {/* Vpravo: Footer chips + Šipka - zarovnané doprava */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  marginLeft: 'auto' // Zarovnat doprava i po wrap
+                }}>
+                  {footer && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      flexWrap: 'nowrap' // Chipy vedle sebe, ne pod sebou
+                    }}>
+                      {footer}
+                    </div>
+                  )}
+                  <motion.div
+                    animate={{ rotate: isExpanded ? 90 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronRight size={20} color="var(--color-text-secondary)" />
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Řádek 2: Divider */}
+              <div style={{
+                width: '100%',
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent)',
+                margin: '1rem 0'
+              }} />
+
+              {/* Řádek 3: Description/chips + akční tlačítka */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                flexWrap: 'wrap'
+              }}>
+                {/* Vlevo: Description nebo další chipy */}
+                {description && (
+                  <div style={{ flex: '1 1 auto', minWidth: '200px' }}>
+                    {typeof description === 'string' ? (
+                      <p className="text-secondary" style={{ margin: 0, lineHeight: 1.5 }}>
+                        {description}
+                      </p>
+                    ) : (
+                      description
+                    )}
+                  </div>
+                )}
+
+                {/* Vpravo: Akční tlačítka pro admina */}
+                {headerActions && (
+                  <div style={{
+                    marginLeft: 'auto' // Zarovnat doprava i po wrap
+                  }}>
+                    {headerActions}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        {description && (
-          <p className="text-secondary" style={{ lineHeight: 1.5 }}>
-            {description}
-          </p>
-        )}
-      </div>
 
-      {/* Footer s chevron */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: '1rem',
-        borderTop: '1px solid var(--color-border)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {footer}
-        </div>
-        <motion.div
-          animate={{ rotate: isExpanded ? 90 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronRight size={20} color="var(--color-text-secondary)" />
-        </motion.div>
-      </div>
+          {/* Rozbalovací obsah - mimo flexbox, napříč celou šířkou */}
+          {children}
+        </>
+      ) : (
+        // GRID LAYOUT - původní struktura
+        <>
+          {/* Header */}
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              {dragHandle}
 
-      {/* Rozbalovací obsah */}
-      {children}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <h3 style={{ marginBottom: '0.5rem' }}>{title}</h3>
+                  {headerActions}
+                </div>
+              </div>
+            </div>
+            {description && (
+              <p className="text-secondary" style={{ lineHeight: 1.5 }}>
+                {description}
+              </p>
+            )}
+          </div>
+
+          {/* Footer s chevron */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: '1rem',
+            borderTop: '1px solid var(--color-border)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {footer}
+            </div>
+            <motion.div
+              animate={{ rotate: isExpanded ? 90 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronRight size={20} color="var(--color-text-secondary)" />
+            </motion.div>
+          </div>
+
+          {/* Rozbalovací obsah */}
+          {children}
+        </>
+      )}
     </motion.div>
   );
 }
