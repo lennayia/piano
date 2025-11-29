@@ -8,6 +8,9 @@ import useUserStore from '../../store/useUserStore';
 import { sortNotesByKeyboard } from '../../utils/noteUtils';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
 import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
+import QuizResultsPanel from './QuizResultsPanel';
+import { calculateXP } from '../../utils/quizUtils';
+import { saveQuizResults } from '../../utils/saveQuizResults';
 
 function ChordQuiz() {
   const [score, setScore] = useState(0);
@@ -124,46 +127,28 @@ function ChordQuiz() {
   };
 
   const saveQuizCompletion = async (finalScore) => {
-    if (!currentUser) return;
-
-    const isPerfect = finalScore === chords.length;
-
     try {
-      // 1. Uložit dokončení kvízu do historie
-      const { error: quizError } = await supabase
-        .from('piano_quiz_completions')
-        .insert([{
-          user_id: currentUser.id,
-          quiz_name: 'Poznáte akord?',
-          score: finalScore,
-          total_questions: chords.length,
-          is_perfect: isPerfect,
-          xp_earned: isPerfect ? 50 : 20
-        }]);
+      // Vypočítat získané XP
+      const xpEarned = calculateXP(finalScore, chords.length);
 
-      if (quizError) {
-        console.error('Chyba při ukládání kvízu:', quizError);
-      }
+      // Uložit výsledky do databáze pomocí utility funkce
+      const result = await saveQuizResults(
+        'chord_quiz',
+        finalScore,
+        chords.length,
+        bestStreak,
+        xpEarned
+      );
 
-      // 2. Aktualizovat statistiky a achievementy pomocí store
-      let xpEarned = 0;
-      if (isPerfect) {
-        xpEarned = 100; // Perfektní skóre 🎉
-      } else if (finalScore >= chords.length * 0.8) {
-        xpEarned = 75; // 80%+ správně 👏
-      } else if (finalScore >= chords.length * 0.7) {
-        xpEarned = 50; // 70%+ správně 👍
-      } else if (finalScore >= chords.length * 0.5) {
-        xpEarned = 25; // 50%+ správně 💪
-      }
-
-      if (xpEarned > 0) {
-        await updateUserStats({ xp_gained: xpEarned, quiz_completed: true });
+      if (result.success) {
+        // Aktualizovat zobrazené XP
         setTotalXpEarned(prev => prev + xpEarned);
+      } else {
+        console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
 
     } catch (error) {
-      console.error('Chyba při ukládání kvízu:', error);
+      console.error('Neočekávaná chyba při ukládání kvízu:', error);
     }
   };
 
@@ -235,6 +220,16 @@ function ChordQuiz() {
       setStreak(0);
       setTotalXpEarned(0);
     }
+  };
+
+  const resetGame = () => {
+    setGameStarted(false);
+    setScore(0);
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setStreak(0);
+    setTotalXpEarned(0);
   };
 
   const currentChord = chords[currentQuestion];
@@ -622,32 +617,37 @@ function ChordQuiz() {
 
               {showResult && currentQuestion === chords.length - 1 && (
                 <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setGameStarted(false);
-                    setScore(0);
-                    setCurrentQuestion(0);
-                    setSelectedAnswer(null);
-                    setShowResult(false);
-                    setStreak(0);
-                  }}
+                  onClick={resetGame}
+                  className="btn btn-primary"
                   style={{
-                    padding: isMobile ? '0.75rem 1.5rem' : '0.875rem 2rem',
-                    background: 'var(--color-primary)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: RADIUS.lg,
                     fontSize: isMobile ? '0.875rem' : '1rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    boxShadow: SHADOW.default
+                    padding: isMobile ? '0.5rem 1rem' : '0.625rem 1.5rem',
+                    borderRadius: RADIUS.md,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
                   }}
                 >
-                  Zobrazit výsledky
+                  <RotateCcw size={isMobile ? 16 : 18} />
+                  Hrát znovu
                 </motion.button>
               )}
             </div>
+
+            {/* Final score */}
+            {showResult && currentQuestion === chords.length - 1 && (
+              <QuizResultsPanel
+                score={score}
+                total={chords.length}
+                bestStreak={bestStreak}
+                totalXpEarned={totalXpEarned}
+                isMobile={isMobile}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

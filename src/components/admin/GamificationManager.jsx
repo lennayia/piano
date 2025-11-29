@@ -4,11 +4,12 @@ import { supabase } from '../../lib/supabase';
 import {
   Trophy, Users, TrendingUp, Award,
   Settings, Save, HelpCircle, Crown,
-  Zap, Music, BookOpen, Target
+  Zap, Music, BookOpen, Target, Star
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import TabButtons, { HelpPanel } from '../ui/TabButtons';
 import { HelpButton } from '../ui/ButtonComponents';
+import useQuizXPStore from '../../store/useQuizXPStore';
 
 const GamificationManager = () => {
   const [activeTab, setActiveTab] = useState('xp-rules');
@@ -21,6 +22,22 @@ const GamificationManager = () => {
     daily_login: 2,
     achievement_unlock: 20
   });
+
+  // Store pro XP bonusy za kvízy
+  const quizBonuses = useQuizXPStore((state) => state.quizBonuses);
+  const saveQuizBonuses = useQuizXPStore((state) => state.saveQuizBonuses);
+  const loadQuizBonuses = useQuizXPStore((state) => state.loadQuizBonuses);
+  const quizBonusesLoading = useQuizXPStore((state) => state.loading);
+  const quizBonusesError = useQuizXPStore((state) => state.error);
+
+  // Local state pro editaci bonusů před uložením
+  const [tempQuizBonuses, setTempQuizBonuses] = useState(quizBonuses);
+
+  // Synchronizovat temp state když se načtou hodnoty ze store
+  useEffect(() => {
+    setTempQuizBonuses(quizBonuses);
+  }, [quizBonuses]);
+
   const [levelThresholds, setLevelThresholds] = useState([
     { level: 1, min_xp: 0, max_xp: 99, label: 'Začátečník' },
     { level: 2, min_xp: 100, max_xp: 249, label: 'Učedník' },
@@ -46,6 +63,11 @@ const GamificationManager = () => {
       fetchAchievements();
     }
   }, [activeTab]);
+
+  // Načíst XP bonusy při mountování
+  useEffect(() => {
+    loadQuizBonuses();
+  }, [loadQuizBonuses]);
 
   const fetchAchievements = async () => {
     try {
@@ -89,6 +111,13 @@ const GamificationManager = () => {
   const handleSaveXPRules = () => {
     // V budoucnu můžeme uložit do DB, zatím local state
     showSuccess('XP pravidla byla uložena');
+  };
+
+  const handleSaveQuizBonuses = async () => {
+    await saveQuizBonuses(tempQuizBonuses);
+    if (!quizBonusesError) {
+      showSuccess('Bonusy za kvízy byly uloženy');
+    }
   };
 
   const handleSaveLevels = () => {
@@ -322,6 +351,149 @@ const GamificationManager = () => {
                 </div>
               </div>
             </div>
+
+            {/* Bonusy za dokončení kvízu */}
+            <h3 style={{
+              marginTop: '2.5rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              paddingTop: '2rem',
+              borderTop: '2px solid rgba(45, 91, 120, 0.2)'
+            }}>
+              <Trophy size={20} color="var(--color-primary)" />
+              Bonusy za dokončení kvízu
+            </h3>
+
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              {/* Perfect Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Trophy size={20} style={{ color: '#10b981' }} />
+                  <h4 style={{ margin: 0 }}>Perfektní výkon (100%)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.perfect}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, perfect: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za perfektní výkon</span>
+                </div>
+              </div>
+
+              {/* Excellent Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Star size={20} style={{ color: '#f59e0b' }} />
+                  <h4 style={{ margin: 0 }}>Vynikající (80%+)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.excellent}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, excellent: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za 80%+ úspěšnost</span>
+                </div>
+              </div>
+
+              {/* Good Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <TrendingUp size={20} style={{ color: '#3b82f6' }} />
+                  <h4 style={{ margin: 0 }}>Velmi dobře (70%+)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.good}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, good: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za 70%+ úspěšnost</span>
+                </div>
+              </div>
+
+              {/* Decent Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Target size={20} style={{ color: '#8b5cf6' }} />
+                  <h4 style={{ margin: 0 }}>Dobrý začátek (50%+)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.decent}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, decent: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za 50%+ úspěšnost</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tlačítko pro uložení bonusů */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveQuizBonuses}
+              disabled={quizBonusesLoading}
+              className="btn btn-primary"
+              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Save size={18} />
+              {quizBonusesLoading ? 'Ukládám...' : 'Uložit bonusy za kvízy'}
+            </motion.button>
+
+            {/* Error message */}
+            {quizBonusesError && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.75rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 'var(--radius)',
+                color: '#ef4444'
+              }}>
+                Chyba při ukládání: {quizBonusesError}
+              </div>
+            )}
 
             {/* Dynamické XP pravidla - Achievements */}
             {achievements.length > 0 && (

@@ -7,6 +7,9 @@ import useUserStore from '../../store/useUserStore';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
 import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
 import audioEngine from '../../utils/audio';
+import QuizResultsPanel from './QuizResultsPanel';
+import { calculateXP } from '../../utils/quizUtils';
+import { saveQuizResults } from '../../utils/saveQuizResults';
 
 /**
  * UniversalTheoryQuiz - Univerzální komponenta pro teoretické kvízy
@@ -156,62 +159,59 @@ function UniversalTheoryQuiz({
   const saveQuizCompletion = async (finalScore, answer) => {
     console.log('🎯 saveQuizCompletion called:', { finalScore, currentQuestion, answer });
 
-    if (!currentUser) {
-      console.log('❌ No current user');
-      return;
-    }
-
-    const isPerfect = finalScore === questions.length;
     const tables = getTableNames();
-
     console.log('📋 Tables:', tables);
 
     try {
-      // 1. Uložit dokončení aktuální otázky
-      const currentQuestionData = questions[currentQuestion];
-      const selectedOption = currentQuestionData.options.find(opt => opt.text === answer);
+      // 1. Uložit dokončení aktuální otázky (zachováváme původní logiku)
+      if (currentUser) {
+        const currentQuestionData = questions[currentQuestion];
+        const selectedOption = currentQuestionData.options.find(opt => opt.text === answer);
 
-      console.log('🔍 Current question:', currentQuestionData);
-      console.log('🔍 Selected option:', selectedOption);
+        console.log('🔍 Current question:', currentQuestionData);
+        console.log('🔍 Selected option:', selectedOption);
 
-      if (selectedOption) {
-        const completionData = {
-          user_id: currentUser.id,
-          [tables.foreignKey]: currentQuestionData.id,
-          selected_option_id: selectedOption.id,
-          is_correct: selectedOption.isCorrect,
-          completed_at: new Date().toISOString()
-        };
+        if (selectedOption) {
+          const completionData = {
+            user_id: currentUser.id,
+            [tables.foreignKey]: currentQuestionData.id,
+            selected_option_id: selectedOption.id,
+            is_correct: selectedOption.isCorrect,
+            completed_at: new Date().toISOString()
+          };
 
-        console.log('💾 Saving quiz completion:', tables.completionsTable, completionData);
+          console.log('💾 Saving quiz completion:', tables.completionsTable, completionData);
 
-        const { data, error } = await supabase
-          .from(tables.completionsTable)
-          .insert(completionData)
-          .select();
+          const { data, error } = await supabase
+            .from(tables.completionsTable)
+            .insert(completionData)
+            .select();
 
-        if (error) {
-          console.error('❌ Error saving completion:', error);
-        } else {
-          console.log('✅ Completion saved:', data);
+          if (error) {
+            console.error('❌ Error saving completion:', error);
+          } else {
+            console.log('✅ Completion saved:', data);
+          }
         }
       }
 
-      // 2. Přidat XP podle výsledku
-      let xpEarned = 0;
-      if (isPerfect) {
-        xpEarned = 100; // Perfektní skóre 🎉
-      } else if (finalScore >= questions.length * 0.8) {
-        xpEarned = 75; // 80%+ správně 👏
-      } else if (finalScore >= questions.length * 0.7) {
-        xpEarned = 50; // 70%+ správně 👍
-      } else if (finalScore >= questions.length * 0.5) {
-        xpEarned = 25; // 50%+ správně 💪
-      }
+      // 2. Vypočítat XP a uložit celkové výsledky kvízu
+      const xpEarned = calculateXP(finalScore, questions.length);
 
-      if (xpEarned > 0) {
-        await updateUserStats({ xp_gained: xpEarned, quiz_completed: true });
+      // Uložit celkové výsledky do piano_quiz_scores a piano_user_stats
+      const result = await saveQuizResults(
+        `theory_${quizType}`,
+        finalScore,
+        questions.length,
+        bestStreak,
+        xpEarned
+      );
+
+      if (result.success) {
+        // Aktualizovat zobrazené XP
         setTotalXpEarned(prev => prev + xpEarned);
+      } else {
+        console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
 
     } catch (error) {
@@ -297,48 +297,6 @@ function UniversalTheoryQuiz({
     setShowResult(false);
     setStreak(0);
     setTotalXpEarned(0);
-  };
-
-  // Motivační zprávy podle výsledku
-  const getMotivationalMessage = (finalScore) => {
-    const percentage = (finalScore / questions.length) * 100;
-
-    if (percentage === 100) {
-      return {
-        emoji: '🎉',
-        title: 'Perfektní!',
-        message: 'Jste mistr hudební teorie! Absolutně neuvěřitelný výkon!',
-        color: '#10b981'
-      };
-    } else if (percentage >= 80) {
-      return {
-        emoji: '🌟',
-        title: 'Vynikající!',
-        message: 'Skvělá práce! Jen pár chybiček a budete na vrcholu!',
-        color: '#f59e0b'
-      };
-    } else if (percentage >= 70) {
-      return {
-        emoji: '👏',
-        title: 'Velmi dobře!',
-        message: 'Solidní výkon! Ještě trochu praxe a budete perfektní!',
-        color: '#3b82f6'
-      };
-    } else if (percentage >= 50) {
-      return {
-        emoji: '💪',
-        title: 'Dobrý začátek!',
-        message: 'Jste na dobré cestě! Zkuste to znovu a zlepšete se!',
-        color: '#8b5cf6'
-      };
-    } else {
-      return {
-        emoji: '🎯',
-        title: 'Zkuste to znovu!',
-        message: 'Každý začátek je těžký. Zopakujte si teorii a zkuste to znovu!',
-        color: '#ef4444'
-      };
-    }
   };
 
   if (loading) {
@@ -735,60 +693,15 @@ function UniversalTheoryQuiz({
       </div>
 
       {/* Final score */}
-      {showResult && currentQuestion === questions.length - 1 && (() => {
-        const motivation = getMotivationalMessage(score);
-        return (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={{
-              marginTop: '2rem',
-              padding: '2rem',
-              background: 'rgba(255, 255, 255, 0.7)',
-              borderRadius: RADIUS.xl,
-              textAlign: 'center',
-              border: BORDER.default,
-              boxShadow: SHADOW.default
-            }}
-          >
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-              {motivation.emoji}
-            </div>
-            <h3 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>
-              {motivation.title}
-            </h3>
-            <p style={{ fontSize: '1.125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-              {motivation.message}
-            </p>
-            <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)' }}>
-              Vaše skóre: <strong style={{ color: 'var(--color-secondary)' }}>{score}/{questions.length}</strong>
-              {' '}({Math.round((score / questions.length) * 100)}%)
-            </p>
-            {bestStreak > 1 && (
-              <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                Nejlepší série: <strong style={{ color: 'var(--color-secondary)' }}>{bestStreak} správně za sebou!</strong>
-              </p>
-            )}
-            {totalXpEarned > 0 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3, type: 'spring' }}
-                style={{
-                  marginTop: '1rem',
-                  padding: '1rem',
-                  background: 'rgba(45, 91, 120, 0.05)',
-                  borderRadius: RADIUS.lg,
-                  display: 'inline-block'
-                }}
-              >
-                <Zap size={24} color="var(--color-secondary)" style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} />
-                <strong style={{ fontSize: '1.5rem', color: 'var(--color-secondary)' }}>+{totalXpEarned} XP získáno!</strong>
-              </motion.div>
-            )}
-          </motion.div>
-        );
-      })()}
+      {showResult && currentQuestion === questions.length - 1 && (
+        <QuizResultsPanel
+          score={score}
+          total={questions.length}
+          bestStreak={bestStreak}
+          totalXpEarned={totalXpEarned}
+          isMobile={isMobile}
+        />
+      )}
     </div>
   );
 }
