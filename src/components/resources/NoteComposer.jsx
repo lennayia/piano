@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Music, Plus, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PianoKeyboard from '../lessons/PianoKeyboard';
+import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
 
 /**
  * SVG Ikony pro hudební noty
@@ -196,16 +197,8 @@ function NoteComposer({ value, onChange }) {
   return (
     <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
       {/* 1. Interaktivní klavír */}
-      <div style={{
-        marginBottom: '1rem',
-        padding: '1rem',
-        background: 'rgba(45, 91, 120, 0.05)',
-        borderRadius: 'var(--radius)',
-        border: '2px dashed rgba(45, 91, 120, 0.3)'
-      }}>
-        <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.75rem' }}>
-          👆 Klikněte na klávesu pro přidání noty:
-        </p>
+      <div style={{ marginBottom: '1rem' }}>
+        <p>👆 Klikněte na klávesu pro přidání noty:</p>
         <PianoKeyboard onNoteClick={handleNoteClick} />
       </div>
 
@@ -228,10 +221,9 @@ function NoteComposer({ value, onChange }) {
                 background: selectedDuration === key
                   ? 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)'
                   : 'rgba(45, 91, 120, 0.1)',
-                border: selectedDuration === key
-                  ? '2px solid rgba(181, 31, 101, 0.5)'
-                  : '1px solid rgba(45, 91, 120, 0.3)',
-                borderRadius: 'var(--radius)',
+                border: BORDER.none,
+                boxShadow: selectedDuration === key ? SHADOW.selected : SHADOW.subtle,
+                borderRadius: RADIUS.md,
                 color: selectedDuration === key ? '#ffffff' : '#1e293b',
                 fontSize: '1rem',
                 fontWeight: 700,
@@ -286,8 +278,9 @@ function NoteComposer({ value, onChange }) {
           style={{
             padding: '0.4rem 0.8rem',
             background: 'rgba(100, 116, 139, 0.1)',
-            border: '1px solid rgba(100, 116, 139, 0.3)',
-            borderRadius: 'var(--radius)',
+            border: BORDER.none,
+            boxShadow: SHADOW.subtle,
+            borderRadius: RADIUS.md,
             fontSize: '0.75rem',
             cursor: 'pointer',
             color: '#475569'
@@ -303,8 +296,9 @@ function NoteComposer({ value, onChange }) {
           style={{
             padding: '0.4rem 0.8rem',
             background: 'rgba(100, 116, 139, 0.1)',
-            border: '1px solid rgba(100, 116, 139, 0.3)',
-            borderRadius: 'var(--radius)',
+            border: BORDER.none,
+            boxShadow: SHADOW.subtle,
+            borderRadius: RADIUS.md,
             fontSize: '0.75rem',
             cursor: 'pointer',
             color: '#475569'
@@ -320,8 +314,9 @@ function NoteComposer({ value, onChange }) {
           style={{
             padding: '0.4rem 0.8rem',
             background: 'rgba(100, 116, 139, 0.1)',
-            border: '1px solid rgba(100, 116, 139, 0.3)',
-            borderRadius: 'var(--radius)',
+            border: BORDER.none,
+            boxShadow: SHADOW.subtle,
+            borderRadius: RADIUS.md,
             fontSize: '0.75rem',
             cursor: 'pointer',
             color: '#475569'
@@ -337,8 +332,9 @@ function NoteComposer({ value, onChange }) {
           style={{
             padding: '0.4rem 0.8rem',
             background: 'rgba(45, 91, 120, 0.1)',
-            border: '1px solid rgba(45, 91, 120, 0.3)',
-            borderRadius: 'var(--radius)',
+            border: BORDER.none,
+            boxShadow: SHADOW.subtle,
+            borderRadius: RADIUS.md,
             fontSize: '0.75rem',
             cursor: 'pointer',
             color: 'var(--color-secondary)',
@@ -358,8 +354,9 @@ function NoteComposer({ value, onChange }) {
           style={{
             padding: '0.4rem 0.8rem',
             background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: 'var(--radius)',
+            border: BORDER.none,
+            boxShadow: SHADOW.subtle,
+            borderRadius: RADIUS.md,
             fontSize: '0.75rem',
             cursor: 'pointer',
             color: '#ef4444',

@@ -23,6 +23,7 @@ import { useItemEdit } from '../../hooks/useItemEdit';
 import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
 import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
+import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 
 // Sortable Lesson Wrapper
 function SortableLessonCard({ lesson, children }) {
@@ -227,19 +228,16 @@ function LessonList() {
               boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
             }}
           >
-            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Plus size={20} color="var(--color-primary)" />
               Nová lekce
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group">
-                <label className="form-label" style={{ color: '#1e293b' }}>
-                  Název lekce
-                </label>
-                <input
+                <FormLabel text="Název lekce" />
+                <FormInput
                   type="text"
-                  className="form-input"
                   value={newLessonForm.title}
                   onChange={(e) => handleNewLessonChange('title', e.target.value)}
                   placeholder="Např. První tóny"
@@ -247,27 +245,22 @@ function LessonList() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ color: '#1e293b' }}>
-                  Obtížnost
-                </label>
-                <select
-                  className="form-input"
+                <FormLabel text="Obtížnost" />
+                <FormSelect
                   value={newLessonForm.difficulty}
                   onChange={(e) => handleNewLessonChange('difficulty', e.target.value)}
-                >
-                  <option value="začátečník">začátečník</option>
-                  <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
-                  <option value="pokročilý">pokročilý</option>
-                </select>
+                  options={[
+                    { value: 'začátečník', label: 'začátečník' },
+                    { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
+                    { value: 'pokročilý', label: 'pokročilý' }
+                  ]}
+                />
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ color: '#1e293b' }}>
-                  Délka
-                </label>
-                <input
+                <FormLabel text="Délka" />
+                <FormInput
                   type="text"
-                  className="form-input"
                   value={newLessonForm.duration}
                   onChange={(e) => handleNewLessonChange('duration', e.target.value)}
                   placeholder="Např. 5 min"
@@ -276,11 +269,8 @@ function LessonList() {
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ color: '#1e293b' }}>
-                Popis
-              </label>
-              <textarea
-                className="form-input"
+              <FormLabel text="Popis" />
+              <FormTextarea
                 value={newLessonForm.description}
                 onChange={(e) => handleNewLessonChange('description', e.target.value)}
                 rows={2}
@@ -289,12 +279,9 @@ function LessonList() {
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ color: '#1e293b' }}>
-                Tóny (oddělené mezerou)
-              </label>
-              <input
+              <FormLabel text="Tóny (oddělené mezerou)" />
+              <FormInput
                 type="text"
-                className="form-input"
                 value={newLessonForm.content.notes.join(' ')}
                 onChange={(e) => handleNewLessonChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
                 placeholder="Např. C D E"
@@ -302,11 +289,8 @@ function LessonList() {
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <label className="form-label" style={{ color: '#1e293b' }}>
-                Instrukce (jedna na řádek)
-              </label>
-              <textarea
-                className="form-input"
+              <FormLabel text="Instrukce (jedna na řádek)" />
+              <FormTextarea
                 value={newLessonForm.content.instructions.join('\n')}
                 onChange={(e) => handleNewLessonChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
                 rows={3}

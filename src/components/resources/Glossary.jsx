@@ -166,15 +166,10 @@ function Glossary() {
 
   return (
     <div>
-      <h2 style={{
-        marginBottom: '0.5rem',
-        color: '#1e293b',
-        fontSize: '1.5rem',
-        fontWeight: 600
-      }}>
+      <h2>
         Hudební slovník
       </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6 }}>
+      <p>
         Přehled důležitých hudebních pojmů a termínů s vysvětlením. Klikněte na libovolný termín pro zobrazení detailního popisu a příkladů.
       </p>
 
@@ -222,7 +217,7 @@ function Glossary() {
               boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
             }}
           >
-            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Plus size={20} color="var(--color-primary)" />
               Nový termín
             </h3>
@@ -358,9 +353,6 @@ function Glossary() {
             return (
               <div key={category} style={{ marginBottom: '2rem' }}>
                 <h3 style={{
-                  color: '#1e293b',
-                  fontSize: '1.25rem',
-                  marginBottom: '1rem',
                   paddingBottom: '0.5rem',
                   borderBottom: '2px solid rgba(181, 31, 101, 0.3)'
                 }}>
@@ -421,10 +413,8 @@ function Glossary() {
                                     </div>
                                   )}
                                   <h4 style={{
-                                    fontSize: '1.125rem',
                                     margin: 0,
-                                    color: 'var(--color-primary)',
-                                    fontWeight: 600
+                                    color: 'var(--color-primary)'
                                   }}>
                                     {item.term}
                                   </h4>
@@ -484,10 +474,7 @@ function Glossary() {
                                 </div>
                         {!isExpanded && (
                           <p style={{
-                            fontSize: '0.875rem',
-                            color: '#64748b',
-                            margin: '0.25rem 0 0 0',
-                            lineHeight: 1.5
+                            margin: '0.25rem 0 0 0'
                           }}>
                             {item.definition.substring(0, 80)}
                             {item.definition.length > 80 ? '...' : ''}
@@ -521,7 +508,7 @@ function Glossary() {
                             borderRadius: 'var(--radius)',
                             border: '2px solid rgba(45, 91, 120, 0.3)'
                           }}>
-                            <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <Edit3 size={18} color="var(--color-secondary)" />
                               Upravit termín
                             </h4>
@@ -633,9 +620,6 @@ function Glossary() {
                               Definice:
                             </strong>
                             <p style={{
-                              fontSize: '0.9375rem',
-                              color: '#64748b',
-                              lineHeight: 1.7,
                               margin: 0
                             }}>
                               {item.definition}
@@ -652,9 +636,6 @@ function Glossary() {
                               Příklad:
                             </strong>
                             <p style={{
-                              fontSize: '0.9375rem',
-                              color: '#64748b',
-                              lineHeight: 1.7,
                               margin: 0,
                               fontStyle: 'italic'
                             }}>

@@ -191,6 +191,13 @@ h3 {
   margin-bottom: 0.75rem;
 }
 
+p {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

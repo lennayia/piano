@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import { ActionButtonGroup, SaveButton, CancelButton } from '../ui/ButtonComponents';
 import { ItemCard } from '../ui/CardComponents';
+import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 
 function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners, isEditing, editForm, onEditFormChange, onSaveEdit, onCancelEdit }) {
   const getDifficultyColor = (difficulty) => {
@@ -92,91 +93,68 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ paddingTop: '1.5rem', marginTop: '1rem', borderTop: '2px solid rgba(45, 91, 120, 0.2)' }}>
-              <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9375rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Edit3 size={16} color="var(--color-secondary)" />
                 Upravit lekci
               </h4>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group">
-                  <label className="form-label" style={{ color: '#1e293b' }}>
-                    Název lekce
-                  </label>
-                  <input
+                  <FormLabel text="Název lekce" />
+                  <FormInput
                     type="text"
-                    className="form-input"
                     value={editForm.title}
                     onChange={(e) => onEditFormChange('title', e.target.value)}
-
                   />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" style={{ color: '#1e293b' }}>
-                    Obtížnost
-                  </label>
-                  <select
-                    className="form-input"
+                  <FormLabel text="Obtížnost" />
+                  <FormSelect
                     value={editForm.difficulty}
                     onChange={(e) => onEditFormChange('difficulty', e.target.value)}
-
-                  >
-                    <option value="začátečník">začátečník</option>
-                    <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
-                    <option value="pokročilý">pokročilý</option>
-                  </select>
+                    options={[
+                      { value: 'začátečník', label: 'začátečník' },
+                      { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
+                      { value: 'pokročilý', label: 'pokročilý' }
+                    ]}
+                  />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label" style={{ color: '#1e293b' }}>
-                    Délka
-                  </label>
-                  <input
+                  <FormLabel text="Délka" />
+                  <FormInput
                     type="text"
-                    className="form-input"
                     value={editForm.duration}
                     onChange={(e) => onEditFormChange('duration', e.target.value)}
-
                   />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label" style={{ color: '#1e293b' }}>
-                  Popis
-                </label>
-                <textarea
-                  className="form-input"
+                <FormLabel text="Popis" />
+                <FormTextarea
                   value={editForm.description}
                   onChange={(e) => onEditFormChange('description', e.target.value)}
                   rows={2}
-
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label" style={{ color: '#1e293b' }}>
-                  Tóny (oddělené mezerou)
-                </label>
-                <input
+                <FormLabel text="Tóny (oddělené mezerou)" />
+                <FormInput
                   type="text"
-                  className="form-input"
                   value={editForm.content.notes.join(' ')}
                   onChange={(e) => onEditFormChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
-
                 />
               </div>
 
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label" style={{ color: '#1e293b' }}>
-                  Instrukce (jedna na řádek)
-                </label>
-                <textarea
-                  className="form-input"
+                <FormLabel text="Instrukce (jedna na řádek)" />
+                <FormTextarea
                   value={editForm.content.instructions.join('\n')}
                   onChange={(e) => onEditFormChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
                   rows={3}
-
                 />
               </div>
 

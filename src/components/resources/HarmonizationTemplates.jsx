@@ -213,15 +213,10 @@ function HarmonizationTemplates() {
 
   return (
     <div>
-      <h2 style={{
-        marginBottom: '0.5rem',
-        color: '#1e293b',
-        fontSize: '1.5rem',
-        fontWeight: 600
-      }}>
+      <h2>
         Harmonizační postupy
       </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6 }}>
+      <p>
         Připravené harmonické sekvence a kadence pro různé tóniny. Každou šablonu můžete přehrát a použít jako inspiraci pro vlastní harmonizace.
       </p>
 
@@ -269,7 +264,7 @@ function HarmonizationTemplates() {
               boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
             }}
           >
-            <h3 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Plus size={20} color="var(--color-primary)" />
               Nová šablona harmonizace
             </h3>
@@ -424,7 +419,7 @@ function HarmonizationTemplates() {
                                 <GripVertical size={16} />
                               </div>
                             )}
-                            <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
+                            <h3 style={{ marginBottom: 0 }}>
                               {template.title}
                             </h3>
                             <span className={`badge ${getDifficultyColor(template.difficulty)}`}>
@@ -484,7 +479,7 @@ function HarmonizationTemplates() {
                               </div>
                             )}
                           </div>
-                  <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: 0 }}>
+                  <p style={{ marginBottom: 0 }}>
                     {template.description}
                   </p>
                 </div>
@@ -582,7 +577,7 @@ function HarmonizationTemplates() {
                     borderRadius: 'var(--radius)',
                     border: '2px solid rgba(45, 91, 120, 0.3)'
                   }}>
-                    <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Edit3 size={18} color="var(--color-secondary)" />
                       Upravit šablonu
                     </h4>
@@ -694,7 +689,7 @@ function HarmonizationTemplates() {
                   transition={{ duration: 0.3 }}
                   style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(0, 0, 0, 0.1)', paddingTop: '1.5rem' }}
                 >
-                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: '#1e293b' }}>
+                  <h4>
                     Akordy v šabloně:
                   </h4>
 
@@ -757,7 +752,7 @@ function HarmonizationTemplates() {
                     <strong style={{ fontSize: '0.875rem', color: '#1e293b', display: 'block', marginBottom: '0.5rem' }}>
                       Příklad použití:
                     </strong>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                    <p style={{ margin: 0 }}>
                       {template.example}
                     </p>
                   </div>

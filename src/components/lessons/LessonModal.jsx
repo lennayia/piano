@@ -113,7 +113,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
         {/* Header */}
         <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
           <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h1 style={{ marginBottom: '0.5rem', fontSize: '2rem', color: '#1e293b' }}>{lesson.title}</h1>
+            <h1>{lesson.title}</h1>
             {isCompleted && (
               <motion.span
                 initial={{ scale: 0 }}
@@ -127,7 +127,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
             )}
           </div>
 
-          <p style={{ color: '#64748b', fontSize: '1rem', marginBottom: '1rem' }}>
+          <p>
             {lesson.description}
           </p>
 
@@ -145,7 +145,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
 
         {/* Lesson Content */}
         <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Music size={20} />
             Noty k procvičení
           </h3>
@@ -191,11 +191,11 @@ function LessonModal({ lesson, isOpen, onClose }) {
 
           {/* Interactive Piano */}
           <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{ marginBottom: '1rem' }}>Interaktivní klavír</h3>
+            <h3>Interaktivní klavír</h3>
             <PianoKeyboard highlightedNotes={lesson.content.notes} />
           </div>
 
-          <h3 style={{ marginBottom: '1rem' }}>Instrukce</h3>
+          <h3>Instrukce</h3>
           <ol style={{
             paddingLeft: '1.5rem',
             display: 'flex',

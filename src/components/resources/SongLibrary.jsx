@@ -39,8 +39,16 @@ function NoteFormatHelpContent() {
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
-        fontSize: '0.75rem'
+        fontSize: '0.75rem',
+        tableLayout: 'fixed'
       }}>
+        <colgroup>
+          <col style={{ width: '35%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '20%' }} />
+        </colgroup>
         <thead>
           <tr style={{ background: 'rgba(45, 91, 120, 0.1)' }}>
             <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>Nota</th>
@@ -163,8 +171,15 @@ function NoteFormatHelpContent() {
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
-        fontSize: '0.75rem'
+        fontSize: '0.75rem',
+        tableLayout: 'fixed'
       }}>
+        <colgroup>
+          <col style={{ width: '35%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '35%' }} />
+        </colgroup>
         <thead>
           <tr style={{ background: 'rgba(100, 116, 139, 0.1)' }}>
             <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(100, 116, 139, 0.2)' }}>Pauzy a mezery</th>
@@ -1428,15 +1443,12 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                               /* Editační formulář pro admina */
                               <div style={{ marginTop: '1rem' }}>
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                                  Název písně
-                                </label>
-                                <input
+                                <FormLabel text="Název písně" />
+                                <FormInput
                                   type="text"
-                                  className="form-input"
                                   value={editForm.title}
                                   onChange={(e) => handleEditChange('title', e.target.value)}
-                                  style={{ fontSize: '0.875rem' }}
+                                  placeholder="Zadejte název písně"
                                 />
                               </div>
 
