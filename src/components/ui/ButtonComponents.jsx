@@ -160,7 +160,7 @@ export function ActionButton({ variant = 'edit', onClick, label, icon: CustomIco
       }}
       {...props}
     >
-      <Icon size={finalIconSize} />
+      <Icon size={finalIconSize} style={{ pointerEvents: 'none' }} />
       {!iconOnly && buttonLabel}
     </motion.button>
   );
@@ -291,7 +291,7 @@ export function HelpButton({ onClick, isActive = false, title = 'Zobrazit nápov
       <HelpCircle
         size={18}
         color="var(--color-secondary)"
-        style={{ transition: 'color 0.2s' }}
+        style={{ transition: 'color 0.2s', pointerEvents: 'none' }}
       />
     </motion.button>
   );
@@ -331,7 +331,7 @@ export function CancelButton({ onClick, label = 'Zrušit', style = {}, ...props 
       }}
       {...props}
     >
-      <X size={14} />
+      <X size={14} style={{ pointerEvents: 'none' }} />
       {label}
     </button>
   );
@@ -371,7 +371,7 @@ export function SaveButton({ onClick, label = 'Uložit', style = {}, ...props })
       }}
       {...props}
     >
-      <Save size={14} />
+      <Save size={14} style={{ pointerEvents: 'none' }} />
       {label}
     </button>
   );

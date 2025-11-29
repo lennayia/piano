@@ -237,7 +237,6 @@ export function ItemCard({
 
   return (
     <motion.div
-      onClick={onClick}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{
@@ -246,10 +245,9 @@ export function ItemCard({
         boxShadow: '0 12px 48px rgba(45, 91, 120, 0.25)',
         transition: { duration: 0.2 }
       }}
-      whileTap={{ scale: 0.98 }}
       className={isList ? 'item-card-responsive' : ''}
       style={{
-        cursor: 'pointer',
+        cursor: 'default',
         background: 'rgba(255, 255, 255, 0.75)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
@@ -336,10 +334,24 @@ export function ItemCard({
                     </div>
                   )}
                   <motion.div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onClick) onClick(e);
+                    }}
                     animate={{ rotate: isExpanded ? 90 : 0 }}
                     transition={{ duration: 0.2 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      cursor: 'pointer',
+                      padding: '0.25rem',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                   >
-                    <ChevronRight size={20} color="var(--color-text-secondary)" />
+                    <ChevronRight size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
                   </motion.div>
                 </div>
               </div>
@@ -421,10 +433,24 @@ export function ItemCard({
               {footer}
             </div>
             <motion.div
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onClick) onClick(e);
+              }}
               animate={{ rotate: isExpanded ? 90 : 0 }}
               transition={{ duration: 0.2 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                cursor: 'pointer',
+                padding: '0.25rem',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
             >
-              <ChevronRight size={20} color="var(--color-text-secondary)" />
+              <ChevronRight size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
             </motion.div>
           </div>
 

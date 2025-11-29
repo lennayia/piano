@@ -796,9 +796,13 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
       category: editForm.category
     });
 
+    // Zavřít editační režim
     setEditingSong(null);
     setEditForm({});
     setAudioFile(null);
+
+    // Zavřít detail písně
+    toggleSongExpansion(editingSong);
   };
 
   // cancelEdit je poskytnut hookem useItemEdit
@@ -1139,20 +1143,19 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
             </div>
 
             {/* Nápověda - Formát zápisu not */}
-            <div style={{ marginBottom: '1rem' }}>
-              <HelpButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowNoteFormatHelp(!showNoteFormatHelp);
-                }}
-                isActive={showNoteFormatHelp}
-                title="Zobrazit nápovědu k formátu zápisu not"
-              />
-            </div>
+            <div onClick={(e) => e.stopPropagation()}>
+              <div style={{ marginBottom: '1rem' }}>
+                <HelpButton
+                  onClick={() => setShowNoteFormatHelp(!showNoteFormatHelp)}
+                  isActive={showNoteFormatHelp}
+                  title="Zobrazit nápovědu k formátu zápisu not"
+                />
+              </div>
 
-            <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
-              <NoteFormatHelpContent />
-            </HelpPanel>
+              <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
+                <NoteFormatHelpContent />
+              </HelpPanel>
+            </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <FormLabel text="Noty (klikněte na klavír nebo zadejte ručně)" />
@@ -1438,20 +1441,19 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                               </div>
 
                               {/* Nápověda - Formát zápisu not */}
-                              <div style={{ marginBottom: '1rem' }}>
-                                <HelpButton
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowNoteFormatHelp(!showNoteFormatHelp);
-                                  }}
-                                  isActive={showNoteFormatHelp}
-                                  title="Zobrazit nápovědu k formátu zápisu not"
-                                />
-                              </div>
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <div style={{ marginBottom: '1rem' }}>
+                                  <HelpButton
+                                    onClick={() => setShowNoteFormatHelp(!showNoteFormatHelp)}
+                                    isActive={showNoteFormatHelp}
+                                    title="Zobrazit nápovědu k formátu zápisu not"
+                                  />
+                                </div>
 
-                              <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
-                                <NoteFormatHelpContent />
-                              </HelpPanel>
+                                <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
+                                  <NoteFormatHelpContent />
+                                </HelpPanel>
+                              </div>
 
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
                                 <FormLabel text="Noty (klikněte na klavír nebo zadejte ručně)" />
