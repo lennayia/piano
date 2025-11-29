@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Music, Play, Pause, BookOpen, Plus, GripVertical, Upload, Volume2, XCircle, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Plus, GripVertical, Upload, Volume2, XCircle, ChevronUp, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -19,14 +19,207 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import audioEngine from '../../utils/audio';
 import PianoKeyboard from '../lessons/PianoKeyboard';
-import NoteComposer from './NoteComposer';
+import NoteComposer, { NoteIcons } from './NoteComposer';
 import Confetti from '../common/Confetti';
 import PracticeModeControls from '../ui/PracticeModeControls';
-import { Chip, ActionButtonGroup, SaveButton, CancelButton, MelodyNote, AddButton } from '../ui/ButtonComponents';
-import { InfoPanel } from '../ui/CardComponents';
+import { Chip, ActionButtonGroup, SaveButton, CancelButton, MelodyNote, AddButton, HelpButton } from '../ui/ButtonComponents';
+import { InfoPanel, ItemCard } from '../ui/CardComponents';
+import { HelpPanel } from '../ui/HelpPanel';
+import { useItemEdit } from '../../hooks/useItemEdit';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
+
+// Komponenta s tabulkami pro nápovědu formátu not
+function NoteFormatHelpContent() {
+  return (
+    <div>
+      {/* Tabulka not */}
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '0.75rem'
+      }}>
+        <thead>
+          <tr style={{ background: 'rgba(45, 91, 120, 0.1)' }}>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>Nota</th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>Formát</th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>♯</th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>♭</th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>Vyšší/Nižší</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.Sixteenth />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>1/16</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>šestnáctinová</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>dd</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>ccis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>ddes</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>ee' / ff.</code></td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.Eighth />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>1/8</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>osminová</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>d</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>cis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>des</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>e' / f.</code></td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.Quarter />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>1/4</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>čtvrťová</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>D</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Cis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Des</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>E' / F.</code></td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.QuarterDotted />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>3/8</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>čtvrťová s tečkou</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Dd</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Ccis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Ddes</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>Ee' / Ff.</code></td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.Half />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>1/2</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>půlová</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DD</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>CCis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDes</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>EE' / FF.</code></td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.HalfDotted />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>3/4</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>půlová s tečkou</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDD</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>CCCis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDDes</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>EEE' / FFF.</code></td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.35rem' }}>
+                <div style={{ transform: 'scale(0.7)', transformOrigin: 'left bottom', lineHeight: '0', marginTop: '-0.2rem' }}>
+                  <NoteIcons.Whole />
+                </div>
+                <span style={{ fontSize: '0.65rem', opacity: 0.6, minWidth: '1.8rem' }}>1</span>
+                <span className="note-name-responsive" style={{ fontSize: '0.75rem' }}>celá</span>
+              </div>
+            </td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDDD</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>CCCCis</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>DDDDes</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(45, 91, 120, 0.1)' }}><code>EEEE' / FFFF.</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Tabulka pauz a mezer */}
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '0.75rem'
+      }}>
+        <thead>
+          <tr style={{ background: 'rgba(100, 116, 139, 0.1)' }}>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(100, 116, 139, 0.2)' }}>Pauzy a mezery</th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(100, 116, 139, 0.2)' }}>Formát</th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(100, 116, 139, 0.2)' }}></th>
+            <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(100, 116, 139, 0.2)' }}>Popis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Krátká pauza</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>-</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>200ms</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Střední pauza</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>--</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>400ms</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Dlouhá pauza</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>---</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>800ms</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Extra dlouhá pauza</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>----</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>1600ms</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Mezera</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>mezera</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Oddělení not</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Takt</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>|</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Oddělení taktů</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Nový řádek</td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}><code>↵</code></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}></td>
+            <td style={{ padding: '0 0.2rem 0.15rem 0.2rem', verticalAlign: 'bottom', borderBottom: '1px solid rgba(100, 116, 139, 0.1)' }}>Nový řádek při editaci</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 // Sortable Song Wrapper Component
 function SortableSongCard({ song, children }) {
@@ -53,11 +246,27 @@ function SortableSongCard({ song, children }) {
 }
 
 function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
+  const [audioFile, setAudioFile] = useState(null);
+  const [showNoteFormatHelp, setShowNoteFormatHelp] = useState(false);
+
+  // Použití custom hooku pro editaci a expanzi položek
+  // Callback pro cleanup audio souboru při zrušení editace
+  const {
+    editingItem: editingSong,
+    expandedItems: expandedSongs,
+    editForm,
+    toggleItemExpansion: toggleSongExpansion,
+    startEditing,
+    cancelEdit,
+    updateEditForm,
+    setEditingItem: setEditingSong,
+    setExpandedItems: setExpandedSongs,
+    setEditForm
+  } = useItemEdit(() => setAudioFile(null));
+
   const [playingSong, setPlayingSong] = useState(null);
   const [currentNoteIndex, setCurrentNoteIndex] = useState(-1);
   const [showKeyboard, setShowKeyboard] = useState(null);
-  const [editingSong, setEditingSong] = useState(null);
-  const [editForm, setEditForm] = useState({});
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [userPlaybackMode, setUserPlaybackMode] = useState({}); // {songId: 'notes'|'audio'|'both'}
   const [newSongForm, setNewSongForm] = useState({
@@ -72,8 +281,6 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     category: 'lidovky' // Přidat výchozí kategorii
   });
   const [uploadingAudio, setUploadingAudio] = useState(false);
-  const [audioFile, setAudioFile] = useState(null);
-  const [expandedSongs, setExpandedSongs] = useState({}); // State pro accordion
 
   // Practice mode states
   const [hideNotes, setHideNotes] = useState({}); // {songId: boolean}
@@ -342,12 +549,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     setCurrentNoteIndex(-1);
   };
 
-  const toggleSongExpansion = (songId) => {
-    setExpandedSongs(prev => ({
-      ...prev,
-      [songId]: !prev[songId]
-    }));
-  };
+  // toggleSongExpansion je poskytnut hookem useItemEdit
 
   const toggleKeyboard = (songId) => {
     setShowKeyboard(showKeyboard === songId ? null : songId);
@@ -546,21 +748,22 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     }
   };
 
-  const startEditing = (song) => {
-    setEditingSong(song.id);
-    setAudioFile(null);
-    // Pokud je notes pole, spojíme ho mezerou
-    const notesString = Array.isArray(song.notes) ? song.notes.join(' ') : song.notes;
-    setEditForm({
-      title: song.title,
-      notes: notesString,
-      lyrics: song.lyrics || '',
-      difficulty: song.difficulty,
-      tempo: song.tempo,
-      key: song.key,
-      tips: song.tips,
-      audioUrl: song.audioUrl || '',
-      category: song.category || 'lidovky'
+  // Wrapper funkce pro startEditing s custom mapováním na editForm
+  const startEditingSong = (song) => {
+    // Zavolat hook startEditing s formMapper funkcí
+    startEditing(song, (song) => {
+      const notesString = Array.isArray(song.notes) ? song.notes.join(' ') : song.notes;
+      return {
+        title: song.title,
+        notes: notesString,
+        lyrics: song.lyrics || '',
+        difficulty: song.difficulty,
+        tempo: song.tempo,
+        key: song.key,
+        tips: song.tips,
+        audioUrl: song.audioUrl || '',
+        category: song.category || 'lidovky'
+      };
     });
   };
 
@@ -597,10 +800,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     setAudioFile(null);
   };
 
-  const cancelEdit = () => {
-    setEditingSong(null);
-    setEditForm({});
-  };
+  // cancelEdit je poskytnut hookem useItemEdit
 
   const handleAudioUpload = async (file) => {
     if (!file) return null;
@@ -664,12 +864,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
     audio.play();
   };
 
-  const handleEditChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  // handleEditChange používá updateEditForm z hooku
+  const handleEditChange = updateEditForm;
 
   const handleNewSongChange = (field, value) => {
     setNewSongForm(prev => ({
@@ -945,6 +1141,22 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
               />
             </div>
 
+            {/* Nápověda - Formát zápisu not */}
+            <div style={{ marginBottom: '1rem' }}>
+              <HelpButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowNoteFormatHelp(!showNoteFormatHelp);
+                }}
+                isActive={showNoteFormatHelp}
+                title="Zobrazit nápovědu k formátu zápisu not"
+              />
+            </div>
+
+            <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
+              <NoteFormatHelpContent />
+            </HelpPanel>
+
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
                 Noty (klikněte na klavír nebo zadejte ručně)
@@ -1143,56 +1355,50 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
             {songs.filter(song => activeCategory === 'all' || song.category === activeCategory || !song.category).map((song, index) => (
               <SortableSongCard key={song.id} song={song}>
                 {(dragAttributes, dragListeners) => (
-                  <motion.div
-                    className="card"
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{
-                      y: -4,
-                      boxShadow: '0 12px 40px rgba(181, 31, 101, 0.25)'
-                    }}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.7)',
-                      backdropFilter: 'blur(40px)',
-                      WebkitBackdropFilter: 'blur(40px)',
-                      border: '2px solid rgba(255, 255, 255, 0.4)',
-                      cursor: 'pointer',
-                      boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)'
-                    }}
-                  >
-                    <div className="song-card-wrapper">
-                      <div className="song-card-controls">
-                        {/* Drag Handle (pouze pro adminy) */}
-                        {isAdmin && (
-                          <div
-                            {...dragAttributes}
-                            {...dragListeners}
-                            className="drag-handle"
-                            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
-                          >
-                            <GripVertical className="grip-icon" />
-                          </div>
-                        )}
-
-                        {/* Play Button */}
-                        <motion.button
-                          className={`play-button ${playingSong === song.id ? 'playing' : ''}`}
-                          whileHover={{ scale: 1.15, rotate: 5 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => playMelody(song)}
-                        >
-                          {playingSong === song.id ? (
-                            <Pause className="play-icon" color="#ffffff" />
-                          ) : (
-                            <Play className="play-icon" color="#ffffff" style={{ marginLeft: '3px' }} />
+                  <ItemCard
+                    title={song.title}
+                    isExpanded={expandedSongs[song.id]}
+                    onClick={() => toggleSongExpansion(song.id)}
+                    layout="list"
+                    leftControls={
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {/* Drag Handle + Play Button horizontálně */}
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                          {/* Drag Handle (pouze pro adminy) */}
+                          {isAdmin && (
+                            <div
+                              {...dragAttributes}
+                              {...dragListeners}
+                              className="drag-handle"
+                              onClick={(e) => e.stopPropagation()}
+                              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
+                            >
+                              <GripVertical className="grip-icon" />
+                            </div>
                           )}
-                        </motion.button>
+
+                          {/* Play Button */}
+                          <motion.button
+                            className={`play-button ${playingSong === song.id ? 'playing' : ''}`}
+                            whileHover={{ scale: 1.15, rotate: 5 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playMelody(song);
+                            }}
+                          >
+                            {playingSong === song.id ? (
+                              <Pause className="play-icon" color="#ffffff" />
+                            ) : (
+                              <Play className="play-icon" color="#ffffff" style={{ marginLeft: '3px' }} />
+                            )}
+                          </motion.button>
+                        </div>
 
                         {/* Playback Mode Selector (pokud má píseň audio) */}
                         {song.audioUrl && (
-                          <div style={{ marginLeft: '0.75rem' }}>
+                          <div onClick={(e) => e.stopPropagation()}>
                             <select
                               value={userPlaybackMode[song.id] || 'notes'}
                               onChange={(e) => setUserPlaybackMode(prev => ({ ...prev, [song.id]: e.target.value }))}
@@ -1215,455 +1421,436 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                           </div>
                         )}
                       </div>
-
-                      {/* Song Info */}
-                      <div className="song-info-content" style={{ flex: 1 }}>
-                        {/* Klikací hlavička s názvem, badge a šipkou */}
+                    }
+                    footer={
+                      <>
+                        <Chip text={song.difficulty} variant="difficulty" />
+                        <Chip text={song.key} variant="info" />
+                        <Chip text={song.tempo} variant="info" />
+                      </>
+                    }
+                    headerActions={
+                      isAdmin && (
+                        <ActionButtonGroup
+                          onEdit={() => startEditingSong(song)}
+                          onDuplicate={() => duplicateSong(song.id)}
+                          onDelete={() => handleDeleteSong(song.id)}
+                        />
+                      )
+                    }
+                  >
+                    <AnimatePresence>
+                      {expandedSongs[song.id] && (
                         <motion.div
-                          className="song-header"
-                          onClick={() => toggleSongExpansion(song.id)}
-                          whileHover={{ backgroundColor: 'rgba(45, 91, 120, 0.05)' }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '0.75rem',
-                            marginBottom: '0.5rem',
-                            cursor: 'pointer',
-                            padding: '0.5rem',
-                            borderRadius: 'var(--radius)',
-                            transition: 'background-color 0.2s'
-                          }}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ overflow: 'visible' }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, flexWrap: 'wrap' }}>
-                            <h3 style={{ fontSize: '1.125rem', marginBottom: 0, color: '#1e293b' }}>
-                              {song.title}
-                            </h3>
-                            <Chip
-                              text={song.difficulty}
-                              variant="difficulty"
-                            />
-                            <Chip text={song.key} variant="info" />
-                            <Chip text={song.tempo} variant="info" />
-                          </div>
+                          {editingSong === song.id ? (
+                              /* Editační formulář pro admina */
+                              <div style={{ marginTop: '1rem' }}>
+                              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Název písně
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-input"
+                                  value={editForm.title}
+                                  onChange={(e) => handleEditChange('title', e.target.value)}
+                                  style={{ fontSize: '0.875rem' }}
+                                />
+                              </div>
 
-                          {/* Admin akční tlačítka - vždy viditelné pro admina */}
-                          {isAdmin && (
-                            editingSong === song.id ? (
-                              // Během editace: Save/Cancel tlačítka
-                              <div style={{ display: 'flex', gap: '0.5rem', marginRight: '0.5rem' }}>
-                                <SaveButton onClick={saveEdit} />
+                              {/* Nápověda - Formát zápisu not */}
+                              <div style={{ marginBottom: '1rem' }}>
+                                <HelpButton
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowNoteFormatHelp(!showNoteFormatHelp);
+                                  }}
+                                  isActive={showNoteFormatHelp}
+                                  title="Zobrazit nápovědu k formátu zápisu not"
+                                />
+                              </div>
+
+                              <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
+                                <NoteFormatHelpContent />
+                              </HelpPanel>
+
+                              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Noty (klikněte na klavír nebo zadejte ručně)
+                                </label>
+
+                                {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
+                                <textarea
+                                  className="form-input"
+                                  value={editForm.notes}
+                                  onChange={(e) => handleEditChange('notes', e.target.value)}
+                                  placeholder="D D E - F | G A H"
+                                  rows={3}
+                                  style={{
+                                    fontSize: '0.875rem',
+                                    marginBottom: '0.5rem'
+                                  }}
+                                />
+
+                                {/* NoteComposer - interaktivní klavír pro snadný zápis - POD textovým polem */}
+                                <NoteComposer
+                                  value={editForm.notes}
+                                  onChange={(value) => handleEditChange('notes', value)}
+                                />
+                              </div>
+
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                <div className="form-group">
+                                  <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                    Obtížnost
+                                  </label>
+                                  <select
+                                    className="form-input"
+                                    value={editForm.difficulty}
+                                    onChange={(e) => handleEditChange('difficulty', e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
+                                    <option value="začátečník">začátečník</option>
+                                    <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
+                                    <option value="pokročilý">pokročilý</option>
+                                  </select>
+                                </div>
+
+                                <div className="form-group">
+                                  <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                    Tempo
+                                  </label>
+                                  <select
+                                    className="form-input"
+                                    value={editForm.tempo}
+                                    onChange={(e) => handleEditChange('tempo', e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
+                                    <option value="">Vyberte tempo...</option>
+                                    <option value="Largo">Largo (velmi pomalé)</option>
+                                    <option value="Adagio">Adagio (pomalé)</option>
+                                    <option value="Andante">Andante (klidné)</option>
+                                    <option value="Moderato">Moderato (střední)</option>
+                                    <option value="Allegro">Allegro (rychlé)</option>
+                                    <option value="Presto">Presto (velmi rychlé)</option>
+                                  </select>
+                                </div>
+
+                                <div className="form-group">
+                                  <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                    Tónina
+                                  </label>
+                                  <select
+                                    className="form-input"
+                                    value={editForm.key}
+                                    onChange={(e) => handleEditChange('key', e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
+                                    <option value="">Vyberte tóninu...</option>
+                                    <optgroup label="Durové tóniny">
+                                      <option value="C dur">C dur</option>
+                                      <option value="G dur">G dur</option>
+                                      <option value="D dur">D dur</option>
+                                      <option value="A dur">A dur</option>
+                                      <option value="E dur">E dur</option>
+                                      <option value="F dur">F dur</option>
+                                      <option value="B dur">B dur</option>
+                                      <option value="Es dur">Es dur</option>
+                                      <option value="As dur">As dur</option>
+                                    </optgroup>
+                                    <optgroup label="Mollové tóniny">
+                                      <option value="a moll">a moll</option>
+                                      <option value="e moll">e moll</option>
+                                      <option value="h moll">h moll</option>
+                                      <option value="fis moll">fis moll</option>
+                                      <option value="d moll">d moll</option>
+                                      <option value="g moll">g moll</option>
+                                      <option value="c moll">c moll</option>
+                                      <option value="f moll">f moll</option>
+                                    </optgroup>
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Text písničky (lyrics)
+                                </label>
+                                <textarea
+                                  className="form-input"
+                                  value={editForm.lyrics || ''}
+                                  onChange={(e) => handleEditChange('lyrics', e.target.value)}
+                                  placeholder="Napište text písničky, každý verš na nový řádek..."
+                                  rows={6}
+                                  style={{ fontSize: '0.875rem' }}
+                                />
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                                  Každý verš napište na nový řádek (Enter). Text se zobrazí uživatelům.
+                                </div>
+                              </div>
+
+                              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Tip pro harmonizaci
+                                </label>
+                                <textarea
+                                  className="form-input"
+                                  value={editForm.tips}
+                                  onChange={(e) => handleEditChange('tips', e.target.value)}
+                                  rows={2}
+                                  style={{ fontSize: '0.875rem' }}
+                                />
+                              </div>
+
+                              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <Upload size={16} />
+                                  Audio soubor (volitelné)
+                                </label>
+
+                                {song.audioUrl && !audioFile && (
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    marginBottom: '0.75rem',
+                                    padding: '0.75rem',
+                                    background: 'rgba(16, 185, 129, 0.1)',
+                                    borderRadius: 'var(--radius)',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)'
+                                  }}>
+                                    <Volume2 size={16} color="var(--color-success)" />
+                                    <span style={{ fontSize: '0.875rem', color: 'var(--color-success)', flex: 1 }}>
+                                      Audio soubor nahrán
+                                    </span>
+                                    <motion.button
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      onClick={() => previewAudio(song.audioUrl)}
+                                      style={{
+                                        padding: '0.25rem 0.5rem',
+                                        background: 'rgba(45, 91, 120, 0.1)',
+                                        border: '1px solid rgba(45, 91, 120, 0.3)',
+                                        borderRadius: 'var(--radius)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.75rem',
+                                        color: 'var(--color-secondary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.25rem'
+                                      }}
+                                    >
+                                      <Play size={12} />
+                                      Přehrát
+                                    </motion.button>
+                                    <motion.button
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      onClick={async () => {
+                                        const success = await handleDeleteAudio(song.audioUrl);
+                                        if (success) {
+                                          handleEditChange('audioUrl', '');
+                                        }
+                                      }}
+                                      style={{
+                                        padding: '0.25rem 0.5rem',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        borderRadius: 'var(--radius)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.75rem',
+                                        color: 'var(--color-danger)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.25rem'
+                                      }}
+                                    >
+                                      <XCircle size={12} />
+                                      Smazat
+                                    </motion.button>
+                                  </div>
+                                )}
+
+                                <input
+                                  type="file"
+                                  accept="audio/*"
+                                  onChange={(e) => setAudioFile(e.target.files[0])}
+                                  style={{
+                                    fontSize: '0.875rem',
+                                    padding: '0.5rem',
+                                    border: '1px solid rgba(181, 31, 101, 0.3)',
+                                    borderRadius: 'var(--radius)',
+                                    width: '100%'
+                                  }}
+                                />
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
+                                  {song.audioUrl ? 'Nahrajte nový soubor pro nahrazení stávajícího' : 'Nahrajte audio soubor (MP3, WAV, OGG...)'}
+                                </div>
+                                {uploadingAudio && (
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', marginTop: '0.5rem' }}>
+                                    Nahrávám audio soubor...
+                                  </div>
+                                )}
+                                {audioFile && (
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', marginTop: '0.5rem' }}>
+                                    ✓ Nový soubor vybrán: {audioFile.name}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Save/Cancel tlačítka */}
+                              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
+                                <SaveButton onClick={saveEdit} label="Uložit změny" />
                                 <CancelButton onClick={cancelEdit} />
                               </div>
-                            ) : (
-                              // Normální stav: Edit/Duplicate/Delete
-                              <ActionButtonGroup
-                                onEdit={() => startEditing(song)}
-                                onDuplicate={() => duplicateSong(song.id)}
-                                onDelete={() => handleDeleteSong(song.id)}
-                                style={{ marginRight: '0.5rem' }}
-                              />
-                            )
+                            </div>
+                          ) : (
+                            <>
+                              {/* Noty s vizualizací */}
+                              <div style={{ marginTop: '1rem' }}>
+                                {/* Pokud nejsou noty skryté, zobrazit je */}
+                                {!hideNotes[song.id] && (
+                                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.5rem' }}>
+                                    {(() => {
+                                      // Rozdělit notes na jednotlivé elementy (může být string nebo pole)
+                                      let notesArray;
+                                      if (Array.isArray(song.notes)) {
+                                        notesArray = song.notes;
+                                      } else {
+                                        // String - rozdělit podle mezer, rour a nových řádků
+                                        notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
+                                      }
+                                      return notesArray;
+                                    })().map((note, noteIndex) => {
+                                      const isCurrent = playingSong === song.id && currentNoteIndex === noteIndex;
+                                      // Odstranit zvýraznění následující noty - mate to vizuálně
+                                      const isNext = false;
+
+                                      return (
+                                        <MelodyNote
+                                          key={noteIndex}
+                                          note={note}
+                                          isCurrent={isCurrent}
+                                          isNext={isNext}
+                                        />
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                {/* Režimy cvičení - univerzální komponenta s všemi tlačítky */}
+                                <PracticeModeControls
+                                  isPracticing={practicingMode === song.id}
+                                  isChallenge={challengeMode === song.id}
+                                  practiceErrors={practiceErrors}
+                                  progress={practiceProgress.length}
+                                  totalNotes={(() => {
+                                    let notesArray;
+                                    if (Array.isArray(song.notes)) {
+                                      notesArray = song.notes;
+                                    } else {
+                                      notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
+                                    }
+                                    const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
+                                    return validNotes.length;
+                                  })()}
+                                  onStartPractice={() => startPractice(song)}
+                                  onStartChallenge={() => startChallenge(song)}
+                                  onStop={stopPractice}
+                                  showStopButton={true}
+                                  showHideNotesButton={true}
+                                  hideNotes={hideNotes[song.id]}
+                                  onToggleHideNotes={() => toggleHideNotes(song.id)}
+                                  hideNotesDisabled={practicingMode === song.id || challengeMode === song.id}
+                                  showKeyboardButton={true}
+                                  keyboardVisible={showKeyboard === song.id}
+                                  onToggleKeyboard={() => toggleKeyboard(song.id)}
+                                />
+                              </div>
+
+                              <AnimatePresence>
+                                {(showKeyboard === song.id || practicingMode === song.id || challengeMode === song.id || playingSong === song.id) && (
+                                  <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    style={{
+                                      marginTop: '1rem',
+                                      marginBottom: '1rem'
+                                    }}
+                                  >
+                                    <PianoKeyboard
+                                      highlightedNotes={
+                                        practicingMode === song.id
+                                          ? (() => {
+                                              // PROCVIČOVÁNÍ: Zvýraznit aktuální notu - nápověda pro uživatele
+                                              const notesArray = Array.isArray(song.notes)
+                                                ? song.notes
+                                                : song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
+                                              const currentIndex = practiceProgress.length;
+                                              const currentNote = currentIndex < notesArray.length ? notesArray[currentIndex] : null;
+                                              const normalized = currentNote ? normalizeNote(currentNote) : null;
+                                              return normalized ? [normalized] : [];
+                                            })()
+                                          : challengeMode === song.id
+                                          ? [] // VÝZVA: Žádné zvýraznění - bez nápovědy!
+                                          : playingSong === song.id
+                                          ? (() => {
+                                              // PŘEHRÁVÁNÍ: Zvýraznit aktuálně hranou notu
+                                              const notesArray = Array.isArray(song.notes)
+                                                ? song.notes
+                                                : song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
+                                              const currentNote = currentNoteIndex >= 0 && currentNoteIndex < notesArray.length
+                                                ? notesArray[currentNoteIndex]
+                                                : null;
+                                              const normalized = currentNote ? normalizeNote(currentNote) : null;
+                                              return normalized ? [normalized] : [];
+                                            })()
+                                          : []
+                                      }
+                                      onNoteClick={(note) => handleNotePlay(note, song)}
+                                    />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+
+                              {/* Tip pro harmonizaci */}
+                              {song.tips && (
+                                <InfoPanel
+                                  title="Tip pro harmonizaci:"
+                                  icon={BookOpen}
+                                  variant="secondary"
+                                >
+                                  {song.tips}
+                                </InfoPanel>
+                              )}
+
+                              {/* Text písničky (lyrics) */}
+                              {song.lyrics && (
+                                <InfoPanel
+                                  title="Text písničky:"
+                                  icon={Music}
+                                  variant="primary"
+                                >
+                                  {song.lyrics}
+                                </InfoPanel>
+                              )}
+                            </>
                           )}
-
-                          {/* Šipka pro rozbalení/sbalení */}
-                          <motion.div
-                            animate={{ rotate: expandedSongs[song.id] ? 180 : 0 }}
-                            transition={{ duration: 0.2 }}
-                            style={{ flexShrink: 0 }}
-                          >
-                            <ChevronDown size={24} color="var(--color-secondary)" />
-                          </motion.div>
                         </motion.div>
-
-                <AnimatePresence>
-                  {expandedSongs[song.id] && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                {editingSong === song.id ? (
-                  /* Editační formulář pro admina */
-                  <div style={{ marginTop: '1rem' }}>
-                    <div className="form-group" style={{ marginBottom: '1rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Název písně
-                      </label>
-                      <input
-                        type="text"
-                        className="form-input"
-                        value={editForm.title}
-                        onChange={(e) => handleEditChange('title', e.target.value)}
-                        style={{ fontSize: '0.875rem' }}
-                      />
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: '1rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Noty (klikněte na klavír nebo zadejte ručně)
-                      </label>
-
-                      {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
-                      <textarea
-                        className="form-input"
-                        value={editForm.notes}
-                        onChange={(e) => handleEditChange('notes', e.target.value)}
-                        placeholder="D D E - F | G A H"
-                        rows={3}
-                        style={{
-                          fontSize: '0.875rem',
-                          marginBottom: '0.5rem'
-                        }}
-                      />
-
-                      {/* NoteComposer - interaktivní klavír pro snadný zápis - POD textovým polem */}
-                      <NoteComposer
-                        value={editForm.notes}
-                        onChange={(value) => handleEditChange('notes', value)}
-                      />
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                          Obtížnost
-                        </label>
-                        <select
-                          className="form-input"
-                          value={editForm.difficulty}
-                          onChange={(e) => handleEditChange('difficulty', e.target.value)}
-                          style={{ fontSize: '0.875rem' }}
-                        >
-                          <option value="začátečník">začátečník</option>
-                          <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
-                          <option value="pokročilý">pokročilý</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                          Tempo
-                        </label>
-                        <select
-                          className="form-input"
-                          value={editForm.tempo}
-                          onChange={(e) => handleEditChange('tempo', e.target.value)}
-                          style={{ fontSize: '0.875rem' }}
-                        >
-                          <option value="">Vyberte tempo...</option>
-                          <option value="Largo">Largo (velmi pomalé)</option>
-                          <option value="Adagio">Adagio (pomalé)</option>
-                          <option value="Andante">Andante (klidné)</option>
-                          <option value="Moderato">Moderato (střední)</option>
-                          <option value="Allegro">Allegro (rychlé)</option>
-                          <option value="Presto">Presto (velmi rychlé)</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                          Tónina
-                        </label>
-                        <select
-                          className="form-input"
-                          value={editForm.key}
-                          onChange={(e) => handleEditChange('key', e.target.value)}
-                          style={{ fontSize: '0.875rem' }}
-                        >
-                          <option value="">Vyberte tóninu...</option>
-                          <optgroup label="Durové tóniny">
-                            <option value="C dur">C dur</option>
-                            <option value="G dur">G dur</option>
-                            <option value="D dur">D dur</option>
-                            <option value="A dur">A dur</option>
-                            <option value="E dur">E dur</option>
-                            <option value="F dur">F dur</option>
-                            <option value="B dur">B dur</option>
-                            <option value="Es dur">Es dur</option>
-                            <option value="As dur">As dur</option>
-                          </optgroup>
-                          <optgroup label="Mollové tóniny">
-                            <option value="a moll">a moll</option>
-                            <option value="e moll">e moll</option>
-                            <option value="h moll">h moll</option>
-                            <option value="fis moll">fis moll</option>
-                            <option value="d moll">d moll</option>
-                            <option value="g moll">g moll</option>
-                            <option value="c moll">c moll</option>
-                            <option value="f moll">f moll</option>
-                          </optgroup>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: '1rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Text písničky (lyrics)
-                      </label>
-                      <textarea
-                        className="form-input"
-                        value={editForm.lyrics || ''}
-                        onChange={(e) => handleEditChange('lyrics', e.target.value)}
-                        placeholder="Napište text písničky, každý verš na nový řádek..."
-                        rows={6}
-                        style={{ fontSize: '0.875rem' }}
-                      />
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                        Každý verš napište na nový řádek (Enter). Text se zobrazí uživatelům.
-                      </div>
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: '1rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
-                        Tip pro harmonizaci
-                      </label>
-                      <textarea
-                        className="form-input"
-                        value={editForm.tips}
-                        onChange={(e) => handleEditChange('tips', e.target.value)}
-                        rows={2}
-                        style={{ fontSize: '0.875rem' }}
-                      />
-                    </div>
-
-                    <div className="form-group" style={{ marginBottom: '1rem' }}>
-                      <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Upload size={16} />
-                        Audio soubor (volitelné)
-                      </label>
-
-                      {song.audioUrl && !audioFile && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          marginBottom: '0.75rem',
-                          padding: '0.75rem',
-                          background: 'rgba(16, 185, 129, 0.1)',
-                          borderRadius: 'var(--radius)',
-                          border: '1px solid rgba(16, 185, 129, 0.3)'
-                        }}>
-                          <Volume2 size={16} color="var(--color-success)" />
-                          <span style={{ fontSize: '0.875rem', color: 'var(--color-success)', flex: 1 }}>
-                            Audio soubor nahrán
-                          </span>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => previewAudio(song.audioUrl)}
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              background: 'rgba(45, 91, 120, 0.1)',
-                              border: '1px solid rgba(45, 91, 120, 0.3)',
-                              borderRadius: 'var(--radius)',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                              color: 'var(--color-secondary)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem'
-                            }}
-                          >
-                            <Play size={12} />
-                            Přehrát
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={async () => {
-                              const success = await handleDeleteAudio(song.audioUrl);
-                              if (success) {
-                                handleEditChange('audioUrl', '');
-                              }
-                            }}
-                            style={{
-                              padding: '0.25rem 0.5rem',
-                              background: 'rgba(239, 68, 68, 0.1)',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
-                              borderRadius: 'var(--radius)',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                              color: 'var(--color-danger)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem'
-                            }}
-                          >
-                            <XCircle size={12} />
-                            Smazat
-                          </motion.button>
-                        </div>
                       )}
-
-                      <input
-                        type="file"
-                        accept="audio/*"
-                        onChange={(e) => setAudioFile(e.target.files[0])}
-                        style={{
-                          fontSize: '0.875rem',
-                          padding: '0.5rem',
-                          border: '1px solid rgba(181, 31, 101, 0.3)',
-                          borderRadius: 'var(--radius)',
-                          width: '100%'
-                        }}
-                      />
-                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                        {song.audioUrl ? 'Nahrajte nový soubor pro nahrazení stávajícího' : 'Nahrajte audio soubor (MP3, WAV, OGG...)'}
-                      </div>
-                      {uploadingAudio && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', marginTop: '0.5rem' }}>
-                          Nahrávám audio soubor...
-                        </div>
-                      )}
-                      {audioFile && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', marginTop: '0.5rem' }}>
-                          ✓ Nový soubor vybrán: {audioFile.name}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Noty s vizualizací */}
-                    <div style={{ marginTop: '1rem' }}>
-                      {/* Pokud nejsou noty skryté, zobrazit je */}
-                      {!hideNotes[song.id] && (
-                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap', alignItems: 'center', padding: '0.5rem' }}>
-                    {(() => {
-                      // Rozdělit notes na jednotlivé elementy (může být string nebo pole)
-                      let notesArray;
-                      if (Array.isArray(song.notes)) {
-                        notesArray = song.notes;
-                      } else {
-                        // String - rozdělit podle mezer, rour a nových řádků
-                        notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
-                      }
-                      return notesArray;
-                    })().map((note, noteIndex) => {
-                      const isCurrent = playingSong === song.id && currentNoteIndex === noteIndex;
-                      // Odstranit zvýraznění následující noty - mate to vizuálně
-                      const isNext = false;
-
-                      return (
-                        <MelodyNote
-                          key={noteIndex}
-                          note={note}
-                          isCurrent={isCurrent}
-                          isNext={isNext}
-                        />
-                      );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Režimy cvičení - univerzální komponenta s všemi tlačítky */}
-                      <PracticeModeControls
-                        isPracticing={practicingMode === song.id}
-                        isChallenge={challengeMode === song.id}
-                        practiceErrors={practiceErrors}
-                        progress={practiceProgress.length}
-                        totalNotes={(() => {
-                          let notesArray;
-                          if (Array.isArray(song.notes)) {
-                            notesArray = song.notes;
-                          } else {
-                            notesArray = song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
-                          }
-                          const validNotes = notesArray.map(n => normalizeNote(n)).filter(n => n !== null);
-                          return validNotes.length;
-                        })()}
-                        onStartPractice={() => startPractice(song)}
-                        onStartChallenge={() => startChallenge(song)}
-                        onStop={stopPractice}
-                        showStopButton={true}
-                        showHideNotesButton={true}
-                        hideNotes={hideNotes[song.id]}
-                        onToggleHideNotes={() => toggleHideNotes(song.id)}
-                        hideNotesDisabled={practicingMode === song.id || challengeMode === song.id}
-                        showKeyboardButton={true}
-                        keyboardVisible={showKeyboard === song.id}
-                        onToggleKeyboard={() => toggleKeyboard(song.id)}
-                      />
-                </div>
-
-                <AnimatePresence>
-                  {(showKeyboard === song.id || practicingMode === song.id || challengeMode === song.id || playingSong === song.id) && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      style={{
-                        marginTop: '1rem',
-                        marginBottom: '1rem'
-                      }}
-                    >
-                      <PianoKeyboard
-                        highlightedNotes={
-                          practicingMode === song.id
-                            ? (() => {
-                                // PROCVIČOVÁNÍ: Zvýraznit aktuální notu - nápověda pro uživatele
-                                const notesArray = Array.isArray(song.notes)
-                                  ? song.notes
-                                  : song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
-                                const currentIndex = practiceProgress.length;
-                                const currentNote = currentIndex < notesArray.length ? notesArray[currentIndex] : null;
-                                const normalized = currentNote ? normalizeNote(currentNote) : null;
-                                return normalized ? [normalized] : [];
-                              })()
-                            : challengeMode === song.id
-                            ? [] // VÝZVA: Žádné zvýraznění - bez nápovědy!
-                            : playingSong === song.id
-                            ? (() => {
-                                // PŘEHRÁVÁNÍ: Zvýraznit aktuálně hranou notu
-                                const notesArray = Array.isArray(song.notes)
-                                  ? song.notes
-                                  : song.notes.replace(/\|/g, ' ').replace(/\n/g, ' ').split(/\s+/).map(n => n.trim()).filter(n => n);
-                                const currentNote = currentNoteIndex >= 0 && currentNoteIndex < notesArray.length
-                                  ? notesArray[currentNoteIndex]
-                                  : null;
-                                const normalized = currentNote ? normalizeNote(currentNote) : null;
-                                return normalized ? [normalized] : [];
-                              })()
-                            : []
-                        }
-                        onNoteClick={(note) => handleNotePlay(note, song)}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Tip pro harmonizaci */}
-                {song.tips && (
-                  <InfoPanel
-                    title="Tip pro harmonizaci:"
-                    icon={BookOpen}
-                    variant="secondary"
-                  >
-                    {song.tips}
-                  </InfoPanel>
-                )}
-
-                {/* Text písničky (lyrics) */}
-                {song.lyrics && (
-                  <InfoPanel
-                    title="Text písničky:"
-                    icon={Music}
-                    variant="primary"
-                  >
-                    {song.lyrics}
-                  </InfoPanel>
-                )}
-                  </>
-                )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              </div>
-            </motion.div>
+                    </AnimatePresence>
+                  </ItemCard>
                 )}
               </SortableSongCard>
             ))}

@@ -1,6 +1,6 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 26. listopadu 2025
+Datum poslední aktualizace: 29. listopadu 2025
 
 ---
 
@@ -489,6 +489,40 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 ---
 
 ## ✅ Nedávno dokončené úkoly
+
+### Refaktoring Help dokumentace - Modularizace nápovědy (29.11.2025)
+**Dokončeno:** ✅
+**Popis:** Sjednocení help systému napříč aplikací, odstranění duplicitní accordion nápovědy z NoteComposer
+
+**Změny:**
+- ✅ **Přidání modularní help nápovědy do SongLibrary:**
+  - Import a použití HelpButton + HelpPanel komponent
+  - Nový state `showNoteFormatHelp`
+  - Help umístěný pod pole "Název písně" v obou formulářích (new song + edit song)
+  - Znovu použitá komponenta NoteFormatHelpContent s novým HelpPanel systémem
+
+- ✅ **Odstranění staré accordion nápovědy z NoteComposer:**
+  - Odstranění celé sekce s ikonou knihy 📖 (251 řádků kódu)
+  - Vyčištěné unused importy (BookOpen, ChevronUp, ChevronDown, AnimatePresence)
+  - Vyčištěný unused state (showHelp)
+  - NoteComposer je nyní jednodušší a má jen jednu odpovědnost (interaktivní zadávání not)
+
+**Soubory:**
+- `src/components/resources/SongLibrary.jsx` (+32 řádků)
+- `src/components/resources/NoteComposer.jsx` (-255 řádků)
+- Net změna: -223 řádků kódu
+
+**Benefity:**
+- Konzistentní help systém (ikona ❓) v celé aplikaci
+- Lepší UX - nápověda přímo u pole, kde se zadávají noty
+- Menší bundle size
+- Snadnější údržba
+
+**Dokumentace:**
+- `SESSION_CONTEXT-20251129.md`
+- `DOKUMENTACE-20251129.md`
+
+---
 
 ### Modularizace UI + Unifikace fontů + Migrace not na mezery (26.11.2025)
 **Dokončeno:** ✅
