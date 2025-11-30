@@ -1352,7 +1352,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                     layout="list"
                     leftControls={
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {/* Drag Handle + Play Button horizontálně */}
+                        {/* Drag Handle + Play Button */}
                         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                           {/* Drag Handle (pouze pro adminy) */}
                           {isAdmin && (
@@ -1402,8 +1402,10 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                       </div>
                     }
                     footer={
+                      <Chip text={song.difficulty} variant="difficulty" />
+                    }
+                    statusChips={
                       <>
-                        <Chip text={song.difficulty} variant="difficulty" />
                         <Chip text={song.key} variant="info" />
                         <Chip text={song.tempo} variant="info" />
                       </>
