@@ -3,6 +3,9 @@ import { CheckCircle, Music, Clock, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '../ui/Modal';
 import PianoKeyboard from './PianoKeyboard';
+import NoteCard from './NoteCard';
+import { getDifficultyColor, LESSON_XP_REWARD, MODAL_AUTO_CLOSE_DELAY } from '../../utils/lessonUtils';
+import { RADIUS } from '../../utils/styleConstants';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 import { supabase } from '../../lib/supabase';
@@ -49,7 +52,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
             user_id: currentUser.id,
             lesson_id: lesson.id.toString(),
             lesson_title: lesson.title,
-            xp_earned: 50
+            xp_earned: LESSON_XP_REWARD
           }]);
 
         if (lessonError) {
@@ -69,7 +72,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
             .from('piano_user_stats')
             .update({
               lessons_completed: (stats.lessons_completed || 0) + 1,
-              total_xp: (stats.total_xp || 0) + 50,
+              total_xp: (stats.total_xp || 0) + LESSON_XP_REWARD,
               updated_at: new Date().toISOString()
             })
             .eq('user_id', currentUser.id);
@@ -87,23 +90,10 @@ function LessonModal({ lesson, isOpen, onClose }) {
         // Zavřít modal po 2 sekundách
         setTimeout(() => {
           onClose();
-        }, 2000);
+        }, MODAL_AUTO_CLOSE_DELAY);
       } catch (error) {
         console.error('Chyba při ukládání lekce:', error);
       }
-    }
-  };
-
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'začátečník':
-        return 'badge-success';
-      case 'mírně pokročilý začátečník':
-        return 'badge-warning';
-      case 'pokročilý':
-        return 'badge-primary';
-      default:
-        return '';
     }
   };
 
@@ -156,36 +146,15 @@ function LessonModal({ lesson, isOpen, onClose }) {
             background: 'rgba(255, 255, 255, 0.6)',
             backdropFilter: 'blur(15px)',
             WebkitBackdropFilter: 'blur(15px)',
-            borderRadius: 'var(--radius)',
-            marginBottom: '2rem',
-            border: '1px solid rgba(255, 255, 255, 0.4)'
+            borderRadius: RADIUS.lg,
+            marginBottom: '2rem'
           }}>
             {lesson.content.notes.map((note, index) => (
-              <motion.div
+              <NoteCard
                 key={index}
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: index * 0.1, type: 'spring' }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                style={{
-                  flex: 1,
-                  textAlign: 'center',
-                  padding: '1rem',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  borderRadius: 'var(--radius)',
-                  fontSize: '1.5rem',
-                  fontWeight: 600,
-                  color: 'var(--color-primary)',
-                  border: '2px solid rgba(45, 91, 120, 0.3)',
-                  boxShadow: '0 4px 15px rgba(45, 91, 120, 0.2)',
-                  cursor: 'pointer'
-                }}
-                onClick={() => audioEngine.playNote(note, 0.5)}
-              >
-                {note}
-              </motion.div>
+                note={note}
+                index={index}
+              />
             ))}
           </div>
 
@@ -203,7 +172,7 @@ function LessonModal({ lesson, isOpen, onClose }) {
             gap: '0.75rem'
           }}>
             {lesson.content.instructions.map((instruction, index) => (
-              <li key={index} style={{ fontSize: '0.9375rem', lineHeight: 1.6, color: '#1e293b' }}>
+              <li key={index}>
                 {instruction}
               </li>
             ))}
@@ -222,11 +191,10 @@ function LessonModal({ lesson, isOpen, onClose }) {
                   background: 'rgba(16, 185, 129, 0.1)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
-                  borderRadius: 'var(--radius)',
+                  borderRadius: RADIUS.lg,
                   textAlign: 'center',
                   color: 'var(--color-success)',
                   fontWeight: 500,
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
                   display: 'inline-block'
                 }}
               >

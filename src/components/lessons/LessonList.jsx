@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, GripVertical } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -20,12 +20,12 @@ import { CSS } from '@dnd-kit/utilities';
 import LessonCard from './LessonCard';
 import LessonModal from './LessonModal';
 import { useItemEdit } from '../../hooks/useItemEdit';
+import { DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
 import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
 import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
 import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 
-// Sortable Lesson Wrapper
 function SortableLessonCard({ lesson, children }) {
   const {
     attributes,
@@ -50,7 +50,6 @@ function SortableLessonCard({ lesson, children }) {
 }
 
 function LessonList() {
-  // Použití custom hooku pro editaci a expanzi položek
   const {
     editingItem: editingLesson,
     editForm,
@@ -75,12 +74,10 @@ function LessonList() {
 
   const isAdmin = currentUser?.is_admin === true;
 
-  // Načíst lekce z databáze při načtení komponenty
   useEffect(() => {
     fetchLessons();
   }, [fetchLessons]);
 
-  // Sensors pro drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -88,7 +85,6 @@ function LessonList() {
     })
   );
 
-  // Handle drag end
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
@@ -249,11 +245,7 @@ function LessonList() {
                 <FormSelect
                   value={newLessonForm.difficulty}
                   onChange={(e) => handleNewLessonChange('difficulty', e.target.value)}
-                  options={[
-                    { value: 'začátečník', label: 'začátečník' },
-                    { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
-                    { value: 'pokročilý', label: 'pokročilý' }
-                  ]}
+                  options={DIFFICULTY_OPTIONS}
                 />
               </div>
 

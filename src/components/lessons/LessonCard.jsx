@@ -1,30 +1,18 @@
 import { Clock, TrendingUp, Edit3, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
+import { getDifficultyColor, DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
 import { ActionButtonGroup, SaveButton, CancelButton } from '../ui/ButtonComponents';
 import { ItemCard } from '../ui/CardComponents';
 import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 
 function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners, isEditing, editForm, onEditFormChange, onSaveEdit, onCancelEdit }) {
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'začátečník':
-        return 'badge-success';
-      case 'mírně pokročilý začátečník':
-        return 'badge-warning';
-      case 'pokročilý':
-        return 'badge-primary';
-      default:
-        return '';
-    }
-  };
 
   const handleClick = () => {
     audioEngine.playClick();
     onClick(lesson);
   };
 
-  // Drag handle komponenta
   const dragHandle = isAdmin && dragAttributes && dragListeners && (
     <div
       {...dragAttributes}
@@ -48,7 +36,6 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
     </div>
   );
 
-  // Header actions pro adminy
   const headerActions = isAdmin && (
     <ActionButtonGroup
       onEdit={() => onEdit(lesson)}
@@ -57,7 +44,6 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
     />
   );
 
-  // Footer s obtížností a délkou
   const footer = (
     <>
       <span className={`badge ${getDifficultyColor(lesson.difficulty)}`}>
@@ -81,7 +67,6 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
       isExpanded={isEditing}
       onClick={handleClick}
     >
-      {/* Edit Form Accordion */}
       <AnimatePresence>
         {isEditing && editForm && (
           <motion.div
@@ -113,11 +98,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
                   <FormSelect
                     value={editForm.difficulty}
                     onChange={(e) => onEditFormChange('difficulty', e.target.value)}
-                    options={[
-                      { value: 'začátečník', label: 'začátečník' },
-                      { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
-                      { value: 'pokročilý', label: 'pokročilý' }
-                    ]}
+                    options={DIFFICULTY_OPTIONS}
                   />
                 </div>
 

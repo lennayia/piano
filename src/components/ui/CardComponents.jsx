@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { RADIUS, SHADOW } from '../../utils/styleConstants';
 
 /**
@@ -198,24 +198,25 @@ export function ProgressBar({ current, total, title = 'Položka', label, style =
  * ItemCard - univerzální karta pro zobrazení položek (lekce, písničky, atd.)
  *
  * LAYOUT 'list':
- * - Řádek 1: Nadpis (vlevo) + chips (délka, úroveň) + šipka (vpravo)
- * - Řádek 2: Jemný divider
- * - Řádek 3: Description/chips (vlevo) + akční tlačítka (vpravo)
- * - Responsivní: na menších obrazovkách se vše skládá pod sebe
- * - leftControls: Pokud je zadáno, vytvoří samostatnou levou sekci (pro play button atd.)
+ * - Řádek 1: leftControls (drag+play) vlevo | footer chipy (obtížnost, délka) + očko vpravo
+ * - Řádek 2: Nadpis (samostatný řádek)
+ * - Řádek 3: Popis (samostatný, zalamovací na 2 řádky)
+ * - Řádek 4: statusChips (odpovědi, postup) vlevo | headerActions (edit/delete) vpravo
+ * - Responsivní: řádky se zalamují na menších obrazovkách
  *
  * LAYOUT 'grid':
  * - Původní struktura s full height a flexbox
  *
  * @param {string} title - Nadpis karty
- * @param {string} description - Popis položky nebo další chipy
+ * @param {string} description - Popis položky
  * @param {React.ReactNode} headerActions - Akční tlačítka pro admina (např. ActionButtonGroup)
- * @param {React.ReactNode} footer - Chipy (obtížnost, délka, atd.)
- * @param {React.ReactNode} dragHandle - Drag handle pro přetahování (malý, inline s nadpisem)
- * @param {React.ReactNode} leftControls - Levá ovládací sekce (play button, drag handle, atd.)
- * @param {boolean} isExpanded - Je karta rozbalená? (chevron rotace)
+ * @param {React.ReactNode} footer - Chipy (obtížnost, délka) - zobrazí se v řádku 1 vpravo
+ * @param {React.ReactNode} statusChips - Chipy se statusem (odpovědi, postup) - zobrazí se v řádku 4 vlevo
+ * @param {React.ReactNode} dragHandle - Drag handle pro přetahování
+ * @param {React.ReactNode} leftControls - Levá ovládací sekce v řádku 1 (play button, drag handle)
+ * @param {boolean} isExpanded - Je karta rozbalená? (změna ikony oka)
  * @param {string} layout - 'list' | 'grid' - layout typ (default: 'list')
- * @param {function} onClick - Callback při kliknutí na kartu
+ * @param {function} onClick - Callback při kliknutí na ikonu oka
  * @param {object} style - Dodatečné styly
  */
 export function ItemCard({
@@ -223,6 +224,7 @@ export function ItemCard({
   description,
   headerActions,
   footer,
+  statusChips,
   dragHandle,
   leftControls,
   isExpanded = false,
@@ -269,134 +271,129 @@ export function ItemCard({
       {isList ? (
         // LIST LAYOUT - nová struktura
         <>
+          {/* Řádek 1: leftControls+footer chipy (vlevo, zalamovací) | očko (vpravo, vždy na 1. řádku) */}
           <div style={{
             display: 'flex',
             gap: '1rem',
-            flexWrap: 'wrap', // Povolit wrap pro menší obrazovky
-            alignItems: 'flex-start'
+            alignItems: 'flex-start',
+            marginBottom: '0.75rem'
           }}>
-            {/* Levá ovládací sekce (play button, drag handle atd.) */}
-            {leftControls && (
-              <div className="item-card-left-controls" style={{
-                flexShrink: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-                alignSelf: 'stretch'
-              }}>
-                {leftControls}
-              </div>
-            )}
-
-            {/* Hlavní obsah vpravo */}
-            <div className="item-card-main-content" style={{
+            {/* Levá sekce - leftControls + footer chipy (může se zalamovat) */}
+            <div style={{
+              display: 'flex',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
               flex: 1,
-              minWidth: leftControls ? '300px' : 0 // Jen pokud jsou leftControls, jinak bez omezení
+              alignItems: 'center'
             }}>
-              {/* Řádek 1: Nadpis + chips + šipka */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                flexWrap: 'wrap' // Povolit zalamování chipů pod nadpis
-              }}>
-                {/* Vlevo: Drag handle + Nadpis */}
+              {/* leftControls - vždy na prvním řádku (bez wrap) */}
+              {leftControls ? (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  flex: '1 1 auto',
-                  minWidth: '150px' // Minimální šířka pro nadpis
+                  flexShrink: 0
                 }}>
-                  {dragHandle}
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: '1.125rem',
-                    wordBreak: 'break-word' // Zalomit dlouhý nadpis
-                  }}>{title}</h3>
+                  {leftControls}
                 </div>
+              ) : dragHandle ? (
+                <div style={{ flexShrink: 0 }}>
+                  {dragHandle}
+                </div>
+              ) : null}
 
-                {/* Vpravo: Footer chips + Šipka - zarovnané doprava */}
+              {/* Footer chipy - mohou se zalamovat na další řádek */}
+              {footer}
+            </div>
+
+            {/* Očko - vždy vpravo, vždy na prvním řádku */}
+            <motion.div
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onClick) onClick(e);
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                cursor: 'pointer',
+                padding: '0.25rem',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              {isExpanded ? (
+                <EyeOff size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
+              ) : (
+                <Eye size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
+              )}
+            </motion.div>
+          </div>
+
+          {/* Řádek 2: Nadpis */}
+          <h3 style={{
+            margin: 0,
+            marginBottom: '0.75rem'
+            /* fontSize, fontWeight, lineHeight, color dědí z globálního CSS */
+          }}>
+            {title}
+          </h3>
+
+          {/* Řádek 3: Popis (samostatný, zalamovací na 2 řádky) */}
+          {description && (
+            <div style={{
+              marginBottom: '1rem',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
+              {typeof description === 'string' ? (
+                <p className="text-secondary" style={{ margin: 0 }}>
+                  {description}
+                </p>
+              ) : (
+                description
+              )}
+            </div>
+          )}
+
+          {/* Řádek 4: statusChips (vlevo) | headerActions (vpravo) */}
+          {(statusChips || headerActions) && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              flexWrap: 'wrap'
+            }}>
+              {/* Vlevo: Status chipy (odpovědi, postup atd.) */}
+              {statusChips && (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
-                  marginLeft: 'auto' // Zarovnat doprava i po wrap
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
+                  flex: '1 1 auto'
                 }}>
-                  {footer && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      flexWrap: 'nowrap' // Chipy vedle sebe, ne pod sebou
-                    }}>
-                      {footer}
-                    </div>
-                  )}
-                  <motion.div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onClick) onClick(e);
-                    }}
-                    animate={{ rotate: isExpanded ? 90 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{
-                      cursor: 'pointer',
-                      padding: '0.25rem',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <ChevronRight size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
-                  </motion.div>
+                  {statusChips}
                 </div>
-              </div>
+              )}
 
-              {/* Řádek 2: Divider */}
-              <div style={{
-                width: '100%',
-                height: '1px',
-                background: 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent)',
-                margin: '1rem 0'
-              }} />
-
-              {/* Řádek 3: Description/chips + akční tlačítka */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1rem',
-                flexWrap: 'wrap'
-              }}>
-                {/* Vlevo: Description nebo další chipy */}
-                {description && (
-                  <div style={{ flex: '1 1 auto', minWidth: '200px' }}>
-                    {typeof description === 'string' ? (
-                      <p className="text-secondary" style={{ margin: 0, lineHeight: 1.5 }}>
-                        {description}
-                      </p>
-                    ) : (
-                      description
-                    )}
-                  </div>
-                )}
-
-                {/* Vpravo: Akční tlačítka pro admina */}
-                {headerActions && (
-                  <div style={{
-                    marginLeft: 'auto' // Zarovnat doprava i po wrap
-                  }}>
-                    {headerActions}
-                  </div>
-                )}
-              </div>
+              {/* Vpravo: Akční tlačítka pro admina - vždy zarovnané doprava */}
+              {headerActions && (
+                <div style={{
+                  marginLeft: 'auto',
+                  flexShrink: 0
+                }}>
+                  {headerActions}
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* Rozbalovací obsah - mimo flexbox, napříč celou šířkou */}
+          {/* Rozbalovací obsah */}
           {children}
         </>
       ) : (
@@ -421,7 +418,7 @@ export function ItemCard({
             )}
           </div>
 
-          {/* Footer s chevron */}
+          {/* Footer s očkem */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -437,8 +434,6 @@ export function ItemCard({
                 e.stopPropagation();
                 if (onClick) onClick(e);
               }}
-              animate={{ rotate: isExpanded ? 90 : 0 }}
-              transition={{ duration: 0.2 }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               style={{
@@ -450,7 +445,11 @@ export function ItemCard({
                 justifyContent: 'center'
               }}
             >
-              <ChevronRight size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
+              {isExpanded ? (
+                <EyeOff size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
+              ) : (
+                <Eye size={20} color="var(--color-text-secondary)" style={{ pointerEvents: 'none' }} />
+              )}
             </motion.div>
           </div>
 
