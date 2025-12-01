@@ -5,6 +5,7 @@ import UserList from '../components/admin/UserList';
 import AchievementManager from '../components/admin/AchievementManager';
 import QuizManager from '../components/admin/QuizManager';
 import GamificationManager from '../components/admin/GamificationManager';
+import GamificationManagerBackup from '../components/admin/GamificationManager-backup';
 import PageSection from '../components/ui/PageSection';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
@@ -25,7 +26,8 @@ function Admin() {
     overview: [
       { id: 'stats', label: 'Statistiky', icon: BarChart3 },
       { id: 'users', label: 'Uživatelé', icon: Users },
-      { id: 'gamification', label: 'Gamifikace', icon: Zap }
+      { id: 'gamification', label: 'Gamifikace', icon: Zap },
+      { id: 'gamification-backup', label: 'Gamifikace - Záloha', icon: Eye }
     ],
     management: [
       { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
@@ -83,6 +85,10 @@ function Admin() {
         gamification: {
           title: 'Přehled gamifikace',
           description: 'Celkový přehled XP pravidel a odměn v aplikaci.'
+        },
+        'gamification-backup': {
+          title: 'Přehled gamifikace - Záloha',
+          description: 'Původní verze před refactoringem - pro porovnání.'
         }
       },
       management: {
@@ -215,6 +221,11 @@ function Admin() {
         {/* PŘEHLED - Gamifikace */}
         {activeMainTab === 'overview' && activeSubTab === 'gamification' && (
           <GamificationManager />
+        )}
+
+        {/* PŘEHLED - Gamifikace - Záloha */}
+        {activeMainTab === 'overview' && activeSubTab === 'gamification-backup' && (
+          <GamificationManagerBackup />
         )}
 
         {/* SPRÁVA - Kvízy */}
