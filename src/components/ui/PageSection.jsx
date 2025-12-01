@@ -136,7 +136,7 @@ export function PageSection({
               tabs={currentThirdLevelTabs}
               activeTab={activeThirdLevelTab}
               onTabChange={onThirdLevelTabChange}
-              options={{ layout: 'pill', size: 'xs', style: { marginBottom: 0 } }}
+              options={{ layout: 'pill', size: 'sm', style: { marginBottom: 0 } }}
             />
           )}
 
