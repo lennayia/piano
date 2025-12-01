@@ -724,8 +724,7 @@ function AchievementManager() {
                   gridColumn: '1 / -1',  // Roztáhne přes celou šířku gridu
                   padding: '1.5rem',
                   background: 'rgba(181, 31, 101, 0.05)',
-                  borderRadius: 'calc(var(--radius) * 2)',
-                  border: '2px solid var(--color-primary)',
+                  borderRadius: '24px',
                   boxShadow: 'var(--glass-shadow)',
                   maxWidth: '100%',
                   boxSizing: 'border-box',

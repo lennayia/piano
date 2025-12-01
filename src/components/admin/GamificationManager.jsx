@@ -1,23 +1,52 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import {
-  Trophy, Users, TrendingUp, Award,
-  Settings, Save, HelpCircle, Crown,
+  Trophy, TrendingUp, Award,
+  Save, HelpCircle,
   Zap, Music, BookOpen, Target, Star
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import TabButtons, { HelpPanel } from '../ui/TabButtons';
-import { HelpButton } from '../ui/ButtonComponents';
-import useQuizXPStore from '../../store/useQuizXPStore';
+import { HelpButton, AddButton, CancelButton, SaveButton } from '../ui/ButtonComponents';
+import { FormInput, FormLabel, FormTextarea, FormSelect } from '../ui/FormComponents';
 import useXPRulesStore from '../../store/useXPRulesStore';
+import useRewardsConfigStore from '../../store/useRewardsConfigStore';
+import useLevelStore from '../../store/useLevelStore';
+import AchievementManager from './AchievementManager';
+import AchievementCard from './AchievementCard';
+import UniversalFormInline from './UniversalFormInline';
 
 const GamificationManager = () => {
   const [activeTab, setActiveTab] = useState('xp-rules');
-  const [leaderboard, setLeaderboard] = useState([]);
   const [achievements, setAchievements] = useState([]); // Dynamické achievements z DB
 
-  // Store pro základní XP pravidla
+  // NOVÝ CRUD systém pro XP pravidla
+  const rewards = useRewardsConfigStore((state) => state.rewards);
+  const loadRewards = useRewardsConfigStore((state) => state.loadRewards);
+  const createReward = useRewardsConfigStore((state) => state.createReward);
+  const updateReward = useRewardsConfigStore((state) => state.updateReward);
+  const deleteReward = useRewardsConfigStore((state) => state.deleteReward);
+  const duplicateReward = useRewardsConfigStore((state) => state.duplicateReward);
+  const rewardsLoading = useRewardsConfigStore((state) => state.loading);
+  const rewardsError = useRewardsConfigStore((state) => state.error);
+
+  // State pro CRUD formuláře
+  const [editingRewardId, setEditingRewardId] = useState(null);
+  const [isCreatingReward, setIsCreatingReward] = useState(false);
+  const [rewardFormData, setRewardFormData] = useState({
+    action_type: '',
+    category: 'xp_rule',
+    label: '',
+    description: '',
+    xp_value: 0,
+    icon_type: 'Zap',
+    icon_color: 'primary',
+    display_order: 0,
+    is_active: true
+  });
+
+  // Store pro základní XP pravidla (KEEP pro backward compatibility)
   const xpRules = useXPRulesStore((state) => state.xpRules);
   const saveXPRules = useXPRulesStore((state) => state.saveXPRules);
   const loadXPRules = useXPRulesStore((state) => state.loadXPRules);
@@ -27,24 +56,10 @@ const GamificationManager = () => {
   // Local state pro editaci XP pravidel před uložením
   const [tempXPRules, setTempXPRules] = useState(xpRules);
 
-  // Store pro XP bonusy za kvízy
-  const quizBonuses = useQuizXPStore((state) => state.quizBonuses);
-  const saveQuizBonuses = useQuizXPStore((state) => state.saveQuizBonuses);
-  const loadQuizBonuses = useQuizXPStore((state) => state.loadQuizBonuses);
-  const quizBonusesLoading = useQuizXPStore((state) => state.loading);
-  const quizBonusesError = useQuizXPStore((state) => state.error);
-
-  // Local state pro editaci bonusů před uložením
-  const [tempQuizBonuses, setTempQuizBonuses] = useState(quizBonuses);
-
   // Synchronizovat temp state když se načtou hodnoty ze store
   useEffect(() => {
     setTempXPRules(xpRules);
   }, [xpRules]);
-
-  useEffect(() => {
-    setTempQuizBonuses(quizBonuses);
-  }, [quizBonuses]);
 
   const [levelThresholds, setLevelThresholds] = useState([
     { level: 1, min_xp: 0, max_xp: 99, label: 'Začátečník' },
@@ -53,32 +68,26 @@ const GamificationManager = () => {
     { level: 4, min_xp: 500, max_xp: 999, label: 'Expert' },
     { level: 5, min_xp: 1000, max_xp: null, label: 'Mistr' }
   ]);
-  const [loading, setLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   const tabs = [
-    { id: 'xp-rules', label: 'XP Pravidla', icon: Zap },
+    { id: 'xp-rules', label: 'XP Body', icon: Zap },
     { id: 'bonuses', label: 'Bonusy', icon: Trophy },
-    { id: 'achievements', label: 'Odměny', icon: Award },
-    { id: 'levels', label: 'Levely', icon: TrendingUp },
-    { id: 'leaderboard', label: 'Žebříček', icon: Trophy },
-    { id: 'stats', label: 'Statistiky', icon: Target }
+    { id: 'achievements-management', label: 'Odměny', icon: Award },
+    { id: 'levels', label: 'Levely', icon: TrendingUp }
   ];
 
   useEffect(() => {
-    if (activeTab === 'leaderboard' || activeTab === 'stats') {
-      fetchLeaderboard();
-    } else if (activeTab === 'xp-rules' || activeTab === 'achievements') {
+    if (activeTab === 'xp-rules') {
       fetchAchievements();
     }
   }, [activeTab]);
 
-  // Načíst XP pravidla a bonusy při mountování
+  // Načíst XP pravidla při mountování
   useEffect(() => {
     loadXPRules();
-    loadQuizBonuses();
-  }, [loadXPRules, loadQuizBonuses]);
+  }, [loadXPRules]);
 
   const fetchAchievements = async () => {
     try {
@@ -94,42 +103,10 @@ const GamificationManager = () => {
     }
   };
 
-  const fetchLeaderboard = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('piano_user_stats')
-        .select(`
-          *,
-          piano_users!inner (
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .order('total_xp', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setLeaderboard(data || []);
-    } catch (err) {
-      console.error('Error fetching leaderboard:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSaveXPRules = async () => {
     await saveXPRules(tempXPRules);
     if (!xpRulesError) {
       showSuccess('XP pravidla byla uložena');
-    }
-  };
-
-  const handleSaveQuizBonuses = async () => {
-    await saveQuizBonuses(tempQuizBonuses);
-    if (!quizBonusesError) {
-      showSuccess('Bonusy za kvízy byly uloženy');
     }
   };
 
@@ -142,15 +119,103 @@ const GamificationManager = () => {
     setTimeout(() => setSuccessMessage(''), 3000);
   };
 
-  const getLevelForXP = (xp) => {
-    for (let i = levelThresholds.length - 1; i >= 0; i--) {
-      const threshold = levelThresholds[i];
-      if (xp >= threshold.min_xp) {
-        return threshold;
-      }
+  // ============================================================================
+  // NOVÉ CRUD FUNKCE PRO XP PRAVIDLA
+  // ============================================================================
+
+  // Načíst rewards podle aktivního tabu
+  useEffect(() => {
+    if (activeTab === 'xp-rules') {
+      loadRewards('xp_rule');
+    } else if (activeTab === 'bonuses') {
+      loadRewards('quiz_bonus');
     }
-    return levelThresholds[0];
+  }, [activeTab, loadRewards]);
+
+  // Vytvořit nové XP pravidlo
+  const handleCreateReward = () => {
+    setIsCreatingReward(true);
+    setEditingRewardId(null);
+    setRewardFormData({
+      action_type: '',
+      category: activeTab === 'bonuses' ? 'quiz_bonus' : 'xp_rule',
+      label: '',
+      description: '',
+      xp_value: 0,
+      icon_type: 'Zap',
+      icon_color: 'primary',
+      display_order: rewards.length + 1,
+      is_active: true
+    });
   };
+
+  // Editovat XP pravidlo
+  const handleEditReward = (reward) => {
+    setEditingRewardId(reward.id);
+    setIsCreatingReward(false);
+    setRewardFormData({
+      action_type: reward.action_type,
+      category: reward.category,
+      label: reward.label,
+      description: reward.description || '',
+      xp_value: reward.xp_value,
+      icon_type: reward.icon_type || 'Zap',
+      icon_color: reward.icon_color || 'primary',
+      display_order: reward.display_order || 0,
+      is_active: reward.is_active !== false
+    });
+  };
+
+  // Uložit reward (create nebo update)
+  const handleSaveReward = async () => {
+    try {
+      if (isCreatingReward) {
+        await createReward(rewardFormData);
+        showSuccess('XP pravidlo bylo vytvořeno');
+      } else {
+        await updateReward(editingRewardId, rewardFormData);
+        showSuccess('XP pravidlo bylo aktualizováno');
+      }
+      handleCancelReward();
+    } catch (error) {
+      console.error('Error saving reward:', error);
+    }
+  };
+
+  // Smazat reward
+  const handleDeleteReward = async (id, label) => {
+    if (!window.confirm(`Opravdu chcete smazat pravidlo "${label}"?`)) {
+      return;
+    }
+    try {
+      await deleteReward(id, false); // soft delete
+      showSuccess('XP pravidlo bylo smazáno');
+    } catch (error) {
+      console.error('Error deleting reward:', error);
+    }
+  };
+
+  // Duplikovat reward
+  const handleDuplicateReward = async (reward) => {
+    try {
+      await duplicateReward(reward);
+      showSuccess('XP pravidlo bylo zkopírováno');
+    } catch (error) {
+      console.error('Error duplicating reward:', error);
+    }
+  };
+
+  // Zrušit editaci
+  const handleCancelReward = () => {
+    setIsCreatingReward(false);
+    setEditingRewardId(null);
+  };
+
+  const isEditingReward = isCreatingReward || editingRewardId !== null;
+
+  // Filtrované rewards podle kategorie
+  const xpRuleRewards = rewards.filter(r => r.category === 'xp_rule');
+  const bonusRewards = rewards.filter(r => r.category === 'quiz_bonus');
 
   return (
     <div className="card">
@@ -230,660 +295,227 @@ const GamificationManager = () => {
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
       >
-        {/* XP Rules Tab */}
+        {/* XP Rules Tab - NOVÝ CRUD SYSTÉM */}
         {activeTab === 'xp-rules' && (
           <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Zap size={20} color="var(--color-primary)" />
-              Pravidla XP bodů
-            </h3>
-
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
-              {/* Lesson Completion */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <BookOpen size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Dokončení lekce</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.lesson_completion}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, lesson_completion: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za dokončení jedné lekce</span>
-                </div>
-              </div>
-
-              {/* Quiz Correct */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Target size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Správná odpověď v kvízu</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.quiz_correct}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, quiz_correct: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za správnou odpověď</span>
-                </div>
-              </div>
-
-              {/* Song Completion */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Music size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Dokončení písně</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.song_completion}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, song_completion: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za dokončení písně</span>
-                </div>
-              </div>
-
-              {/* Chord Challenge Completion */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Target size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Dokončení akordové výzvy</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.chord_challenge_completion}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, chord_challenge_completion: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za dokončení výzvy s akordy</span>
-                </div>
-              </div>
-
-              {/* Daily Goal Completion */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Star size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Dokončení denního cíle</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.daily_goal_completion}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, daily_goal_completion: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za splnění denního cíle</span>
-                </div>
-              </div>
-
-              {/* Daily Login */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Award size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Denní přihlášení</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.daily_login}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, daily_login: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za denní login</span>
-                </div>
-              </div>
-
-              {/* Achievement Unlock */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(45, 91, 120, 0.2)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Trophy size={20} color="var(--color-secondary)" />
-                  <h4 style={{ margin: 0 }}>Odemčení achievementu</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempXPRules.achievement_unlock}
-                    onChange={(e) => setTempXPRules({ ...tempXPRules, achievement_unlock: parseInt(e.target.value) })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP za odemčení odměny</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bonusy za dokončení kvízu */}
-            <h3 style={{
-              marginTop: '2.5rem',
-              marginBottom: '1.5rem',
+            {/* Header s Add tlačítkem */}
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              paddingTop: '2rem',
-              borderTop: '2px solid rgba(45, 91, 120, 0.2)'
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem'
             }}>
-              <Trophy size={20} color="var(--color-primary)" />
-              Bonusy za dokončení kvízu
-            </h3>
-
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
-              {/* Perfect Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Trophy size={20} style={{ color: '#10b981' }} />
-                  <h4 style={{ margin: 0 }}>Perfektní výkon (100%)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.perfect}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, perfect: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za perfektní výkon</span>
-                </div>
-              </div>
-
-              {/* Excellent Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Star size={20} style={{ color: '#f59e0b' }} />
-                  <h4 style={{ margin: 0 }}>Vynikající (80%+)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.excellent}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, excellent: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za 80%+ úspěšnost</span>
-                </div>
-              </div>
-
-              {/* Good Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <TrendingUp size={20} style={{ color: '#3b82f6' }} />
-                  <h4 style={{ margin: 0 }}>Velmi dobře (70%+)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.good}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, good: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za 70%+ úspěšnost</span>
-                </div>
-              </div>
-
-              {/* Decent Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Target size={20} style={{ color: '#8b5cf6' }} />
-                  <h4 style={{ margin: 0 }}>Dobrý začátek (50%+)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.decent}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, decent: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za 50%+ úspěšnost</span>
-                </div>
-              </div>
+              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Zap size={20} color="var(--color-primary)" />
+                XP Pravidla
+              </h3>
+              {!isEditingReward && (
+                <AddButton onClick={handleCreateReward} />
+              )}
             </div>
 
-            {/* Tlačítko pro uložení bonusů */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSaveQuizBonuses}
-              disabled={quizBonusesLoading}
-              className="btn btn-primary"
-              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <Save size={18} />
-              {quizBonusesLoading ? 'Ukládám...' : 'Uložit bonusy za kvízy'}
-            </motion.button>
+            {/* Create formulář - pouze pro nové */}
+            <AnimatePresence>
+              {isCreatingReward && (
+                <UniversalFormInline
+                  type="xp_rule"
+                  formData={rewardFormData}
+                  onChange={setRewardFormData}
+                  onSave={handleSaveReward}
+                  onCancel={handleCancelReward}
+                  isCreating={true}
+                  loading={rewardsLoading}
+                />
+              )}
+            </AnimatePresence>
 
-            {/* Error message */}
-            {quizBonusesError && (
-              <div style={{
-                marginTop: '1rem',
-                padding: '0.75rem',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                borderRadius: 'var(--radius)',
-                color: '#ef4444'
-              }}>
-                Chyba při ukládání: {quizBonusesError}
+            {/* Loading state */}
+            {rewardsLoading && !isEditingReward && (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                Načítám XP pravidla...
               </div>
             )}
 
-            {/* Dynamické XP pravidla - Achievements */}
-            {achievements.length > 0 && (
-              <>
-                <h3 style={{
-                  marginTop: '2.5rem',
-                  marginBottom: '1.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  paddingTop: '2rem',
-                  borderTop: '2px solid rgba(45, 91, 120, 0.2)'
-                }}>
-                  <Award size={20} color="var(--color-primary)" />
-                  Odměny (Achievements)
-                </h3>
-                <div style={{ display: 'grid', gap: '1.5rem' }}>
-                  {achievements.map((achievement) => {
-                    const IconComponent = (achievement.icon_type && LucideIcons[achievement.icon_type]) || Trophy;
-
-                    return (
-                      <div
-                        key={achievement.id}
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.6)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(181, 31, 101, 0.2)',
-                          borderRadius: 'var(--radius)',
-                          padding: '1.25rem'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                          {IconComponent && <IconComponent size={20} color="var(--color-primary)" />}
-                          <div style={{ flex: 1 }}>
-                            <h4 style={{ margin: 0, marginBottom: '0.25rem' }}>{achievement.title}</h4>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                              {achievement.description}
-                            </p>
-                          </div>
-                        </div>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '1rem',
-                          background: 'rgba(45, 91, 120, 0.05)',
-                          padding: '0.75rem',
-                          borderRadius: 'var(--radius-sm)',
-                          marginTop: '0.75rem'
-                        }}>
-                          <Zap size={16} color="var(--color-secondary)" />
-                          <span style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '1.125rem' }}>
-                            {achievement.xp_reward} XP
-                          </span>
-                          <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                            za odemčení této odměny
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{
-                  marginTop: '1.5rem',
-                  padding: '1rem',
-                  background: 'rgba(45, 91, 120, 0.08)',
-                  borderRadius: 'var(--radius)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem'
-                }}>
-                  <HelpCircle size={20} color="var(--color-secondary)" />
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
-                    <strong>Info:</strong> Pro úpravu XP hodnot u achievements přejděte do záložky <strong>"Odměny"</strong> v hlavní navigaci.
-                  </p>
-                </div>
-              </>
-            )}
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSaveXPRules}
-              disabled={xpRulesLoading}
-              className="btn btn-primary"
-              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <Save size={18} />
-              {xpRulesLoading ? 'Ukládám...' : 'Uložit XP pravidla'}
-            </motion.button>
-
-            {/* Error message */}
-            {xpRulesError && (
+            {/* Error state */}
+            {rewardsError && !isEditingReward && (
               <div style={{
-                marginTop: '1rem',
-                padding: '0.75rem',
+                padding: '1rem',
                 background: 'rgba(239, 68, 68, 0.1)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: 'var(--radius)',
-                color: '#ef4444'
+                color: '#ef4444',
+                marginBottom: '1rem'
               }}>
-                Chyba při ukládání: {xpRulesError}
+                Chyba: {rewardsError}
+              </div>
+            )}
+
+            {/* Seznam karet */}
+            {!rewardsLoading && xpRuleRewards.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))'
+              }}>
+                {xpRuleRewards.map(reward => (
+                  <React.Fragment key={reward.id}>
+                    <AchievementCard
+                      type="xp_rule"
+                      data={reward}
+                      onEdit={handleEditReward}
+                      onDuplicate={handleDuplicateReward}
+                      onDelete={handleDeleteReward}
+                    />
+
+                    {/* Inline editační formulář pod kartou */}
+                    {editingRewardId === reward.id && !isCreatingReward && (
+                      <UniversalFormInline
+                        type="xp_rule"
+                        formData={rewardFormData}
+                        onChange={setRewardFormData}
+                        onSave={handleSaveReward}
+                        onCancel={handleCancelReward}
+                        isCreating={false}
+                        loading={rewardsLoading}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!rewardsLoading && xpRuleRewards.length === 0 && !isEditingReward && (
+              <div style={{
+                textAlign: 'center',
+                padding: '3rem',
+                background: 'rgba(45, 91, 120, 0.05)',
+                borderRadius: 'var(--radius)',
+                border: '2px dashed rgba(45, 91, 120, 0.2)'
+              }}>
+                <Zap size={48} color="var(--color-border)" style={{ margin: '0 auto 1rem' }} />
+                <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+                  Zatím nemáte žádná XP pravidla
+                </p>
+                <AddButton onClick={handleCreateReward} />
               </div>
             )}
           </div>
         )}
 
-        {/* Bonuses Tab */}
+        {/* Bonuses Tab - NOVÝ CRUD SYSTÉM */}
         {activeTab === 'bonuses' && (
           <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Trophy size={20} color="var(--color-primary)" />
-              Správa bonusů za výkon
-            </h3>
-
-            {/* Quiz Bonuses - přesunuté z XP Rules */}
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
-              {/* Perfect Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Trophy size={20} style={{ color: '#10b981' }} />
-                  <h4 style={{ margin: 0 }}>Perfektní výkon (100%)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.perfect}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, perfect: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za perfektní výkon</span>
-                </div>
-              </div>
-
-              {/* Excellent Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Star size={20} style={{ color: '#f59e0b' }} />
-                  <h4 style={{ margin: 0 }}>Vynikající (80%+)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.excellent}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, excellent: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za 80%+ úspěšnost</span>
-                </div>
-              </div>
-
-              {/* Good Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <TrendingUp size={20} style={{ color: '#3b82f6' }} />
-                  <h4 style={{ margin: 0 }}>Velmi dobře (70%+)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.good}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, good: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za 70%+ úspěšnost</span>
-                </div>
-              </div>
-
-              {/* Decent Score */}
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.25rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                  <Target size={20} style={{ color: '#8b5cf6' }} />
-                  <h4 style={{ margin: 0 }}>Dobrý začátek (50%+)</h4>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <input
-                    type="number"
-                    value={tempQuizBonuses.decent}
-                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, decent: parseInt(e.target.value) || 0 })}
-                    className="form-input"
-                    style={{ width: '120px' }}
-                    min="0"
-                  />
-                  <span style={{ color: '#64748b' }}>XP bonus za 50%+ úspěšnost</span>
-                </div>
-              </div>
+            {/* Header s Add tlačítkem */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Trophy size={20} color="var(--color-primary)" />
+                Kvízové bonusy
+              </h3>
+              {!isEditingReward && (
+                <AddButton onClick={handleCreateReward} />
+              )}
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSaveQuizBonuses}
-              disabled={quizBonusesLoading}
-              className="btn btn-primary"
-              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <Save size={18} />
-              {quizBonusesLoading ? 'Ukládám...' : 'Uložit bonusy'}
-            </motion.button>
+            {/* Create formulář - pouze pro nové */}
+            <AnimatePresence>
+              {isCreatingReward && (
+                <UniversalFormInline
+                  type="quiz_bonus"
+                  formData={rewardFormData}
+                  onChange={setRewardFormData}
+                  onSave={handleSaveReward}
+                  onCancel={handleCancelReward}
+                  isCreating={true}
+                  loading={rewardsLoading}
+                />
+              )}
+            </AnimatePresence>
 
-            {quizBonusesError && (
+            {/* Loading state */}
+            {rewardsLoading && !isEditingReward && (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                Načítám kvízové bonusy...
+              </div>
+            )}
+
+            {/* Error state */}
+            {rewardsError && !isEditingReward && (
               <div style={{
-                marginTop: '1rem',
-                padding: '0.75rem',
+                padding: '1rem',
                 background: 'rgba(239, 68, 68, 0.1)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: 'var(--radius)',
-                color: '#ef4444'
+                color: '#ef4444',
+                marginBottom: '1rem'
               }}>
-                Chyba při ukládání: {quizBonusesError}
+                Chyba: {rewardsError}
+              </div>
+            )}
+
+            {/* Seznam karet */}
+            {!rewardsLoading && bonusRewards.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))'
+              }}>
+                {bonusRewards.map(reward => (
+                  <React.Fragment key={reward.id}>
+                    <AchievementCard
+                      type="quiz_bonus"
+                      data={reward}
+                      onEdit={handleEditReward}
+                      onDuplicate={handleDuplicateReward}
+                      onDelete={handleDeleteReward}
+                    />
+
+                    {/* Inline editační formulář pod kartou */}
+                    {editingRewardId === reward.id && !isCreatingReward && (
+                      <UniversalFormInline
+                        type="quiz_bonus"
+                        formData={rewardFormData}
+                        onChange={setRewardFormData}
+                        onSave={handleSaveReward}
+                        onCancel={handleCancelReward}
+                        isCreating={false}
+                        loading={rewardsLoading}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!rewardsLoading && bonusRewards.length === 0 && !isEditingReward && (
+              <div style={{
+                textAlign: 'center',
+                padding: '3rem',
+                background: 'rgba(45, 91, 120, 0.05)',
+                borderRadius: 'var(--radius)',
+                border: '2px dashed rgba(45, 91, 120, 0.2)'
+              }}>
+                <Trophy size={48} color="var(--color-border)" style={{ margin: '0 auto 1rem' }} />
+                <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+                  Zatím nemáte žádné kvízové bonusy
+                </p>
+                <AddButton onClick={handleCreateReward} />
               </div>
             )}
           </div>
         )}
 
-        {/* Achievements Tab */}
-        {activeTab === 'achievements' && (
+
+        {/* Achievements Management Tab - AchievementManager s CRUD */}
+        {activeTab === 'achievements-management' && (
           <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Award size={20} color="var(--color-primary)" />
-              Správa odměn (Achievements)
-            </h3>
-
-            {achievements.length === 0 ? (
-              <div style={{
-                padding: '2rem',
-                textAlign: 'center',
-                background: 'rgba(45, 91, 120, 0.08)',
-                borderRadius: 'var(--radius)'
-              }}>
-                <Award size={48} color="var(--color-secondary)" style={{ marginBottom: '1rem' }} />
-                <p style={{ color: '#64748b', margin: 0 }}>
-                  Zatím nebyly vytvořeny žádné achievements
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gap: '1.5rem' }}>
-                {achievements.map((achievement) => {
-                  const IconComponent = (achievement.icon_type && LucideIcons[achievement.icon_type]) || Trophy;
-
-                  return (
-                    <div
-                      key={achievement.id}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.6)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(181, 31, 101, 0.2)',
-                        borderRadius: 'var(--radius)',
-                        padding: '1.25rem'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                        {IconComponent && <IconComponent size={20} color="var(--color-primary)" />}
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ margin: 0, marginBottom: '0.25rem' }}>{achievement.title}</h4>
-                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                            {achievement.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        background: 'rgba(45, 91, 120, 0.05)',
-                        padding: '0.75rem',
-                        borderRadius: 'var(--radius-sm)',
-                        marginTop: '0.75rem'
-                      }}>
-                        <Zap size={16} color="var(--color-secondary)" />
-                        <span style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '1.125rem' }}>
-                          {achievement.xp_reward} XP
-                        </span>
-                        <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                          za odemčení této odměny
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div style={{
-              marginTop: '1.5rem',
-              padding: '1rem',
-              background: 'rgba(45, 91, 120, 0.08)',
-              borderRadius: 'var(--radius)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem'
-            }}>
-              <HelpCircle size={20} color="var(--color-secondary)" />
-              <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
-                <strong>Info:</strong> Pro plnou správu achievements (přidat, upravit, smazat) použijte AchievementManager v sekci Gamifikace → Správa → Odměny.
-              </p>
-            </div>
+            <AchievementManager />
           </div>
         )}
 
@@ -895,77 +527,74 @@ const GamificationManager = () => {
               Nastavení levelů
             </h3>
 
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {levelThresholds.map((threshold, index) => (
-                <div
-                  key={threshold.level}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(10px)',
-                    border: '2px solid rgba(45, 91, 120, 0.2)',
-                    borderRadius: 'var(--radius)',
-                    padding: '1rem',
-                    display: 'grid',
-                    gridTemplateColumns: '80px 1fr 120px 120px',
-                    gap: '1rem',
-                    alignItems: 'center'
-                  }}
-                >
-                  <div style={{
-                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                    color: 'white',
-                    borderRadius: 'var(--radius)',
-                    padding: '0.5rem',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '1.125rem'
-                  }}>
-                    Level {threshold.level}
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              {levelThresholds.map((level) => (
+                <div key={level.level} className="card" style={{ padding: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                    <div style={{
+                      background: 'linear-gradient(135deg, var(--color-secondary), var(--color-primary))',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      fontSize: '1.25rem'
+                    }}>
+                      {level.level}
+                    </div>
+                    <h4 style={{ margin: 0 }}>Level {level.level}</h4>
                   </div>
 
-                  <input
-                    type="text"
-                    value={threshold.label}
-                    onChange={(e) => {
-                      const newThresholds = [...levelThresholds];
-                      newThresholds[index].label = e.target.value;
-                      setLevelThresholds(newThresholds);
-                    }}
-                    className="form-input"
-                    placeholder="Název levelu"
-                  />
+                  <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div>
+                      <FormLabel text="Název levelu" />
+                      <FormInput
+                        type="text"
+                        value={level.label}
+                        onChange={(e) => {
+                          const updated = levelThresholds.map(l =>
+                            l.level === level.level ? { ...l, label: e.target.value } : l
+                          );
+                          setLevelThresholds(updated);
+                        }}
+                      />
+                    </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Od:</span>
-                    <input
-                      type="number"
-                      value={threshold.min_xp}
-                      onChange={(e) => {
-                        const newThresholds = [...levelThresholds];
-                        newThresholds[index].min_xp = parseInt(e.target.value);
-                        setLevelThresholds(newThresholds);
-                      }}
-                      className="form-input"
-                      style={{ width: '80px' }}
-                      min="0"
-                    />
-                  </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <FormLabel text="Minimální XP" />
+                        <FormInput
+                          type="number"
+                          value={level.min_xp}
+                          onChange={(e) => {
+                            const updated = levelThresholds.map(l =>
+                              l.level === level.level ? { ...l, min_xp: parseInt(e.target.value) || 0 } : l
+                            );
+                            setLevelThresholds(updated);
+                          }}
+                          min="0"
+                        />
+                      </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Do:</span>
-                    <input
-                      type="number"
-                      value={threshold.max_xp || ''}
-                      onChange={(e) => {
-                        const newThresholds = [...levelThresholds];
-                        newThresholds[index].max_xp = e.target.value ? parseInt(e.target.value) : null;
-                        setLevelThresholds(newThresholds);
-                      }}
-                      className="form-input"
-                      style={{ width: '80px' }}
-                      placeholder="∞"
-                      min="0"
-                    />
+                      <div>
+                        <FormLabel text="Maximální XP" />
+                        <FormInput
+                          type="number"
+                          value={level.max_xp || ''}
+                          onChange={(e) => {
+                            const updated = levelThresholds.map(l =>
+                              l.level === level.level ? { ...l, max_xp: e.target.value ? parseInt(e.target.value) : null } : l
+                            );
+                            setLevelThresholds(updated);
+                          }}
+                          min="0"
+                          placeholder={level.max_xp === null ? 'Bez limitu' : ''}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -984,205 +613,6 @@ const GamificationManager = () => {
           </div>
         )}
 
-        {/* Leaderboard Tab */}
-        {activeTab === 'leaderboard' && (
-          <div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '1.5rem'
-            }}>
-              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Trophy size={20} color="var(--color-primary)" />
-                TOP 50 žebříček
-              </h3>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={fetchLeaderboard}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.875rem' }}
-              >
-                Aktualizovat
-              </motion.button>
-            </div>
-
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                Načítám žebříček...
-              </div>
-            ) : leaderboard.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                Zatím žádní uživatelé
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                {leaderboard.map((user, index) => {
-                  const level = getLevelForXP(user.total_xp || 0);
-                  const isTopThree = index < 3;
-
-                  return (
-                    <motion.div
-                      key={user.user_id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      style={{
-                        background: isTopThree
-                          ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 255, 255, 0.6))'
-                          : 'rgba(255, 255, 255, 0.6)',
-                        backdropFilter: 'blur(10px)',
-                        border: isTopThree
-                          ? '2px solid rgba(255, 215, 0, 0.4)'
-                          : '1px solid rgba(45, 91, 120, 0.2)',
-                        borderRadius: 'var(--radius)',
-                        padding: '1rem',
-                        display: 'grid',
-                        gridTemplateColumns: '60px 1fr auto auto',
-                        gap: '1rem',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <div style={{
-                        background: isTopThree
-                          ? 'linear-gradient(135deg, #FFD700, #FFA500)'
-                          : 'linear-gradient(135deg, var(--color-secondary), var(--color-primary))',
-                        color: 'white',
-                        borderRadius: '50%',
-                        width: '50px',
-                        height: '50px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '1.25rem',
-                        position: 'relative'
-                      }}>
-                        {index + 1}
-                        {isTopThree && (
-                          <Crown
-                            size={16}
-                            style={{
-                              position: 'absolute',
-                              top: '-8px',
-                              right: '-8px',
-                              color: '#FFD700'
-                            }}
-                          />
-                        )}
-                      </div>
-
-                      <div>
-                        <div style={{ fontWeight: '600', fontSize: '1rem', marginBottom: '0.25rem' }}>
-                          {user.piano_users?.first_name && user.piano_users?.last_name
-                            ? `${user.piano_users.first_name} ${user.piano_users.last_name}`
-                            : 'Neznámý uživatel'}
-                        </div>
-                        <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                          {user.piano_users?.email}
-                        </div>
-                      </div>
-
-                      <div style={{
-                        background: 'rgba(45, 91, 120, 0.1)',
-                        borderRadius: 'var(--radius)',
-                        padding: '0.5rem 1rem',
-                        textAlign: 'center'
-                      }}>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                          Level {level.level}
-                        </div>
-                        <div style={{ fontWeight: '600', color: 'var(--color-primary)' }}>
-                          {level.label}
-                        </div>
-                      </div>
-
-                      <div style={{
-                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                        color: 'white',
-                        borderRadius: 'var(--radius)',
-                        padding: '0.75rem 1.25rem',
-                        textAlign: 'center',
-                        minWidth: '100px'
-                      }}>
-                        <div style={{ fontSize: '0.75rem', opacity: 0.9, marginBottom: '0.25rem' }}>
-                          Celkem XP
-                        </div>
-                        <div style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
-                          {user.total_xp || 0}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Stats Tab */}
-        {activeTab === 'stats' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Target size={20} color="var(--color-primary)" />
-              Celkové statistiky gamifikace
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.1), rgba(255, 255, 255, 0.6))',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(45, 91, 120, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.5rem',
-                textAlign: 'center'
-              }}>
-                <Users size={32} color="var(--color-secondary)" style={{ marginBottom: '0.75rem' }} />
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-                  {leaderboard.length}
-                </div>
-                <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                  Aktivních uživatelů
-                </div>
-              </div>
-
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.1), rgba(255, 255, 255, 0.6))',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(181, 31, 101, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.5rem',
-                textAlign: 'center'
-              }}>
-                <Zap size={32} color="var(--color-primary)" style={{ marginBottom: '0.75rem' }} />
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-                  {leaderboard.reduce((sum, user) => sum + (user.total_xp || 0), 0)}
-                </div>
-                <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                  Celkem XP rozdáno
-                </div>
-              </div>
-
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(45, 91, 120, 0.1), rgba(255, 255, 255, 0.6))',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(45, 91, 120, 0.3)',
-                borderRadius: 'var(--radius)',
-                padding: '1.5rem',
-                textAlign: 'center'
-              }}>
-                <Trophy size={32} color="var(--color-secondary)" style={{ marginBottom: '0.75rem' }} />
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-                  {leaderboard.length > 0 ? Math.round(leaderboard.reduce((sum, user) => sum + (user.total_xp || 0), 0) / leaderboard.length) : 0}
-                </div>
-                <div style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                  Průměr XP na uživatele
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </motion.div>
     </div>
   );

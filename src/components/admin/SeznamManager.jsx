@@ -1,0 +1,651 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
+import {
+  Trophy, TrendingUp, Award,
+  Save, HelpCircle,
+  Zap, Music, BookOpen, Target, Star
+} from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import TabButtons, { HelpPanel } from '../ui/TabButtons';
+import { HelpButton } from '../ui/ButtonComponents';
+import useXPRulesStore from '../../store/useXPRulesStore';
+import useQuizXPStore from '../../store/useQuizXPStore';
+
+const SeznamManager = () => {
+  const [activeTab, setActiveTab] = useState('xp-body');
+  const [achievements, setAchievements] = useState([]); // Dynamické achievements z DB
+  const [showHelp, setShowHelp] = useState(false);
+
+  // Store pro základní XP pravidla (readonly v Seznam)
+  const xpRules = useXPRulesStore((state) => state.xpRules);
+  const loadXPRules = useXPRulesStore((state) => state.loadXPRules);
+
+  // Store pro XP bonusy za kvízy (readonly v Seznam)
+  const quizBonuses = useQuizXPStore((state) => state.quizBonuses);
+  const saveQuizBonuses = useQuizXPStore((state) => state.saveQuizBonuses);
+  const loadQuizBonuses = useQuizXPStore((state) => state.loadQuizBonuses);
+  const quizBonusesLoading = useQuizXPStore((state) => state.loading);
+  const quizBonusesError = useQuizXPStore((state) => state.error);
+
+  // Local state pro editaci bonusů před uložením
+  const [tempQuizBonuses, setTempQuizBonuses] = useState(quizBonuses);
+
+  // Synchronizovat temp state když se načtou hodnoty ze store
+  useEffect(() => {
+    setTempQuizBonuses(quizBonuses);
+  }, [quizBonuses]);
+
+  const [levelThresholds, setLevelThresholds] = useState([
+    { level: 1, min_xp: 0, max_xp: 99, label: 'Začátečník' },
+    { level: 2, min_xp: 100, max_xp: 249, label: 'Učedník' },
+    { level: 3, min_xp: 250, max_xp: 499, label: 'Pokročilý' },
+    { level: 4, min_xp: 500, max_xp: 999, label: 'Expert' },
+    { level: 5, min_xp: 1000, max_xp: null, label: 'Mistr' }
+  ]);
+
+  const tabs = [
+    { id: 'xp-body', label: 'XP body', icon: Zap },
+    { id: 'bonuses', label: 'Bonusy', icon: Trophy },
+    { id: 'achievements', label: 'Odměny', icon: Award },
+    { id: 'levels', label: 'Levely', icon: TrendingUp }
+  ];
+
+  useEffect(() => {
+    if (activeTab === 'achievements') {
+      fetchAchievements();
+    }
+  }, [activeTab]);
+
+  // Načíst XP pravidla a bonusy při mountování
+  useEffect(() => {
+    loadXPRules();
+    loadQuizBonuses();
+  }, [loadXPRules, loadQuizBonuses]);
+
+  const fetchAchievements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('piano_achievements')
+        .select('id, title, description, icon_type, xp_reward')
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+      setAchievements(data || []);
+    } catch (err) {
+      console.error('Error fetching achievements:', err);
+    }
+  };
+
+  const handleSaveQuizBonuses = async () => {
+    await saveQuizBonuses(tempQuizBonuses);
+  };
+
+  const handleSaveLevels = () => {
+    // TODO: Implement level saving to database
+    console.log('Saving levels:', levelThresholds);
+  };
+
+  const getLevelForXP = (xp) => {
+    for (let i = levelThresholds.length - 1; i >= 0; i--) {
+      const threshold = levelThresholds[i];
+      if (xp >= threshold.min_xp) {
+        return threshold;
+      }
+    }
+    return levelThresholds[0];
+  };
+
+  return (
+    <div className="card">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '1.5rem',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <h2 className="card-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Trophy size={24} color="var(--color-primary)" />
+            Přehled gamifikace
+          </h2>
+
+          <HelpButton onClick={() => setShowHelp(!showHelp)} isActive={showHelp} />
+        </div>
+      </div>
+
+      {/* Help Panel */}
+      <HelpPanel
+        isOpen={showHelp}
+        title="Nápověda - Přehled gamifikace"
+        content={{
+          tips: [
+            'XP body: Přehled všech XP pravidel (jen pro čtení)',
+            'Bonusy: Správa bonusů za výkon v kvízech',
+            'Odměny: Přehled všech achievementů',
+            'Levely: Nastavení levelů a jejich požadavků'
+          ]
+        }}
+      />
+
+      {/* Tabs */}
+      <div style={{ marginBottom: '2rem' }}>
+        <TabButtons
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          options={{ layout: 'pill', size: 'sm' }}
+        />
+      </div>
+
+      {/* Tab Content */}
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* XP Body Tab - Jen pro čtení */}
+        {activeTab === 'xp-body' && (
+          <div>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Zap size={20} color="var(--color-primary)" />
+              Přehled XP bodů
+            </h3>
+
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              {/* Lesson Completion */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <BookOpen size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Dokončení lekce</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.lesson_completion} XP
+                </div>
+              </div>
+
+              {/* Quiz Correct */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Target size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Správná odpověď v kvízu</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.quiz_correct} XP
+                </div>
+              </div>
+
+              {/* Song Completion */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Music size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Dokončení písně</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.song_completion} XP
+                </div>
+              </div>
+
+              {/* Chord Challenge Completion */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Target size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Dokončení akordové výzvy</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.chord_challenge_completion} XP
+                </div>
+              </div>
+
+              {/* Daily Goal Completion */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Star size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Dokončení denního cíle</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.daily_goal_completion} XP
+                </div>
+              </div>
+
+              {/* Daily Login */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Award size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Denní přihlášení</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.daily_login} XP
+                </div>
+              </div>
+
+              {/* Achievement Unlock */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Trophy size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Odemčení achievementu</h4>
+                </div>
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
+                  color: 'var(--color-primary)'
+                }}>
+                  {xpRules.achievement_unlock} XP
+                </div>
+              </div>
+            </div>
+
+            {/* Info o editaci */}
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              background: 'rgba(45, 91, 120, 0.08)',
+              borderRadius: 'var(--radius)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <HelpCircle size={20} color="var(--color-secondary)" />
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
+                <strong>Pro úpravu XP pravidel</strong> přejděte do sekce <strong>Gamifikace → Pravidla → XP Pravidla</strong>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Bonuses Tab */}
+        {activeTab === 'bonuses' && (
+          <div>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Trophy size={20} color="var(--color-primary)" />
+              Správa bonusů za výkon
+            </h3>
+
+            {/* Quiz Bonuses - přesunuté z XP Rules */}
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              {/* Perfect Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Trophy size={20} style={{ color: '#10b981' }} />
+                  <h4 style={{ margin: 0 }}>Perfektní výkon (100%)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.perfect}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, perfect: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za perfektní výkon</span>
+                </div>
+              </div>
+
+              {/* Excellent Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Star size={20} style={{ color: '#f59e0b' }} />
+                  <h4 style={{ margin: 0 }}>Vynikající (80%+)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.excellent}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, excellent: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za 80%+ úspěšnost</span>
+                </div>
+              </div>
+
+              {/* Good Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <TrendingUp size={20} style={{ color: '#3b82f6' }} />
+                  <h4 style={{ margin: 0 }}>Velmi dobře (70%+)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.good}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, good: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za 70%+ úspěšnost</span>
+                </div>
+              </div>
+
+              {/* Decent Score */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Target size={20} style={{ color: '#8b5cf6' }} />
+                  <h4 style={{ margin: 0 }}>Dobrý začátek (50%+)</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempQuizBonuses.decent}
+                    onChange={(e) => setTempQuizBonuses({ ...tempQuizBonuses, decent: parseInt(e.target.value) || 0 })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP bonus za 50%+ úspěšnost</span>
+                </div>
+              </div>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveQuizBonuses}
+              disabled={quizBonusesLoading}
+              className="btn btn-primary"
+              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Save size={18} />
+              {quizBonusesLoading ? 'Ukládám...' : 'Uložit bonusy'}
+            </motion.button>
+
+            {quizBonusesError && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.75rem',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 'var(--radius)',
+                color: '#ef4444'
+              }}>
+                Chyba při ukládání: {quizBonusesError}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Achievements Tab */}
+        {activeTab === 'achievements' && (
+          <div>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Award size={20} color="var(--color-primary)" />
+              Správa odměn (Achievements)
+            </h3>
+
+            {achievements.length === 0 ? (
+              <div style={{
+                padding: '2rem',
+                textAlign: 'center',
+                background: 'rgba(45, 91, 120, 0.08)',
+                borderRadius: 'var(--radius)'
+              }}>
+                <Award size={48} color="var(--color-secondary)" style={{ marginBottom: '1rem' }} />
+                <p style={{ color: '#64748b', margin: 0 }}>
+                  Zatím nebyly vytvořeny žádné achievements
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1.5rem' }}>
+                {achievements.map((achievement) => {
+                  const IconComponent = (achievement.icon_type && LucideIcons[achievement.icon_type]) || Trophy;
+
+                  return (
+                    <div
+                      key={achievement.id}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(181, 31, 101, 0.2)',
+                        borderRadius: 'var(--radius)',
+                        padding: '1.25rem'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                        {IconComponent && <IconComponent size={20} color="var(--color-primary)" />}
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: 0, marginBottom: '0.25rem' }}>{achievement.title}</h4>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                            {achievement.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        background: 'rgba(45, 91, 120, 0.05)',
+                        padding: '0.75rem',
+                        borderRadius: 'var(--radius-sm)',
+                        marginTop: '0.75rem'
+                      }}>
+                        <Zap size={16} color="var(--color-secondary)" />
+                        <span style={{ fontWeight: '600', color: 'var(--color-primary)', fontSize: '1.125rem' }}>
+                          {achievement.xp_reward} XP
+                        </span>
+                        <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
+                          za odemčení této odměny
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              background: 'rgba(45, 91, 120, 0.08)',
+              borderRadius: 'var(--radius)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            }}>
+              <HelpCircle size={20} color="var(--color-secondary)" />
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
+                <strong>Info:</strong> Pro plnou správu achievements (přidat, upravit, smazat) použijte AchievementManager v sekci Gamifikace → Pravidla → Odměny.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Levels Tab */}
+        {activeTab === 'levels' && (
+          <div>
+            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <TrendingUp size={20} color="var(--color-primary)" />
+              Nastavení levelů
+            </h3>
+
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {levelThresholds.map((threshold, index) => (
+                <div
+                  key={threshold.level}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(10px)',
+                    border: '2px solid rgba(45, 91, 120, 0.2)',
+                    borderRadius: 'var(--radius)',
+                    padding: '1rem',
+                    display: 'grid',
+                    gridTemplateColumns: '80px 1fr 120px 120px',
+                    gap: '1rem',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div style={{
+                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                    color: 'white',
+                    borderRadius: 'var(--radius)',
+                    padding: '0.5rem',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.125rem'
+                  }}>
+                    Level {threshold.level}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={threshold.label}
+                    onChange={(e) => {
+                      const newThresholds = [...levelThresholds];
+                      newThresholds[index].label = e.target.value;
+                      setLevelThresholds(newThresholds);
+                    }}
+                    className="form-input"
+                    placeholder="Název levelu"
+                  />
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Od:</span>
+                    <input
+                      type="number"
+                      value={threshold.min_xp}
+                      onChange={(e) => {
+                        const newThresholds = [...levelThresholds];
+                        newThresholds[index].min_xp = parseInt(e.target.value);
+                        setLevelThresholds(newThresholds);
+                      }}
+                      className="form-input"
+                      style={{ width: '80px' }}
+                      min="0"
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ color: '#64748b', fontSize: '0.875rem' }}>Do:</span>
+                    <input
+                      type="number"
+                      value={threshold.max_xp || ''}
+                      onChange={(e) => {
+                        const newThresholds = [...levelThresholds];
+                        newThresholds[index].max_xp = e.target.value ? parseInt(e.target.value) : null;
+                        setLevelThresholds(newThresholds);
+                      }}
+                      className="form-input"
+                      style={{ width: '80px' }}
+                      placeholder="∞"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveLevels}
+              className="btn btn-primary"
+              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Save size={18} />
+              Uložit nastavení levelů
+            </motion.button>
+          </div>
+        )}
+
+      </motion.div>
+    </div>
+  );
+};
+
+export default SeznamManager;

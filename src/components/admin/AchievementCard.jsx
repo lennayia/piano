@@ -4,12 +4,115 @@ import { Chip, ActionButtonGroup } from '../ui/ButtonComponents';
 import { CONFETTI_TYPE_LABELS } from '../../utils/achievementConstants';
 
 /**
- * Karta pro zobrazení jedné achievement (odměny)
+ * Univerzální karta pro zobrazení různých typů entit
+ * @param {string} type - Typ entity: 'achievement' | 'xp_rule' | 'quiz_bonus' | 'level'
+ * @param {object} data - Data entity
  */
-function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
+function AchievementCard({ type = 'achievement', data, achievement, onEdit, onDuplicate, onDelete }) {
+  // Zpětná kompatibilita - pokud je předán achievement prop místo data
+  const item = data || achievement;
+
+  // Mapování dat podle typu
+  const getMappedData = () => {
+    switch (type) {
+      case 'xp_rule':
+      case 'quiz_bonus':
+        return {
+          title: item.label,
+          description: item.description || '',
+          xp_value: item.xp_value,
+          action_type: item.action_type,
+          icon_type: item.icon_type || 'Zap',
+          icon_color: item.icon_color || 'primary',
+          display_order: item.display_order,
+          is_active: item.is_active,
+          id: item.id
+        };
+
+      case 'level':
+        return {
+          title: item.label,
+          description: `Level ${item.level}`,
+          level: item.level,
+          min_xp: item.min_xp,
+          max_xp: item.max_xp,
+          icon_type: item.icon_type || 'Star',
+          icon_color: item.icon_color || 'secondary',
+          is_active: item.is_active,
+          id: item.id
+        };
+
+      case 'achievement':
+      default:
+        return {
+          title: item.title,
+          description: item.description,
+          xp_reward: item.xp_reward,
+          confetti_type: item.confetti_type,
+          celebration_sound: item.celebration_sound,
+          icon_type: item.icon_type || 'Trophy',
+          icon_color: item.icon_color || 'primary',
+          is_active: item.is_active,
+          id: item.id
+        };
+    }
+  };
+
+  const mappedData = getMappedData();
+
   const renderIcon = (iconType, iconColor, size = 32) => {
     const IconComponent = LucideIcons[iconType] || LucideIcons.Trophy;
     return <IconComponent size={size} color={`var(--color-${iconColor})`} />;
+  };
+
+  // Renderování info chipů podle typu
+  const renderInfoChips = () => {
+    switch (type) {
+      case 'xp_rule':
+      case 'quiz_bonus':
+        return (
+          <>
+            <Chip text={`+${mappedData.xp_value} XP`} variant="info" />
+            <Chip text={`ID: ${mappedData.action_type}`} variant="info" />
+            {mappedData.display_order !== undefined && (
+              <Chip text={`Pořadí: ${mappedData.display_order}`} variant="info" />
+            )}
+            {mappedData.is_active === false && (
+              <Chip text="Neaktivní" variant="inactive" />
+            )}
+          </>
+        );
+
+      case 'level':
+        return (
+          <>
+            <Chip text={`Level ${mappedData.level}`} variant="info" />
+            <Chip
+              text={`${mappedData.min_xp} - ${mappedData.max_xp === null ? '∞' : mappedData.max_xp} XP`}
+              variant="info"
+            />
+            {mappedData.is_active === false && (
+              <Chip text="Neaktivní" variant="inactive" />
+            )}
+          </>
+        );
+
+      case 'achievement':
+      default:
+        return (
+          <>
+            <Chip text={`+${mappedData.xp_reward} XP`} variant="info" />
+            <Chip
+              text={CONFETTI_TYPE_LABELS[mappedData.confetti_type] || 'Kovové'}
+              variant="info"
+            />
+            <Chip text={mappedData.celebration_sound || 'achievement'} variant="info" />
+            {mappedData.is_active === false && (
+              <Chip text="Neaktivní" variant="inactive" />
+            )}
+          </>
+        );
+    }
   };
 
   return (
@@ -27,7 +130,7 @@ function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
         boxShadow: 'var(--glass-shadow)',
         position: 'relative',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        opacity: achievement.is_active === false ? 0.6 : 1
+        opacity: mappedData.is_active === false ? 0.6 : 1
       }}
     >
       {/* Drag handle - levý horní roh */}
@@ -51,12 +154,12 @@ function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
           position: 'absolute',
           bottom: '0.75rem',
           left: '0.75rem',
-          color: achievement.is_active === false ? '#ef4444' : '#10b981',
+          color: mappedData.is_active === false ? '#ef4444' : '#10b981',
           opacity: 0.7
         }}
-        title={achievement.is_active === false ? 'Neaktivní' : 'Aktivní'}
+        title={mappedData.is_active === false ? 'Neaktivní' : 'Aktivní'}
       >
-        {achievement.is_active === false ? <LucideIcons.XCircle size={18} /> : <LucideIcons.CheckCircle size={18} />}
+        {mappedData.is_active === false ? <LucideIcons.XCircle size={18} /> : <LucideIcons.CheckCircle size={18} />}
       </div>
 
       {/* Ikona odměny */}
@@ -70,11 +173,11 @@ function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 1rem',
-          border: `2px solid var(--color-${achievement.icon_color})`,
+          border: `2px solid var(--color-${mappedData.icon_color})`,
           boxShadow: `0 4px 16px rgba(181, 31, 101, 0.25)`
         }}
       >
-        {renderIcon(achievement.icon_type, achievement.icon_color, 32)}
+        {renderIcon(mappedData.icon_type, mappedData.icon_color, 32)}
       </div>
 
       {/* Název a popis */}
@@ -87,7 +190,7 @@ function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
           fontWeight: 600
         }}
       >
-        {achievement.title}
+        {mappedData.title}
       </h4>
       <p
         style={{
@@ -98,7 +201,7 @@ function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
           lineHeight: 1.5
         }}
       >
-        {achievement.description}
+        {mappedData.description}
       </p>
 
       {/* Info chipy */}
@@ -111,22 +214,14 @@ function AchievementCard({ achievement, onEdit, onDuplicate, onDelete }) {
           marginBottom: '1rem'
         }}
       >
-        <Chip text={`+${achievement.xp_reward} XP`} variant="info" />
-        <Chip
-          text={CONFETTI_TYPE_LABELS[achievement.confetti_type] || 'Kovové'}
-          variant="info"
-        />
-        <Chip text={achievement.celebration_sound || 'achievement'} variant="info" />
-        {achievement.is_active === false && (
-          <Chip text="Neaktivní" variant="inactive" />
-        )}
+        {renderInfoChips()}
       </div>
 
       {/* Akční tlačítka */}
       <ActionButtonGroup
-        onEdit={() => onEdit(achievement)}
-        onDuplicate={() => onDuplicate(achievement)}
-        onDelete={() => onDelete(achievement.id, achievement.title)}
+        onEdit={() => onEdit(item)}
+        onDuplicate={() => onDuplicate(item)}
+        onDelete={() => onDelete(item.id, mappedData.title)}
       />
     </motion.div>
   );

@@ -6,10 +6,10 @@ import useUserStore from '../store/useUserStore';
 
 // Komponenty
 import QuizManager from '../components/admin/QuizManager';
+import GamificationManager from '../components/admin/GamificationManager';
+import SeznamManager from '../components/admin/SeznamManager';
 
-// Wrapper komponenty pro 3. úroveň navigace (Gamifikace a Přehledy)
-import GamificationManagement from '../components/admin/gamification/GamificationManagement';
-import GamificationOverview from '../components/admin/gamification/GamificationOverview';
+// Wrapper komponenty pro 3. úroveň navigace
 import StatisticsOverview from '../components/admin/overview/StatisticsOverview';
 import UsersOverview from '../components/admin/overview/UsersOverview';
 
@@ -31,8 +31,8 @@ function Admin() {
       { id: 'theory', label: 'Teorie', icon: BookOpen }
     ],
     gamification: [
-      { id: 'management', label: 'Správa', icon: Settings },
-      { id: 'overview', label: 'Přehled', icon: Eye }
+      { id: 'pravidla', label: 'Pravidla', icon: Settings },
+      { id: 'seznam', label: 'Seznam', icon: Eye }
     ],
     overview: [
       { id: 'statistics', label: 'Statistiky', icon: BarChart3 },
@@ -91,12 +91,12 @@ function Admin() {
       },
 
       // GAMIFIKACE
-      'gamification-management': {
-        title: 'Správa gamifikace',
+      'gamification-pravidla': {
+        title: 'Gamifikace - Pravidla',
         description: 'Nastavte XP pravidla, bonusy, odměny a levely.'
       },
-      'gamification-overview': {
-        title: 'Přehled gamifikace',
+      'gamification-seznam': {
+        title: 'Gamifikace - Seznam',
         description: 'Celkový přehled XP pravidel, bonusů, odměn a levelů.'
       },
 
@@ -216,9 +216,9 @@ function Admin() {
         {activeMainTab === 'quizzes' && activeSubTab === 'listening' && <QuizManager />}
         {activeMainTab === 'quizzes' && activeSubTab === 'theory' && <QuizManager />}
 
-        {/* GAMIFIKACE - wrapper komponenty s vlastními TabButtons (stejně jako u Přehledů) */}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && <GamificationManagement />}
-        {activeMainTab === 'gamification' && activeSubTab === 'overview' && <GamificationOverview />}
+        {/* GAMIFIKACE - komponenty s vlastní 3. úrovní TabButtons */}
+        {activeMainTab === 'gamification' && activeSubTab === 'pravidla' && <GamificationManager />}
+        {activeMainTab === 'gamification' && activeSubTab === 'seznam' && <SeznamManager />}
 
         {/* PŘEHLEDY (bez 3. úrovně) */}
         {activeMainTab === 'overview' && activeSubTab === 'statistics' && <StatisticsOverview />}
