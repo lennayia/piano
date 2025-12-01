@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, BarChart3, Users, Gamepad2, Zap, Eye, Settings, Music, BookOpen } from 'lucide-react';
+import { Shield, BarChart3, Users, Gamepad2, Zap, Eye, Settings, Music, BookOpen, Trophy, Award, TrendingUp } from 'lucide-react';
 import PageSection from '../components/ui/PageSection';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
