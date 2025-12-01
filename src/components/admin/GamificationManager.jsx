@@ -65,7 +65,7 @@ const GamificationManager = () => {
   ];
 
   useEffect(() => {
-    if (activeTab === 'leaderboard') {
+    if (activeTab === 'leaderboard' || activeTab === 'stats') {
       fetchLeaderboard();
     } else if (activeTab === 'xp-rules') {
       fetchAchievements();
@@ -309,6 +309,56 @@ const GamificationManager = () => {
                     min="0"
                   />
                   <span style={{ color: '#64748b' }}>XP za dokončení písně</span>
+                </div>
+              </div>
+
+              {/* Chord Challenge Completion */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Target size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Dokončení akordové výzvy</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempXPRules.chord_challenge_completion}
+                    onChange={(e) => setTempXPRules({ ...tempXPRules, chord_challenge_completion: parseInt(e.target.value) })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP za dokončení výzvy s akordy</span>
+                </div>
+              </div>
+
+              {/* Daily Goal Completion */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(45, 91, 120, 0.2)',
+                borderRadius: 'var(--radius)',
+                padding: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                  <Star size={20} color="var(--color-secondary)" />
+                  <h4 style={{ margin: 0 }}>Dokončení denního cíle</h4>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <input
+                    type="number"
+                    value={tempXPRules.daily_goal_completion}
+                    onChange={(e) => setTempXPRules({ ...tempXPRules, daily_goal_completion: parseInt(e.target.value) })}
+                    className="form-input"
+                    style={{ width: '120px' }}
+                    min="0"
+                  />
+                  <span style={{ color: '#64748b' }}>XP za splnění denního cíle</span>
                 </div>
               </div>
 
