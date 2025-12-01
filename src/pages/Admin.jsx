@@ -14,10 +14,9 @@ import StatisticsOverview from '../components/admin/overview/StatisticsOverview'
 import UsersOverview from '../components/admin/overview/UsersOverview';
 
 function Admin() {
-  // 3-úrovňová navigace přímo v PageSection
+  // 2-úrovňová navigace (3. úroveň je ve wrapper komponentách)
   const [activeMainTab, setActiveMainTab] = useState('quizzes');
   const [activeSubTab, setActiveSubTab] = useState('listening');
-  const [activeThirdLevelTab, setActiveThirdLevelTab] = useState('');
 
   const currentUser = useUserStore((state) => state.currentUser);
   const getAllUsers = useUserStore((state) => state.getAllUsers);
@@ -41,37 +40,12 @@ function Admin() {
     ]
   };
 
-  // Third level tabs (úroveň 3) - podle kombinace main + sub
-  const thirdLevelTabs = {
-    'gamification-management': [
-      { id: 'xp-rules', label: 'XP Pravidla', icon: Zap },
-      { id: 'bonuses', label: 'Bonusy', icon: Trophy },
-      { id: 'achievements', label: 'Odměny', icon: Award },
-      { id: 'levels', label: 'Levely', icon: TrendingUp }
-    ],
-    'gamification-overview': [
-      { id: 'leaderboard', label: 'Žebříček', icon: Trophy },
-      { id: 'stats', label: 'Statistiky', icon: BarChart3 }
-    ]
-  };
-
   // Při změně hlavního tabu nastav první sub-tab
   useEffect(() => {
     if (subTabs[activeMainTab]?.[0]?.id) {
       setActiveSubTab(subTabs[activeMainTab][0].id);
     }
   }, [activeMainTab]);
-
-  // Při změně sub tabu nastav první third-level tab
-  useEffect(() => {
-    const thirdLevelKey = `${activeMainTab}-${activeSubTab}`;
-    const availableThirdLevelTabs = thirdLevelTabs[thirdLevelKey] || [];
-    if (availableThirdLevelTabs[0]?.id) {
-      setActiveThirdLevelTab(availableThirdLevelTabs[0].id);
-    } else {
-      setActiveThirdLevelTab('');
-    }
-  }, [activeMainTab, activeSubTab]);
 
   // Načíst všechny uživatele při otevření Admin stránky
   useEffect(() => {
@@ -230,13 +204,10 @@ function Admin() {
         description="Správa uživatelů, statistik a obsahu aplikace"
         mainTabs={mainTabs}
         subTabs={subTabs}
-        thirdLevelTabs={thirdLevelTabs}
         activeMainTab={activeMainTab}
         activeSubTab={activeSubTab}
-        activeThirdLevelTab={activeThirdLevelTab}
         onMainTabChange={setActiveMainTab}
         onSubTabChange={setActiveSubTab}
-        onThirdLevelTabChange={setActiveThirdLevelTab}
         mainTabsSize="md"
         sectionTitle={sectionContent.title}
         sectionDescription={sectionContent.description}
@@ -245,45 +216,9 @@ function Admin() {
         {activeMainTab === 'quizzes' && activeSubTab === 'listening' && <QuizManager />}
         {activeMainTab === 'quizzes' && activeSubTab === 'theory' && <QuizManager />}
 
-        {/* GAMIFIKACE → SPRÁVA (s 3. úrovní) */}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && activeThirdLevelTab === 'xp-rules' && (
-          <div className="card">
-            <h3>XP Pravidla - Správa</h3>
-            <p>Zde budete moci upravovat XP pravidla pro různé aktivity.</p>
-          </div>
-        )}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && activeThirdLevelTab === 'bonuses' && (
-          <div className="card">
-            <h3>Bonusy - Správa</h3>
-            <p>Zde budete moci spravovat bonusy za výkon (CRUD operace).</p>
-          </div>
-        )}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && activeThirdLevelTab === 'achievements' && (
-          <div className="card">
-            <h3>Odměny - Správa</h3>
-            <p>Zde budete moci spravovat achievements (CRUD operace).</p>
-          </div>
-        )}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && activeThirdLevelTab === 'levels' && (
-          <div className="card">
-            <h3>Levely - Správa</h3>
-            <p>Zde budete moci spravovat levely (CRUD operace).</p>
-          </div>
-        )}
-
-        {/* GAMIFIKACE → PŘEHLED (s 3. úrovní) */}
-        {activeMainTab === 'gamification' && activeSubTab === 'overview' && activeThirdLevelTab === 'leaderboard' && (
-          <div className="card">
-            <h3>Žebříček</h3>
-            <p>Přehled TOP hráčů podle XP.</p>
-          </div>
-        )}
-        {activeMainTab === 'gamification' && activeSubTab === 'overview' && activeThirdLevelTab === 'stats' && (
-          <div className="card">
-            <h3>Statistiky</h3>
-            <p>Celkové statistiky gamifikace.</p>
-          </div>
-        )}
+        {/* GAMIFIKACE - wrapper komponenty s vlastními TabButtons (stejně jako u Přehledů) */}
+        {activeMainTab === 'gamification' && activeSubTab === 'management' && <GamificationManagement />}
+        {activeMainTab === 'gamification' && activeSubTab === 'overview' && <GamificationOverview />}
 
         {/* PŘEHLEDY (bez 3. úrovně) */}
         {activeMainTab === 'overview' && activeSubTab === 'statistics' && <StatisticsOverview />}
