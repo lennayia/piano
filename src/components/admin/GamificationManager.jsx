@@ -59,6 +59,8 @@ const GamificationManager = () => {
 
   const tabs = [
     { id: 'xp-rules', label: 'XP Pravidla', icon: Zap },
+    { id: 'bonuses', label: 'Bonusy', icon: Trophy },
+    { id: 'achievements', label: 'Odměny', icon: Award },
     { id: 'levels', label: 'Levely', icon: TrendingUp },
     { id: 'leaderboard', label: 'Žebříček', icon: Trophy },
     { id: 'stats', label: 'Statistiky', icon: Target }

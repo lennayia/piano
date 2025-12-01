@@ -4,14 +4,11 @@ import PageSection from '../components/ui/PageSection';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
 
-// Komponenty
+// Admin komponenty
 import QuizManager from '../components/admin/QuizManager';
-
-// Wrapper komponenty pro 3. úroveň navigace (Gamifikace a Přehledy)
-import GamificationManagement from '../components/admin/gamification/GamificationManagement';
-import GamificationOverview from '../components/admin/gamification/GamificationOverview';
-import StatisticsOverview from '../components/admin/overview/StatisticsOverview';
-import UsersOverview from '../components/admin/overview/UsersOverview';
+import GamificationManager from '../components/admin/GamificationManager';
+import AdminDashboard from '../components/admin/Dashboard';
+import UserList from '../components/admin/UserList';
 
 function Admin() {
   // 2-úrovňová navigace (3. úroveň je ve wrapper komponentách)
@@ -213,16 +210,16 @@ function Admin() {
         sectionDescription={sectionContent.description}
       >
         {/* KVÍZY - QuizManager má vlastní TabButtons */}
-        {activeMainTab === 'quizzes' && activeSubTab === 'listening' && <QuizManager />}
-        {activeMainTab === 'quizzes' && activeSubTab === 'theory' && <QuizManager />}
+        {activeMainTab === 'quizzes' && <QuizManager />}
 
-        {/* GAMIFIKACE - wrapper komponenty s vlastními TabButtons */}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && <GamificationManagement />}
-        {activeMainTab === 'gamification' && activeSubTab === 'overview' && <GamificationOverview />}
+        {/* GAMIFIKACE - GamificationManager má vlastní TabButtons */}
+        {activeMainTab === 'gamification' && <GamificationManager />}
 
-        {/* PŘEHLEDY - wrapper komponenty s vlastními TabButtons */}
-        {activeMainTab === 'overview' && activeSubTab === 'statistics' && <StatisticsOverview />}
-        {activeMainTab === 'overview' && activeSubTab === 'users' && <UsersOverview />}
+        {/* PŘEHLEDY - Statistiky */}
+        {activeMainTab === 'overview' && activeSubTab === 'statistics' && <AdminDashboard />}
+
+        {/* PŘEHLEDY - Uživatelé */}
+        {activeMainTab === 'overview' && activeSubTab === 'users' && <UserList />}
       </PageSection>
     </>
   );
