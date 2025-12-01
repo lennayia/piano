@@ -59,8 +59,6 @@ const GamificationManager = () => {
 
   const tabs = [
     { id: 'xp-rules', label: 'XP Pravidla', icon: Zap },
-    { id: 'bonuses', label: 'Bonusy', icon: Trophy },
-    { id: 'achievements', label: 'Odměny', icon: Award },
     { id: 'levels', label: 'Levely', icon: TrendingUp },
     { id: 'leaderboard', label: 'Žebříček', icon: Trophy },
     { id: 'stats', label: 'Statistiky', icon: Target }
@@ -661,56 +659,6 @@ const GamificationManager = () => {
                 Chyba při ukládání: {xpRulesError}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Bonuses Tab */}
-        {activeTab === 'bonuses' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Trophy size={20} color="var(--color-primary)" />
-              Správa bonusů
-            </h3>
-
-            <div style={{
-              padding: '2rem',
-              background: 'rgba(45, 91, 120, 0.08)',
-              borderRadius: 'var(--radius)',
-              textAlign: 'center'
-            }}>
-              <Trophy size={48} color="var(--color-secondary)" style={{ marginBottom: '1rem' }} />
-              <h4 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>
-                Správa výkonnostních bonusů
-              </h4>
-              <p style={{ color: '#64748b', margin: 0 }}>
-                Zde budete moci spravovat bonusy za různé výkony a úspěchy.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Achievements Tab */}
-        {activeTab === 'achievements' && (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Award size={20} color="var(--color-primary)" />
-              Správa odměn
-            </h3>
-
-            <div style={{
-              padding: '2rem',
-              background: 'rgba(45, 91, 120, 0.08)',
-              borderRadius: 'var(--radius)',
-              textAlign: 'center'
-            }}>
-              <Award size={48} color="var(--color-secondary)" style={{ marginBottom: '1rem' }} />
-              <h4 style={{ marginBottom: '0.5rem', color: '#1e293b' }}>
-                Správa achievementů a odměn
-              </h4>
-              <p style={{ color: '#64748b', margin: 0 }}>
-                Zde budete moci vytvářet, upravovat a mazat achievements pro uživatele.
-              </p>
-            </div>
           </div>
         )}
 
