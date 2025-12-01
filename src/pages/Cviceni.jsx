@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Play, RotateCcw, CheckCircle, XCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target } from 'lucide-react';
@@ -34,6 +34,7 @@ function Cviceni() {
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const celebrationTriggeredRef = useRef(false); // Ochrana před dvojím spuštěním celebration
 
   // Hook pro sledování pokroku (dokončených akordů)
   const { completedCount, incrementCompleted, resetProgress } = useProgressTracking();
@@ -86,14 +87,19 @@ function Cviceni() {
     setCurrentChordIndex(0);
     resetProgress(); // Reset počítadla dokončených akordů
     setCompletedChordIds(new Set()); // Reset seznamu dokončených akordů v nové sérii
+    celebrationTriggeredRef.current = false; // Reset celebration flagu pro novou sérii
     resetPractice();
   }, [selectedDifficulty, allChords, isShuffled]);
 
   // Sledování dokončení všech akordů - VELKÁ OSLAVA! 🎉 (JEN v režimu Výzvy)
   useEffect(() => {
-    if (challengeMode && completedCount > 0 && chords.length > 0 && completedCount === chords.length) {
+    if (challengeMode && completedCount > 0 && chords.length > 0 && completedCount === chords.length && !celebrationTriggeredRef.current) {
       // Všechny akordy dokončeny v režimu Výzvy! Spustit oslavný zvuk a uložit do DB
       setTimeout(async () => {
+        // Zkontrolovat flag znovu (ochrana před race condition)
+        if (celebrationTriggeredRef.current) return;
+        celebrationTriggeredRef.current = true; // Nastavit flag, aby se nespustilo znovu
+
         audioEngine.playSuccess();
         setShowCelebration(true);
         setShowSuccessModal(true);

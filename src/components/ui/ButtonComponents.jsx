@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save, CheckCircle, XCircle, ChevronLeft, Play, Pause, Volume2 } from 'lucide-react';
+import { Edit, Copy, Trash2, Plus, HelpCircle, X, Save, CheckCircle, XCircle, ChevronLeft, Play, Pause, Volume2, Eye, EyeOff } from 'lucide-react';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
 import audioEngine from '../../utils/audio';
 
@@ -212,6 +212,7 @@ export function AddButton({ onClick, label = 'Přidat novou otázku', icon: Cust
         overflow: 'hidden',
         minWidth: iconOnly ? '44px' : 'auto',
         minHeight: iconOnly ? '44px' : 'auto',
+        marginLeft: 'auto',
         ...style
       }}
       {...props}
@@ -653,22 +654,14 @@ export function ActionButtonGroup({
   style = {},
   ...props
 }) {
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 600);
-
-  React.useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 600);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <div
       className="action-button-group"
       style={{
         display: 'flex',
-        gap: isMobile ? '0.1rem' : '0.25rem',
-        justifyContent: isMobile ? 'flex-start' : 'flex-end',
-        width: isMobile ? 'auto' : '100%',
+        gap: '0.25rem',
+        justifyContent: 'flex-end',
+        width: '100%',
         ...style
       }}
       {...props}
@@ -794,5 +787,52 @@ export function MelodyNote({ note, isCurrent = false, isNext = false, isPlayed =
         </motion.div>
       )}
     </motion.div>
+  );
+}
+
+/**
+ * CloseButton - Modulární zavírací tlačítko s animací oka
+ * @param {function} onClick - Funkce volaná při kliknutí
+ * @param {number} size - Velikost ikony (default: 20)
+ * @param {string} buttonSize - Velikost tlačítka (default: '36px')
+ * @param {object} style - Dodatečné inline styly
+ */
+export function CloseButton({ onClick, size = 20, buttonSize = '36px', style = {} }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleClick = () => {
+    audioEngine.playClick();
+    if (onClick) {
+      onClick();
+    }
+  };
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
+      style={{
+        background: 'rgba(45, 91, 120, 0.1)',
+        border: 'none',
+        borderRadius: '50%',
+        width: buttonSize,
+        height: buttonSize,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        ...style
+      }}
+    >
+      {isHovered ? (
+        <EyeOff size={size} color="var(--color-secondary)" />
+      ) : (
+        <Eye size={size} color="var(--color-secondary)" />
+      )}
+    </motion.button>
   );
 }

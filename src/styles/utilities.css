@@ -1,0 +1,134 @@
+/**
+ * Utilities - Utility třídy pro rychlé stylování
+ */
+
+/* ============================================
+   Grid System
+   ============================================ */
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ============================================
+   Flexbox Utilities
+   ============================================ */
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+.gap-3 { gap: 1.5rem; }
+
+/* ============================================
+   Spacing Utilities
+   ============================================ */
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+/* ============================================
+   Text Utilities
+   ============================================ */
+
+.text-center {
+  text-align: center;
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   Song Library Specific
+   ============================================ */
+
+.song-card-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.drag-handle {
+  cursor: grab;
+  padding: 0.5rem;
+  color: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.grip-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.play-button {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(45, 91, 120, 0.4);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.play-button.playing {
+  background: linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%);
+  box-shadow: 0 8px 32px rgba(181, 31, 101, 0.5);
+}
+
+.play-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.song-card-wrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}

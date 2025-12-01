@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Music, BookOpen, Plus, GripVertical, Upload, Volume2, XCircle, ChevronUp, Trophy } from 'lucide-react';
+import { Music, Play, Pause, BookOpen, Plus, GripVertical, Upload, Volume2, XCircle, ChevronUp, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -22,10 +22,8 @@ import PianoKeyboard from '../lessons/PianoKeyboard';
 import NoteComposer, { NoteIcons } from './NoteComposer';
 import Confetti from '../common/Confetti';
 import PracticeModeControls from '../ui/PracticeModeControls';
-import { Chip, ActionButtonGroup, SaveButton, CancelButton, MelodyNote, AddButton, HelpButton, PlayButton } from '../ui/ButtonComponents';
+import { Chip, ActionButtonGroup, SaveButton, CancelButton, MelodyNote, AddButton } from '../ui/ButtonComponents';
 import { InfoPanel, ItemCard } from '../ui/CardComponents';
-import { FormInput, FormTextarea, FormSelect, FormLabel } from '../ui/FormComponents';
-import { HelpPanel } from '../ui/HelpPanel';
 import { useItemEdit } from '../../hooks/useItemEdit';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
@@ -39,16 +37,8 @@ function NoteFormatHelpContent() {
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
-        fontSize: '0.75rem',
-        tableLayout: 'fixed'
+        fontSize: '0.75rem'
       }}>
-        <colgroup>
-          <col style={{ width: '35%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '20%' }} />
-        </colgroup>
         <thead>
           <tr style={{ background: 'rgba(45, 91, 120, 0.1)' }}>
             <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(45, 91, 120, 0.2)' }}>Nota</th>
@@ -171,15 +161,8 @@ function NoteFormatHelpContent() {
       <table style={{
         width: '100%',
         borderCollapse: 'collapse',
-        fontSize: '0.75rem',
-        tableLayout: 'fixed'
+        fontSize: '0.75rem'
       }}>
-        <colgroup>
-          <col style={{ width: '35%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '15%' }} />
-          <col style={{ width: '35%' }} />
-        </colgroup>
         <thead>
           <tr style={{ background: 'rgba(100, 116, 139, 0.1)' }}>
             <th style={{ padding: '0 0.25rem 0.15rem 0.25rem', textAlign: 'left', verticalAlign: 'bottom', borderBottom: '2px solid rgba(100, 116, 139, 0.2)' }}>Pauzy a mezery</th>
@@ -263,7 +246,6 @@ function SortableSongCard({ song, children }) {
 
 function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
   const [audioFile, setAudioFile] = useState(null);
-  const [showNoteFormatHelp, setShowNoteFormatHelp] = useState(false);
 
   // Použití custom hooku pro editaci a expanzi položek
   // Callback pro cleanup audio souboru při zrušení editace
@@ -811,13 +793,9 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
       category: editForm.category
     });
 
-    // Zavřít editační režim
     setEditingSong(null);
     setEditForm({});
     setAudioFile(null);
-
-    // Zavřít detail písně
-    toggleSongExpansion(editingSong);
   };
 
   // cancelEdit je poskytnut hookem useItemEdit
@@ -1120,7 +1098,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
       {/* Tlačítko pro přidání nové písně (pouze pro adminy) */}
       {isAdmin && !isAddingNew && (
-        <div style={{ marginBottom: '1.5rem', display: 'flex' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <AddButton onClick={startAddingNew} />
         </div>
       )}
@@ -1148,40 +1126,35 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
             </h3>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Název písně" />
-              <FormInput
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Název písně
+              </label>
+              <input
                 type="text"
+                className="form-input"
                 value={newSongForm.title}
                 onChange={(e) => handleNewSongChange('title', e.target.value)}
                 placeholder="Zadejte název písně"
+                style={{ fontSize: '0.875rem' }}
               />
             </div>
 
-            {/* Nápověda - Formát zápisu not */}
-            <div onClick={(e) => e.stopPropagation()}>
-              <div style={{ marginBottom: '1rem' }}>
-                <HelpButton
-                  onClick={() => setShowNoteFormatHelp(!showNoteFormatHelp)}
-                  isActive={showNoteFormatHelp}
-                  title="Zobrazit nápovědu k formátu zápisu not"
-                />
-              </div>
-
-              <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
-                <NoteFormatHelpContent />
-              </HelpPanel>
-            </div>
-
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Noty (klikněte na klavír nebo zadejte ručně)" />
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Noty (klikněte na klavír nebo zadejte ručně)
+              </label>
 
               {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
-              <FormTextarea
+              <textarea
+                className="form-input"
                 value={newSongForm.notes}
                 onChange={(e) => handleNewSongChange('notes', e.target.value)}
                 placeholder="D D E - F | G A H"
                 rows={3}
-                style={{ marginBottom: '0.5rem' }}
+                style={{
+                  fontSize: '0.875rem',
+                  marginBottom: '0.5rem'
+                }}
               />
 
               {/* NoteComposer - interaktivní klavír pro snadný zápis - POD textovým polem */}
@@ -1192,12 +1165,16 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Text písničky (lyrics)" />
-              <FormTextarea
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Text písničky (lyrics)
+              </label>
+              <textarea
+                className="form-input"
                 value={newSongForm.lyrics}
                 onChange={(e) => handleNewSongChange('lyrics', e.target.value)}
                 placeholder="Napište text písničky, každý verš na nový řádek..."
                 rows={6}
+                style={{ fontSize: '0.875rem' }}
               />
               <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
                 Každý verš napište na nový řádek (Enter). Text se zobrazí uživatelům.
@@ -1206,96 +1183,112 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group">
-                <FormLabel text="Kategorie" />
-                <FormSelect
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Kategorie
+                </label>
+                <select
+                  className="form-input"
                   value={newSongForm.category}
                   onChange={(e) => handleNewSongChange('category', e.target.value)}
-                  options={[
-                    { value: 'lidovky', label: 'Lidovky' },
-                    { value: 'uzskorolidovky', label: 'Užskorolidovky' },
-                    { value: 'detske', label: 'Dětské' }
-                  ]}
-                />
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="lidovky">Lidovky</option>
+                  <option value="uzskorolidovky">Užskorolidovky</option>
+                  <option value="detske">Dětské</option>
+                </select>
               </div>
 
               <div className="form-group">
-                <FormLabel text="Obtížnost" />
-                <FormSelect
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Obtížnost
+                </label>
+                <select
+                  className="form-input"
                   value={newSongForm.difficulty}
                   onChange={(e) => handleNewSongChange('difficulty', e.target.value)}
-                  options={[
-                    { value: 'začátečník', label: 'začátečník' },
-                    { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
-                    { value: 'pokročilý', label: 'pokročilý' }
-                  ]}
-                />
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="začátečník">začátečník</option>
+                  <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
+                  <option value="pokročilý">pokročilý</option>
+                </select>
               </div>
 
               <div className="form-group">
-                <FormLabel text="Tempo" />
-                <FormSelect
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Tempo
+                </label>
+                <select
+                  className="form-input"
                   value={newSongForm.tempo}
                   onChange={(e) => handleNewSongChange('tempo', e.target.value)}
-                  options={[
-                    { value: '', label: 'Vyberte tempo...' },
-                    { value: 'Largo', label: 'Largo (velmi pomalé)' },
-                    { value: 'Adagio', label: 'Adagio (pomalé)' },
-                    { value: 'Andante', label: 'Andante (klidné)' },
-                    { value: 'Moderato', label: 'Moderato (střední)' },
-                    { value: 'Allegro', label: 'Allegro (rychlé)' },
-                    { value: 'Presto', label: 'Presto (velmi rychlé)' }
-                  ]}
-                />
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="">Vyberte tempo...</option>
+                  <option value="Largo">Largo (velmi pomalé)</option>
+                  <option value="Adagio">Adagio (pomalé)</option>
+                  <option value="Andante">Andante (klidné)</option>
+                  <option value="Moderato">Moderato (střední)</option>
+                  <option value="Allegro">Allegro (rychlé)</option>
+                  <option value="Presto">Presto (velmi rychlé)</option>
+                </select>
               </div>
 
               <div className="form-group">
-                <FormLabel text="Tónina" />
-                <FormSelect
+                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                  Tónina
+                </label>
+                <select
+                  className="form-input"
                   value={newSongForm.key}
                   onChange={(e) => handleNewSongChange('key', e.target.value)}
-                  options={[
-                    { value: '', label: 'Vyberte tóninu...' },
-                    { value: 'C dur', label: 'C dur' },
-                    { value: 'G dur', label: 'G dur' },
-                    { value: 'D dur', label: 'D dur' },
-                    { value: 'A dur', label: 'A dur' },
-                    { value: 'E dur', label: 'E dur' },
-                    { value: 'F dur', label: 'F dur' },
-                    { value: 'B dur', label: 'B dur' },
-                    { value: 'Es dur', label: 'Es dur' },
-                    { value: 'As dur', label: 'As dur' },
-                    { value: 'a moll', label: 'a moll' },
-                    { value: 'e moll', label: 'e moll' },
-                    { value: 'h moll', label: 'h moll' },
-                    { value: 'fis moll', label: 'fis moll' },
-                    { value: 'd moll', label: 'd moll' },
-                    { value: 'g moll', label: 'g moll' },
-                    { value: 'c moll', label: 'c moll' },
-                    { value: 'f moll', label: 'f moll' }
-                  ]}
-                />
+                  style={{ fontSize: '0.875rem' }}
+                >
+                  <option value="">Vyberte tóninu...</option>
+                  <optgroup label="Durové tóniny">
+                    <option value="C dur">C dur</option>
+                    <option value="G dur">G dur</option>
+                    <option value="D dur">D dur</option>
+                    <option value="A dur">A dur</option>
+                    <option value="E dur">E dur</option>
+                    <option value="F dur">F dur</option>
+                    <option value="B dur">B dur</option>
+                    <option value="Es dur">Es dur</option>
+                    <option value="As dur">As dur</option>
+                  </optgroup>
+                  <optgroup label="Mollové tóniny">
+                    <option value="a moll">a moll</option>
+                    <option value="e moll">e moll</option>
+                    <option value="h moll">h moll</option>
+                    <option value="fis moll">fis moll</option>
+                    <option value="d moll">d moll</option>
+                    <option value="g moll">g moll</option>
+                    <option value="c moll">c moll</option>
+                    <option value="f moll">f moll</option>
+                  </optgroup>
+                </select>
               </div>
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Tip pro harmonizaci" />
-              <FormTextarea
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                Tip pro harmonizaci
+              </label>
+              <textarea
+                className="form-input"
                 value={newSongForm.tips}
                 onChange={(e) => handleNewSongChange('tips', e.target.value)}
                 rows={2}
                 placeholder="Zadejte užitečné tipy pro harmonizaci této písně"
+                style={{ fontSize: '0.875rem' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel
-                text={
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Upload size={16} />
-                    Audio soubor (volitelné)
-                  </span>
-                }
-              />
+              <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Upload size={16} />
+                Audio soubor (volitelné)
+              </label>
               <input
                 type="file"
                 accept="audio/*"
@@ -1303,9 +1296,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                 style={{
                   fontSize: '0.875rem',
                   padding: '0.5rem',
-                  border: 'none',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid rgba(181, 31, 101, 0.3)',
+                  borderRadius: 'var(--radius)',
                   width: '100%'
                 }}
               />
@@ -1352,7 +1344,7 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                     layout="list"
                     leftControls={
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {/* Drag Handle + Play Button */}
+                        {/* Drag Handle + Play Button horizontálně */}
                         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                           {/* Drag Handle (pouze pro adminy) */}
                           {isAdmin && (
@@ -1369,10 +1361,21 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                           )}
 
                           {/* Play Button */}
-                          <PlayButton
-                            onClick={() => playMelody(song)}
-                            isPlaying={playingSong === song.id}
-                          />
+                          <motion.button
+                            className={`play-button ${playingSong === song.id ? 'playing' : ''}`}
+                            whileHover={{ scale: 1.15, rotate: 5 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playMelody(song);
+                            }}
+                          >
+                            {playingSong === song.id ? (
+                              <Pause className="play-icon" color="#ffffff" />
+                            ) : (
+                              <Play className="play-icon" color="#ffffff" style={{ marginLeft: '3px' }} />
+                            )}
+                          </motion.button>
                         </div>
 
                         {/* Playback Mode Selector (pokud má píseň audio) */}
@@ -1402,10 +1405,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                       </div>
                     }
                     footer={
-                      <Chip text={song.difficulty} variant="difficulty" />
-                    }
-                    statusChips={
                       <>
+                        <Chip text={song.difficulty} variant="difficulty" />
                         <Chip text={song.key} variant="info" />
                         <Chip text={song.tempo} variant="info" />
                       </>
@@ -1434,40 +1435,34 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                               /* Editační formulář pro admina */
                               <div style={{ marginTop: '1rem' }}>
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                <FormLabel text="Název písně" />
-                                <FormInput
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Název písně
+                                </label>
+                                <input
                                   type="text"
+                                  className="form-input"
                                   value={editForm.title}
                                   onChange={(e) => handleEditChange('title', e.target.value)}
-                                  placeholder="Zadejte název písně"
+                                  style={{ fontSize: '0.875rem' }}
                                 />
                               </div>
 
-                              {/* Nápověda - Formát zápisu not */}
-                              <div onClick={(e) => e.stopPropagation()}>
-                                <div style={{ marginBottom: '1rem' }}>
-                                  <HelpButton
-                                    onClick={() => setShowNoteFormatHelp(!showNoteFormatHelp)}
-                                    isActive={showNoteFormatHelp}
-                                    title="Zobrazit nápovědu k formátu zápisu not"
-                                  />
-                                </div>
-
-                                <HelpPanel isOpen={showNoteFormatHelp} title="Formát zápisu not">
-                                  <NoteFormatHelpContent />
-                                </HelpPanel>
-                              </div>
-
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                <FormLabel text="Noty (klikněte na klavír nebo zadejte ručně)" />
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Noty (klikněte na klavír nebo zadejte ručně)
+                                </label>
 
                                 {/* Textové pole pro zobrazení a ruční úpravu - NAD klaviaturou */}
-                                <FormTextarea
+                                <textarea
+                                  className="form-input"
                                   value={editForm.notes}
                                   onChange={(e) => handleEditChange('notes', e.target.value)}
                                   placeholder="D D E - F | G A H"
                                   rows={3}
-                                  style={{ marginBottom: '0.5rem' }}
+                                  style={{
+                                    fontSize: '0.875rem',
+                                    marginBottom: '0.5rem'
+                                  }}
                                 />
 
                                 {/* NoteComposer - interaktivní klavír pro snadný zápis - POD textovým polem */}
@@ -1479,74 +1474,91 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                                 <div className="form-group">
-                                  <FormLabel text="Obtížnost" />
-                                  <FormSelect
+                                  <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                    Obtížnost
+                                  </label>
+                                  <select
+                                    className="form-input"
                                     value={editForm.difficulty}
                                     onChange={(e) => handleEditChange('difficulty', e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    options={[
-                                      { value: 'začátečník', label: 'začátečník' },
-                                      { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
-                                      { value: 'pokročilý', label: 'pokročilý' }
-                                    ]}
-                                  />
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
+                                    <option value="začátečník">začátečník</option>
+                                    <option value="mírně pokročilý začátečník">mírně pokročilý začátečník</option>
+                                    <option value="pokročilý">pokročilý</option>
+                                  </select>
                                 </div>
 
                                 <div className="form-group">
-                                  <FormLabel text="Tempo" />
-                                  <FormSelect
+                                  <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                    Tempo
+                                  </label>
+                                  <select
+                                    className="form-input"
                                     value={editForm.tempo}
                                     onChange={(e) => handleEditChange('tempo', e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    options={[
-                                      { value: '', label: 'Vyberte tempo...' },
-                                      { value: 'Largo', label: 'Largo (velmi pomalé)' },
-                                      { value: 'Adagio', label: 'Adagio (pomalé)' },
-                                      { value: 'Andante', label: 'Andante (klidné)' },
-                                      { value: 'Moderato', label: 'Moderato (střední)' },
-                                      { value: 'Allegro', label: 'Allegro (rychlé)' },
-                                      { value: 'Presto', label: 'Presto (velmi rychlé)' }
-                                    ]}
-                                  />
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
+                                    <option value="">Vyberte tempo...</option>
+                                    <option value="Largo">Largo (velmi pomalé)</option>
+                                    <option value="Adagio">Adagio (pomalé)</option>
+                                    <option value="Andante">Andante (klidné)</option>
+                                    <option value="Moderato">Moderato (střední)</option>
+                                    <option value="Allegro">Allegro (rychlé)</option>
+                                    <option value="Presto">Presto (velmi rychlé)</option>
+                                  </select>
                                 </div>
 
                                 <div className="form-group">
-                                  <FormLabel text="Tónina" />
-                                  <FormSelect
+                                  <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                    Tónina
+                                  </label>
+                                  <select
+                                    className="form-input"
                                     value={editForm.key}
                                     onChange={(e) => handleEditChange('key', e.target.value)}
                                     onClick={(e) => e.stopPropagation()}
-                                    options={[
-                                      { value: '', label: 'Vyberte tóninu...' },
-                                      { value: 'C dur', label: 'C dur' },
-                                      { value: 'G dur', label: 'G dur' },
-                                      { value: 'D dur', label: 'D dur' },
-                                      { value: 'A dur', label: 'A dur' },
-                                      { value: 'E dur', label: 'E dur' },
-                                      { value: 'F dur', label: 'F dur' },
-                                      { value: 'B dur', label: 'B dur' },
-                                      { value: 'Es dur', label: 'Es dur' },
-                                      { value: 'As dur', label: 'As dur' },
-                                      { value: 'a moll', label: 'a moll' },
-                                      { value: 'e moll', label: 'e moll' },
-                                      { value: 'h moll', label: 'h moll' },
-                                      { value: 'fis moll', label: 'fis moll' },
-                                      { value: 'd moll', label: 'd moll' },
-                                      { value: 'g moll', label: 'g moll' },
-                                      { value: 'c moll', label: 'c moll' },
-                                      { value: 'f moll', label: 'f moll' }
-                                    ]}
-                                  />
+                                    style={{ fontSize: '0.875rem' }}
+                                  >
+                                    <option value="">Vyberte tóninu...</option>
+                                    <optgroup label="Durové tóniny">
+                                      <option value="C dur">C dur</option>
+                                      <option value="G dur">G dur</option>
+                                      <option value="D dur">D dur</option>
+                                      <option value="A dur">A dur</option>
+                                      <option value="E dur">E dur</option>
+                                      <option value="F dur">F dur</option>
+                                      <option value="B dur">B dur</option>
+                                      <option value="Es dur">Es dur</option>
+                                      <option value="As dur">As dur</option>
+                                    </optgroup>
+                                    <optgroup label="Mollové tóniny">
+                                      <option value="a moll">a moll</option>
+                                      <option value="e moll">e moll</option>
+                                      <option value="h moll">h moll</option>
+                                      <option value="fis moll">fis moll</option>
+                                      <option value="d moll">d moll</option>
+                                      <option value="g moll">g moll</option>
+                                      <option value="c moll">c moll</option>
+                                      <option value="f moll">f moll</option>
+                                    </optgroup>
+                                  </select>
                                 </div>
                               </div>
 
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                <FormLabel text="Text písničky (lyrics)" />
-                                <FormTextarea
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Text písničky (lyrics)
+                                </label>
+                                <textarea
+                                  className="form-input"
                                   value={editForm.lyrics || ''}
                                   onChange={(e) => handleEditChange('lyrics', e.target.value)}
                                   placeholder="Napište text písničky, každý verš na nový řádek..."
                                   rows={6}
+                                  style={{ fontSize: '0.875rem' }}
                                 />
                                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
                                   Každý verš napište na nový řádek (Enter). Text se zobrazí uživatelům.
@@ -1554,23 +1566,23 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                               </div>
 
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                <FormLabel text="Tip pro harmonizaci" />
-                                <FormTextarea
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b' }}>
+                                  Tip pro harmonizaci
+                                </label>
+                                <textarea
+                                  className="form-input"
                                   value={editForm.tips}
                                   onChange={(e) => handleEditChange('tips', e.target.value)}
                                   rows={2}
+                                  style={{ fontSize: '0.875rem' }}
                                 />
                               </div>
 
                               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                                <FormLabel
-                                  text={
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                      <Upload size={16} />
-                                      Audio soubor (volitelné)
-                                    </span>
-                                  }
-                                />
+                                <label className="form-label" style={{ fontSize: '0.875rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <Upload size={16} />
+                                  Audio soubor (volitelné)
+                                </label>
 
                                 {song.audioUrl && !audioFile && (
                                   <div style={{
@@ -1642,9 +1654,8 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
                                   style={{
                                     fontSize: '0.875rem',
                                     padding: '0.5rem',
-                                    border: 'none',
-                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid rgba(181, 31, 101, 0.3)',
+                                    borderRadius: 'var(--radius)',
                                     width: '100%'
                                   }}
                                 />

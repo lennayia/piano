@@ -25,6 +25,7 @@ import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
 import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
 import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
+import { supabase } from '../../lib/supabase';
 
 function SortableLessonCard({ lesson, children }) {
   const {
@@ -49,7 +50,7 @@ function SortableLessonCard({ lesson, children }) {
   );
 }
 
-function LessonList() {
+function LessonList({ onLessonComplete }) {
   const {
     editingItem: editingLesson,
     editForm,
@@ -71,12 +72,35 @@ function LessonList() {
 
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [completedLessonIds, setCompletedLessonIds] = useState(new Set());
 
   const isAdmin = currentUser?.is_admin === true;
 
   useEffect(() => {
     fetchLessons();
   }, [fetchLessons]);
+
+  // Načíst dokončené lekce pro aktuálního uživatele
+  useEffect(() => {
+    const fetchCompletedLessons = async () => {
+      if (currentUser) {
+        try {
+          const { data, error } = await supabase
+            .from('piano_lesson_completions')
+            .select('lesson_id')
+            .eq('user_id', currentUser.id);
+
+          if (!error && data) {
+            setCompletedLessonIds(new Set(data.map(item => parseInt(item.lesson_id))));
+          }
+        } catch (error) {
+          console.error('Chyba při načítání dokončených lekcí:', error);
+        }
+      }
+    };
+
+    fetchCompletedLessons();
+  }, [currentUser]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -199,11 +223,8 @@ function LessonList() {
     <div>
       {/* Tlačítko pro přidání nové lekce (pouze pro adminy) */}
       {isAdmin && !isAddingNew && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <AddButton
-            onClick={startAddingNew}
-            label="Přidat novou lekci"
-          />
+        <div style={{ marginBottom: '1.5rem', display: 'flex' }}>
+          <AddButton onClick={startAddingNew} />
         </div>
       )}
 
@@ -337,6 +358,7 @@ function LessonList() {
                         onEditFormChange={handleEditFormChange}
                         onSaveEdit={saveEditedLesson}
                         onCancelEdit={cancelEdit}
+                        isCompleted={completedLessonIds.has(lesson.id)}
                       />
                     </motion.div>
                   )}
@@ -351,6 +373,7 @@ function LessonList() {
         lesson={selectedLesson}
         isOpen={!!selectedLesson}
         onClose={handleCloseModal}
+        onComplete={onLessonComplete}
       />
     </div>
   );

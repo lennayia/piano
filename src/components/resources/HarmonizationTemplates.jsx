@@ -218,12 +218,9 @@ function HarmonizationTemplates() {
 
       {/* Tlačítko pro přidání nové šablony (pouze pro adminy) */}
       {isAdmin && !isAddingNew && (
-        <AddButton
-          onClick={startAddingNew}
-          label="Přidat novou šablonu"
-          iconOnly={false}
-          style={{ marginBottom: '1.5rem' }}
-        />
+        <div style={{ marginBottom: '1.5rem', display: 'flex' }}>
+          <AddButton onClick={startAddingNew} />
+        </div>
       )}
 
       {/* Formulář pro přidání nové šablony */}

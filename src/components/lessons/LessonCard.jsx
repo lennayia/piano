@@ -1,4 +1,4 @@
-import { Clock, TrendingUp, Edit3, GripVertical } from 'lucide-react';
+import { Clock, TrendingUp, Edit3, GripVertical, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import { getDifficultyColor, DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
@@ -6,7 +6,7 @@ import { ActionButtonGroup, SaveButton, CancelButton } from '../ui/ButtonCompone
 import { ItemCard } from '../ui/CardComponents';
 import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 
-function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners, isEditing, editForm, onEditFormChange, onSaveEdit, onCancelEdit }) {
+function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners, isEditing, editForm, onEditFormChange, onSaveEdit, onCancelEdit, isCompleted = false }) {
 
   const handleClick = () => {
     audioEngine.playClick();
@@ -46,6 +46,21 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
 
   const footer = (
     <>
+      {isCompleted && (
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="badge badge-xs"
+          style={{
+            backgroundColor: 'rgba(45, 91, 120, 0.1)',
+            color: 'var(--color-secondary)',
+            padding: '0.2rem 0.4rem'
+          }}
+          title="Dokončeno"
+        >
+          <CheckCircle size={14} />
+        </motion.span>
+      )}
       <span className={`badge ${getDifficultyColor(lesson.difficulty)}`}>
         <TrendingUp size={14} />
         {lesson.difficulty}

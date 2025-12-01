@@ -1,5 +1,8 @@
 import { motion } from 'framer-motion';
+import { Target } from 'lucide-react';
 import TabButtons from './TabButtons';
+import { FormInput, FormLabel } from './FormComponents';
+import { RADIUS } from '../../utils/styleConstants';
 
 /**
  * PageSection - Komplexní layout komponenta pro stránky s menu/submenu strukturou
@@ -19,6 +22,11 @@ import TabButtons from './TabButtons';
  * @param {string} props.sectionTitle - H2 nadpis content sekce
  * @param {string} props.sectionDescription - Popisný text pod section title
  * @param {React.Component} props.sectionAction - Action button vedle section title
+ * @param {boolean} props.showDailyGoal - Zobrazit UI pro denní cíl
+ * @param {number} props.dailyGoal - Denní cíl (kolik položek chce uživatel dnes dokončit)
+ * @param {function} props.onSetDailyGoal - Callback při změně denního cíle
+ * @param {number} props.completedToday - Počet dokončených položek dnes
+ * @param {string} props.goalLabel - Label pro denní cíl (např. "lekcí", "písniček")
  * @param {string} props.progressLabel - Label pro progress bar (např. "Váš pokrok")
  * @param {number} props.progress - Progress bar value (0-100)
  * @param {React.Component} props.children - Obsah stránky
@@ -38,6 +46,11 @@ export function PageSection({
   sectionTitle,
   sectionDescription,
   sectionAction,
+  showDailyGoal = false,
+  dailyGoal = 0,
+  onSetDailyGoal,
+  completedToday = 0,
+  goalLabel = 'položek',
   progressLabel,
   progress,
   children
@@ -73,12 +86,12 @@ export function PageSection({
                 gap: '0.75rem',
                 marginBottom: description ? '0.5rem' : '0'
               }}>
-                {Icon && <Icon size={32} color="#475569" />}
+                {Icon && <Icon size={32} color="var(--color-text-secondary)" />}
                 {title}
               </h1>
             )}
             {description && (
-              <p style={{ color: '#64748b', margin: 0 }}>
+              <p style={{ color: 'var(--color-text-secondary)', margin: 0 }}>
                 {description}
               </p>
             )}
@@ -118,11 +131,60 @@ export function PageSection({
           </h2>
 
           {sectionDescription && (
-            <p style={{ color: '#64748b', margin: 0, marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--color-text-secondary)', margin: 0, marginBottom: '1.5rem' }}>
               {sectionDescription}
             </p>
           )}
         </>
+      )}
+
+      {/* Denní cíl sekce */}
+      {showDailyGoal && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1rem',
+            padding: '1rem',
+            background: 'var(--glass-bg)',
+            borderRadius: RADIUS.lg,
+            border: '1px solid var(--glass-border)',
+            boxShadow: 'var(--glass-shadow)'
+          }}
+        >
+          <Target size={20} color="var(--color-primary)" />
+          <FormLabel text="Dnešní cíl:" style={{ margin: 0, fontWeight: 600 }} />
+          <FormInput
+            type="number"
+            min="0"
+            max="100"
+            value={dailyGoal}
+            onChange={(e) => onSetDailyGoal?.(e.target.value)}
+            placeholder="0"
+            style={{ width: '80px', textAlign: 'center' }}
+          />
+          <span style={{
+            fontSize: '0.95rem',
+            color: 'var(--color-text-secondary)',
+            fontWeight: 500
+          }}>
+            {goalLabel}
+          </span>
+          {dailyGoal > 0 && (
+            <span style={{
+              marginLeft: 'auto',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              color: completedToday >= dailyGoal ? 'var(--color-success)' : 'var(--color-primary)'
+            }}>
+              {completedToday}/{dailyGoal}
+              {completedToday >= dailyGoal && ' 🎉'}
+            </span>
+          )}
+        </motion.div>
       )}
 
       {/* Progress bar sekce */}
@@ -137,7 +199,7 @@ export function PageSection({
             <span style={{
               fontSize: '0.95rem',
               fontWeight: 500,
-              color: '#475569',
+              color: 'var(--color-text-secondary)',
               flexShrink: 0
             }}>
               {progressLabel}
@@ -149,7 +211,7 @@ export function PageSection({
               flex: 1,
               height: '4px',
               background: 'rgba(0, 0, 0, 0.03)',
-              borderRadius: '2px',
+              borderRadius: RADIUS.sm,
               overflow: 'hidden'
             }}>
               <motion.div
@@ -158,8 +220,8 @@ export function PageSection({
                 transition={{ duration: 0.8, ease: 'easeOut' }}
                 style={{
                   height: '100%',
-                  background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.5), rgba(45, 91, 120, 0.5))',
-                  borderRadius: '2px'
+                  background: 'linear-gradient(90deg, var(--color-primary-transparent), var(--color-secondary-transparent))',
+                  borderRadius: RADIUS.sm
                 }}
               />
             </div>

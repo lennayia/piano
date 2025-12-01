@@ -1,0 +1,1232 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  --color-primary: #b51f65;
+  --color-primary-dark: #8f1850;
+  --color-secondary: #2d5b78;
+  --color-secondary-dark: #1e3d52;
+  --color-accent: #d63384;
+  --color-blue: #2d5b78;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+
+  /* Border Radius System */
+  --radius: 0.5rem;           /* 8px - deprecated, use specific values below */
+  --radius-sm: 0.625rem;      /* 10px - small elements (buttons, inputs, chips) */
+  --radius-md: 0.75rem;       /* 12px - medium elements (form container) */
+  --radius-lg: 1rem;          /* 16px - large elements (cards, panels) */
+  --radius-xl: 1.375rem;      /* 22px - extra large (main containers, question cards) */
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(181, 31, 101, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(181, 31, 101, 0.6); }
+}
+
+@keyframes smoke {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.8);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(1.2);
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  font-size: 0.95rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f5f9 25%, #e8f4f8 35%, #fdf2f8 42%, #fce7f3 47%, #fce7f3 53%, #fdf2f8 58%, #e8f4f8 65%, #f0f5f9 75%, #f8f9fa 100%);
+  background-size: 400% 400%;
+  animation: gradient-shift 45s ease-in-out infinite;
+  color: #475569;
+  line-height: 1.4;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Headings use Roboto */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Override browser defaults for form elements */
+input, textarea, select, button {
+  font-family: inherit;
+}
+
+/* Override browser defaults for code elements */
+code, pre, kbd, samp {
+  font-family: inherit;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-y: scroll; /* Vždy zobrazit scrollbar pro konzistentní layout */
+  max-width: 100vw;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-sm {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Responsive container padding */
+@media (max-width: 720px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .container-sm {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .container-sm {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  .container-sm {
+    padding: 0 0.5rem;
+  }
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.15;
+  font-weight: 600;
+  color: inherit;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.875rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+p {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(45, 91, 120, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-secondary-dark) 0%, var(--color-secondary) 100%);
+  box-shadow: 0 6px 20px rgba(45, 91, 120, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(45, 91, 120, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-text);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(45, 91, 120, 0.3);
+  box-shadow: 0 4px 12px rgba(45, 91, 120, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--color-text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.form-input:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(45, 91, 120, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 91, 120, 0.15);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 3px rgba(45, 91, 120, 0.1), 0 4px 12px rgba(45, 91, 120, 0.2);
+  transform: translateY(-2px);
+}
+
+.form-error {
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+/* Cards */
+.card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: calc(var(--radius) * 2);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.25);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card-title,
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+
+/* Grid */
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 768px) {
+  .grid-cols-2,
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+.badge-primary {
+  background-color: rgba(181, 31, 101, 0.1);
+  color: var(--color-primary);
+}
+
+.badge-success {
+  background-color: rgba(181, 31, 101, 0.1);
+  color: var(--color-primary);
+}
+
+.badge-warning {
+  background-color: rgba(181, 31, 101, 0.15);
+  color: var(--color-primary-dark);
+}
+
+/* Utilities */
+.text-center {
+  text-align: center;
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+.gap-3 { gap: 1.5rem; }
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--color-text);
+  background-color: var(--color-bg-secondary);
+}
+
+.table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Glassmorphism Effects */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+
+/* Piano Key Styles */
+.piano-key {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.piano-key.white {
+  background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+  border: 2px solid #ddd;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.piano-key.white:hover {
+  background: linear-gradient(180deg, #f0f0f0 0%, #e8e8e8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.piano-key.white:active,
+.piano-key.white.active {
+  background: linear-gradient(180deg, #e0e0e0 0%, #d8d8d8 100%);
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) inset;
+}
+
+.piano-key.black {
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 2px solid #000;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.piano-key.black:hover {
+  background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.piano-key.black:active,
+.piano-key.black.active {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) inset;
+}
+
+/* Smoke Effect */
+.smoke-particle {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: smoke 2s ease-out forwards;
+  filter: blur(8px);
+}
+
+/* Volume Slider */
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(45, 91, 120, 0.6);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(45, 91, 120, 0.6);
+}
+
+/* Ripple Effect */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(0);
+  animation: ripple-animation 0.6s ease-out;
+  pointer-events: none;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Floating Animation */
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse Glow */
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Shimmer Effect */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Container with z-index for proper layering */
+.container,
+.container-sm {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   Song Library Responsive Styles
+   ============================================ */
+
+/* Card responsive adjustments */
+.card {
+  overflow: hidden; /* Prevent overflow */
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .card {
+    padding: 1rem; /* Reduce from 1.5rem */
+  }
+
+  /* Make song title and buttons wrap on smaller screens */
+  .card h3 {
+    font-size: 1rem;
+    word-break: keep-all; /* Prevent breaking words */
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  /* Allow song header to wrap */
+  .song-header {
+    flex-wrap: wrap !important;
+  }
+
+  .song-header h3 {
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .song-actions {
+    flex-wrap: wrap !important;
+  }
+
+  /* Smaller action buttons on mobile */
+  .song-actions button {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .song-actions button svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 0.75rem; /* Further reduce padding */
+  }
+
+  .card h3 {
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  /* Even smaller action buttons */
+  .song-actions button {
+    font-size: 0.65rem !important;
+    padding: 0.15rem 0.35rem !important;
+  }
+
+  .song-actions button svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    padding: 0.6rem;
+  }
+
+  .card h3 {
+    font-size: 0.85rem;
+  }
+}
+
+/* Song card controls container */
+.song-card-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* Drag handle */
+.drag-handle {
+  cursor: grab;
+  padding: 0.5rem;
+  color: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.grip-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Play button */
+.play-button {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, rgba(45, 91, 120, 0.9) 0%, rgba(65, 111, 140, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(45, 91, 120, 0.4);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.play-button.playing {
+  background: linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%);
+  box-shadow: 0 8px 32px rgba(181, 31, 101, 0.5);
+}
+
+.play-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Song card wrapper */
+.song-card-wrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* Responsive adjustments - under 720px */
+@media (max-width: 720px) {
+  .song-card-controls {
+    gap: 0.75rem; /* Reduce gap from 1.5rem to 0.75rem */
+  }
+
+  .drag-handle {
+    padding: 0.25rem;
+  }
+
+  .grip-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .play-button {
+    width: 48px; /* Reduce from 64px to 48px */
+    height: 48px;
+  }
+
+  .play-icon {
+    width: 20px; /* Reduce from 24px to 20px */
+    height: 20px;
+  }
+}
+
+/* Under 900px - Stack controls above title */
+@media (max-width: 899px) {
+  /* Wrapper stacks controls above content */
+  .song-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Controls stay in row but are on top */
+  .song-card-controls {
+    gap: 0.6rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .play-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .play-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .grip-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* Ensure playback selector wraps if present */
+  .song-card-wrapper > div:not(.song-card-controls) {
+    width: 100%;
+  }
+}
+
+/* Under 480px */
+@media (max-width: 480px) {
+  .song-card-controls {
+    gap: 0.5rem;
+  }
+
+  .play-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .play-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .grip-icon {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* Under 375px (iPhone SE, small phones) */
+@media (max-width: 375px) {
+  .song-card-controls {
+    gap: 0.4rem;
+  }
+
+  .play-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .play-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .grip-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .drag-handle {
+    padding: 0.2rem;
+  }
+}
+
+/* Under 320px (smallest screens) */
+@media (max-width: 320px) {
+  .song-card-controls {
+    gap: 0.3rem;
+  }
+
+  .play-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .play-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .grip-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .drag-handle {
+    padding: 0.15rem;
+  }
+}
+
+/* Header Navigation Responsive */
+@media (max-width: 768px) {
+  /* Hide desktop navigation */
+  .desktop-nav {
+    display: none !important;
+  }
+
+  /* Show mobile menu button */
+  .mobile-menu-button {
+    display: flex !important;
+  }
+
+  /* Show mobile navigation when open */
+  .mobile-nav {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 0.75rem 0 !important;
+  }
+
+  header .container > div {
+    gap: 0.5rem;
+  }
+
+  header a[href="/dashboard"] span {
+    font-size: 1rem !important;
+  }
+}
+
+/* Landing Page - About Eva Section Responsive */
+@media (max-width: 720px) {
+  .about-eva-wrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+  }
+
+  .about-eva-icon {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .about-eva-icon svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .about-eva-content h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .about-eva-content p {
+    font-size: 0.9375rem !important;
+  }
+
+  .about-eva-stats {
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-eva-wrapper {
+    gap: 1rem !important;
+  }
+
+  .about-eva-icon {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .about-eva-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .about-eva-content h2 {
+    font-size: 1.125rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .about-eva-content p {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .about-eva-stats {
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .about-eva-stats span {
+    font-size: 0.8125rem !important;
+  }
+}
+
+/* ItemCard Responsivita pro malé obrazovky */
+@media (max-width: 400px) {
+  .item-card-responsive .item-card-main-content {
+    min-width: 100% !important;
+  }
+
+  .item-card-responsive .item-card-left-controls {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Schování názvů not na malých obrazovkách */
+@media (max-width: 600px) {
+  .note-name-responsive {
+    display: none !important;
+  }
+}
+
+/* Optimalizace detailu karty pro malé obrazovky */
+@media (max-width: 600px) {
+  /* Zmenšit padding v rozbalené kartě */
+  .item-card-responsive {
+    padding: 0.75rem !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Všechny elementy uvnitř karty - max-width */
+  .item-card-responsive * {
+    max-width: 100% !important;
+  }
+
+  /* Odstranit horní margin z editačního wrapperu */
+  .item-card-responsive > div > div[style*="marginTop"] {
+    margin-top: 0 !important;
+  }
+
+  /* Zmenšit fonty nadpisů a labelů */
+  .item-card-responsive h3 {
+    font-size: 0.9375rem !important;
+  }
+
+  .item-card-responsive .form-label {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .item-card-responsive .form-input {
+    font-size: 0.8125rem !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Zmenšit mezery mezi sekcemi */
+  .item-card-responsive .form-group {
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Zmenšit padding a margin u HelpPanel */
+  .item-card-responsive [style*="marginBottom"][style*="padding"] {
+    margin-bottom: 0.75rem !important;
+    padding: 0.75rem !important;
+  }
+
+  /* Zmenšit akční tlačítka (edit, duplicate, delete) */
+  .item-card-responsive button[style*="minWidth"] {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0.35rem !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"] svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  /* Schovat delete tlačítko na mobilech (šetří místo) */
+  .item-card-responsive button[style*="minWidth"]:last-child {
+    display: none !important;
+  }
+
+  /* Zmenšit gap mezi akcemi a zarovnat doleva */
+  .item-card-responsive > div > div:first-child > div:last-child {
+    gap: 0.1rem !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+  }
+
+  /* ActionButtonGroup - zarovnat doleva a odstranit 100% šířku */
+  .item-card-responsive .action-button-group {
+    justify-content: flex-start !important;
+    width: auto !important;
+    margin: 0 !important;
+    gap: 0.1rem !important;
+  }
+
+  /* Wrapper akčních tlačítek - zarovnat vlevo */
+  .item-card-responsive div[style*="marginLeft"] > div {
+    margin-left: 0 !important;
+  }
+
+  /* Fallback pro starší selektory */
+  .item-card-responsive div[style*="justifyContent"][style*="flex-end"] {
+    justify-content: flex-start !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  /* Odstranit hardcoded minWidth hodnoty */
+  .item-card-main-content {
+    min-width: 0 !important;
+  }
+
+  .item-card-responsive div[style*="minWidth"] {
+    min-width: 0 !important;
+  }
+
+  /* Odstranit marginLeft: auto u headerActions */
+  .item-card-responsive div[style*="marginLeft: auto"] {
+    margin-left: 0 !important;
+    order: -1 !important;
+  }
+
+  /* Řádek 3 v ItemCard - změnit zarovnání */
+  .item-card-responsive .item-card-main-content > div:nth-child(3) {
+    justify-content: flex-start !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  /* ActionButtonGroup wrapper - odstranit width 100% */
+  .item-card-responsive div[style*="width: 100%"][style*="gap"] {
+    width: auto !important;
+  }
+}
+
+/* Extra optimalizace pro velmi malé obrazovky (320px) */
+@media (max-width: 320px) {
+  .note-name-responsive {
+    display: none !important;
+  }
+
+  /* Ještě menší padding v kartě */
+  .item-card-responsive {
+    padding: 0.5rem !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Všechny elementy uvnitř karty - max-width */
+  .item-card-responsive * {
+    max-width: 100% !important;
+  }
+
+  /* Odstranit horní margin z editačního wrapperu */
+  .item-card-responsive > div > div[style*="marginTop"] {
+    margin-top: 0 !important;
+  }
+
+  /* Ještě menší fonty */
+  .item-card-responsive h3 {
+    font-size: 0.875rem !important;
+  }
+
+  .item-card-responsive .form-label {
+    font-size: 0.6875rem !important;
+  }
+
+  .item-card-responsive .form-input {
+    font-size: 0.75rem !important;
+    padding: 0.375rem !important;
+  }
+
+  .item-card-responsive .form-group {
+    margin-bottom: 0.375rem !important;
+  }
+
+  /* Ještě menší padding a margin u HelpPanel */
+  .item-card-responsive [style*="marginBottom"][style*="padding"] {
+    margin-bottom: 0.5rem !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Ještě menší akční tlačítka */
+  .item-card-responsive button[style*="minWidth"] {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0.3rem !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"] svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .item-card-responsive > div > div:first-child > div:last-child {
+    gap: 0.1rem !important;
+    justify-content: flex-start !important;
+  }
+
+  /* ActionButtonGroup - zarovnat doleva */
+  .item-card-responsive div[style*="justifyContent"][style*="flex-end"] {
+    justify-content: flex-start !important;
+  }
+
+  /* Zmenšit fonty v tabulkách */
+  table {
+    font-size: 0.65rem !important;
+  }
+
+  table th,
+  table td {
+    padding: 0 0.15rem 0.15rem 0.15rem !important;
+  }
+
+  table code {
+    font-size: 0.625rem !important;
+  }
+}

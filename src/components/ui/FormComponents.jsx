@@ -64,7 +64,6 @@ export function FormLabel({ text, required = false, style = {}, ...props }) {
       style={{
         display: 'block',
         marginBottom: '0.5rem',
-        fontSize: '0.875rem',
         fontWeight: 500,
         color: '#374151',
         ...style
@@ -99,7 +98,6 @@ export function FormTextarea({ value, onChange, placeholder = '', rows = 3, styl
         borderRadius: RADIUS.lg,
         border: BORDER.none,
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-        fontSize: '0.875rem',
         resize: 'vertical',
         transition: 'border-color 0.2s ease',
         ...style
@@ -128,7 +126,6 @@ export function FormSelect({ value, onChange, options = [], style = {}, ...props
         borderRadius: RADIUS.sm,
         border: BORDER.none,
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-        fontSize: '0.875rem',
         cursor: 'pointer',
         transition: 'border-color 0.2s ease',
         ...style
@@ -166,7 +163,6 @@ export function FormInput({ type = 'text', value, onChange, placeholder = '', st
         borderRadius: RADIUS.md,
         border: BORDER.none,
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-        fontSize: '0.875rem',
         transition: 'border-color 0.2s ease',
         ...style
       }}
@@ -195,7 +191,6 @@ export function CheckboxLabel({ checked, onChange, label, style = {}, ...props }
         background: 'rgba(255, 255, 255, 0.5)',
         borderRadius: '10px',
         width: '100%',
-        fontSize: '0.875rem',
         transition: 'background 0.2s ease',
         ...style
       }}

@@ -759,7 +759,7 @@ const QuizManager = () => {
         </div>
 
         {!showAddForm && !editingChord && (
-          <AddButton onClick={handleAddChord} iconOnly={true} />
+          <AddButton onClick={handleAddChord} />
         )}
       </div>
 

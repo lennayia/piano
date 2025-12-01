@@ -1,0 +1,44 @@
+/* Admin - Achievement Cards */
+
+.achievement-card {
+  padding: 1.5rem;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* Mobile responsiveness - od 320px */
+@media (max-width: 600px) {
+  /* Vnější kontejner - úroveň 1 */
+  .card {
+    padding: 0.75rem !important;
+  }
+
+  /* HelpPanel - zmenšený padding */
+  .achievement-help-panel {
+    padding: 0.75rem !important;
+  }
+
+  /* Formulář detail - úroveň 2 */
+  .achievement-form-detail {
+    padding: 0.5rem !important;
+  }
+
+  /* Sekce s date inputy - úroveň 3 */
+  .achievement-period-section {
+    padding: 0.5rem !important;
+  }
+
+  /* Karty v gridu */
+  .achievement-card {
+    padding: 1rem 0.5rem;
+  }
+
+  .achievements-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

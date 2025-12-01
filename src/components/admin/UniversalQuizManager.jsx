@@ -476,7 +476,7 @@ const UniversalQuizManager = ({ quizType = 'theory', title = 'Správa kvízů', 
         </div>
 
         {!showAddForm && !editingQuestion && (
-          <AddButton onClick={handleAddQuestion} iconOnly={true} />
+          <AddButton onClick={handleAddQuestion} />
         )}
       </div>
 

@@ -4,12 +4,55 @@ import { BookOpen, List, Clock, CheckCircle } from 'lucide-react';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
 import { PageSection } from '../components/ui/PageSection';
+import { useDailyGoal } from '../hooks/useDailyGoal';
+import CelebrationEffect from '../components/ui/CelebrationEffect';
+import { saveDailyGoalCompletion, DAILY_GOAL_XP_REWARD } from '../services/dailyGoalService';
+import { getCelebrationConfig } from '../services/celebrationService';
 
+// Lekce page with daily goal tracking
 function Lekce() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
   const [mainTab, setMainTab] = useState('all');
   const [difficultyTab, setDifficultyTab] = useState('all');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState(null);
+
+  // Callback pro splnění denního cíle
+  const handleGoalCompleted = async (goalData) => {
+    if (!currentUser) return;
+
+    const result = await saveDailyGoalCompletion(currentUser.id, goalData);
+
+    if (result.success) {
+      const unlockedAchievements = result.unlockedAchievements || [];
+
+      // Získat config z modularního systému
+      const config = getCelebrationConfig('daily_goal', unlockedAchievements);
+
+      // Pokud není achievement, přidat streak info do zprávy
+      if (unlockedAchievements.length === 0) {
+        const streakText = result.newStreak > 1
+          ? `${result.newStreak} dní v řadě! 🔥`
+          : 'První den! 💪';
+        config.message = `🎯 Denní cíl splněn!\n${streakText}`;
+      }
+
+      setCelebrationData({
+        config,
+        xpEarned: DAILY_GOAL_XP_REWARD,
+        achievements: unlockedAchievements
+      });
+      setShowCelebration(true);
+
+      // Refresh stats
+      const updateUserStats = useUserStore.getState().updateUserStats;
+      if (updateUserStats) updateUserStats();
+    }
+  };
+
+  // Denní cíl hook s callbackem
+  const { dailyGoal, setDailyGoal, completedToday, markCompleted, progress, isGoalCompleted } = useDailyGoal('lessons', handleGoalCompleted);
 
   useEffect(() => {
     if (!currentUser) {
@@ -20,11 +63,6 @@ function Lekce() {
   if (!currentUser) {
     return null;
   }
-
-  // Dočasné hodnoty pro progress (později z databáze)
-  const totalLessons = 12;
-  const completedLessons = 5;
-  const progressPercentage = (completedLessons / totalLessons) * 100;
 
   // Dynamický obsah podle aktivních tabů
   const getSectionContent = () => {
@@ -62,51 +100,69 @@ function Lekce() {
   const sectionContent = getSectionContent();
 
   return (
-    <PageSection
-      maxWidth="lg"
-      icon={BookOpen}
-      title="Lekce"
-      description="Procházejte své lekce a pokračujte v učení"
+    <>
+      <PageSection
+        maxWidth="lg"
+        icon={BookOpen}
+        title="Lekce"
+        description="Procházejte své lekce a pokračujte v učení"
+        mainTabs={[
+          { id: 'all', label: 'Všechny', icon: List },
+          { id: 'in_progress', label: 'Probíhající', icon: Clock },
+          { id: 'completed', label: 'Dokončené', icon: CheckCircle }
+        ]}
+        subTabs={{
+          'all': [
+            { id: 'all', label: 'Vše' },
+            { id: 'beginner', label: 'Začátečník' },
+            { id: 'intermediate', label: 'Pokročilý' },
+            { id: 'expert', label: 'Expert' }
+          ],
+          'in_progress': [
+            { id: 'all', label: 'Vše' },
+            { id: 'beginner', label: 'Začátečník' },
+            { id: 'intermediate', label: 'Pokročilý' },
+            { id: 'expert', label: 'Expert' }
+          ],
+          'completed': [
+            { id: 'all', label: 'Vše' },
+            { id: 'beginner', label: 'Začátečník' },
+            { id: 'intermediate', label: 'Pokročilý' },
+            { id: 'expert', label: 'Expert' }
+          ]
+        }}
+        activeMainTab={mainTab}
+        activeSubTab={difficultyTab}
+        onMainTabChange={setMainTab}
+        onSubTabChange={setDifficultyTab}
+        sectionTitle={sectionContent.title}
+        sectionDescription={sectionContent.description}
+        showDailyGoal={true}
+        dailyGoal={dailyGoal}
+        onSetDailyGoal={setDailyGoal}
+        completedToday={completedToday}
+        goalLabel="lekcí"
+        progressLabel="Dnešní pokrok"
+        progress={progress}
+      >
+        <LessonList
+          filter={mainTab}
+          difficulty={difficultyTab}
+          onLessonComplete={markCompleted}
+        />
+      </PageSection>
 
-      mainTabs={[
-        { id: 'all', label: 'Všechny', icon: List },
-        { id: 'in_progress', label: 'Probíhající', icon: Clock },
-        { id: 'completed', label: 'Dokončené', icon: CheckCircle }
-      ]}
-
-      subTabs={{
-        'all': [
-          { id: 'all', label: 'Vše' },
-          { id: 'beginner', label: 'Začátečník' },
-          { id: 'intermediate', label: 'Pokročilý' },
-          { id: 'expert', label: 'Expert' }
-        ],
-        'in_progress': [
-          { id: 'all', label: 'Vše' },
-          { id: 'beginner', label: 'Začátečník' },
-          { id: 'intermediate', label: 'Pokročilý' },
-          { id: 'expert', label: 'Expert' }
-        ],
-        'completed': [
-          { id: 'all', label: 'Vše' },
-          { id: 'beginner', label: 'Začátečník' },
-          { id: 'intermediate', label: 'Pokročilý' },
-          { id: 'expert', label: 'Expert' }
-        ]
-      }}
-
-      activeMainTab={mainTab}
-      activeSubTab={difficultyTab}
-      onMainTabChange={setMainTab}
-      onSubTabChange={setDifficultyTab}
-
-      sectionTitle={sectionContent.title}
-      sectionDescription={sectionContent.description}
-      progressLabel="Váš pokrok"
-      progress={progressPercentage}
-    >
-      <LessonList filter={mainTab} difficulty={difficultyTab} />
-    </PageSection>
+      {/* Celebration Effect pro denní cíl */}
+      {celebrationData && (
+        <CelebrationEffect
+          isVisible={showCelebration}
+          config={celebrationData.config}
+          xpEarned={celebrationData.xpEarned}
+          achievements={celebrationData.achievements}
+          onComplete={() => setShowCelebration(false)}
+        />
+      )}
+    </>
   );
 }
 

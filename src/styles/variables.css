@@ -1,0 +1,46 @@
+/**
+ * CSS Variables - Centralizované stylovací proměnné
+ * Synchronizováno s JavaScript konstantami v src/utils/styleConstants.js
+ */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  /* Colors */
+  --color-primary: #b51f65;
+  --color-primary-dark: #8f1850;
+  --color-primary-transparent: rgba(181, 31, 101, 0.5);
+  --color-secondary: #2d5b78;
+  --color-secondary-dark: #1e3d52;
+  --color-secondary-transparent: rgba(45, 91, 120, 0.5);
+  --color-accent: #d63384;
+  --color-blue: #2d5b78;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+
+  /* Border Radius System */
+  --radius: 0.5rem;           /* 8px - deprecated, use specific values below */
+  --radius-sm: 0.625rem;      /* 10px - small elements (buttons, inputs, chips) */
+  --radius-md: 0.75rem;       /* 12px - medium elements (form container) */
+  --radius-lg: 1rem;          /* 16px - large elements (cards, panels) */
+  --radius-xl: 1.375rem;      /* 22px - extra large (main containers, question cards) */
+  --radius-xxl: 2.5rem;       /* 40px - celebration modals, special cards */
+
+  /* Shadow System */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}

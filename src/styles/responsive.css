@@ -1,0 +1,819 @@
+/**
+ * Responsive Styles - Media queries pro různé velikosti obrazovek
+ */
+
+/* ============================================
+   Modal Responsive (LessonModal, QuizModal...)
+   ============================================ */
+
+@media (max-width: 600px) {
+  /* Zmenšit padding backdropu */
+  .modal-backdrop {
+    padding: 0.5rem !important;
+  }
+
+  /* Zmenšit padding modal contentu */
+  [style*="maxWidth: 900px"][style*="maxHeight: 90vh"] {
+    max-height: 95vh !important;
+  }
+
+  /* Zmenšit padding modal headeru a body */
+  [style*="position: sticky"][style*="zIndex: 10"] {
+    padding: 1rem !important;
+  }
+
+  [style*="position: sticky"][style*="zIndex: 10"] h2 {
+    font-size: 1.125rem !important;
+  }
+
+  /* Modal body padding */
+  .modal-body {
+    padding: 0.75rem !important;
+  }
+
+  /* Close button v modalu */
+  [style*="position: sticky"] button[style*="width: 36px"] {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  [style*="position: sticky"] button[style*="width: 36px"] svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Backdrop padding */
+  .modal-backdrop {
+    padding: 0.25rem !important;
+  }
+
+  [style*="position: sticky"][style*="zIndex: 10"] {
+    padding: 0.75rem !important;
+  }
+
+  [style*="position: sticky"][style*="zIndex: 10"] h2 {
+    font-size: 1rem !important;
+  }
+
+  /* Modal body padding */
+  .modal-body {
+    padding: 0.5rem !important;
+  }
+
+  [style*="position: sticky"] button[style*="width: 36px"] {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  [style*="position: sticky"] button[style*="width: 36px"] svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+@media (max-width: 320px) {
+  /* Backdrop padding - žádný na 320px pro maximální využití obrazovky */
+  .modal-backdrop {
+    padding: 0 !important;
+  }
+
+  [style*="maxWidth: 900px"][style*="maxHeight: 90vh"] {
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  [style*="position: sticky"][style*="zIndex: 10"] {
+    padding: 0.5rem !important;
+    border-radius: 0 !important;
+  }
+
+  [style*="position: sticky"][style*="zIndex: 10"] h2 {
+    font-size: 0.9375rem !important;
+  }
+
+  /* Modal body padding - minimální pro 320px */
+  .modal-body {
+    padding: 0.375rem !important;
+  }
+}
+
+/* ============================================
+   Grid Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  .grid-cols-2,
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   Container Responsive Padding
+   ============================================ */
+
+@media (max-width: 720px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .container-sm {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .container-sm {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  .container-sm {
+    padding: 0 0.5rem;
+  }
+}
+
+/* ============================================
+   Card Responsive Adjustments
+   ============================================ */
+
+@media (max-width: 720px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .card h3 {
+    font-size: 1rem;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .song-header {
+    flex-wrap: wrap !important;
+  }
+
+  .song-header h3 {
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .song-actions {
+    flex-wrap: wrap !important;
+  }
+
+  .song-actions button {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .song-actions button svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 0.75rem;
+  }
+
+  .card h3 {
+    font-size: 0.9rem;
+  }
+
+  .badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .song-actions button {
+    font-size: 0.65rem !important;
+    padding: 0.15rem 0.35rem !important;
+  }
+
+  .song-actions button svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    padding: 0.6rem;
+  }
+
+  .card h3 {
+    font-size: 0.85rem;
+  }
+}
+
+/* ============================================
+   Song Library Responsive
+   ============================================ */
+
+@media (max-width: 720px) {
+  .song-card-controls {
+    gap: 0.75rem;
+  }
+
+  .drag-handle {
+    padding: 0.25rem;
+  }
+
+  .grip-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .play-button {
+    width: 48px;
+    height: 48px;
+  }
+
+  .play-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 899px) {
+  .song-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .song-card-controls {
+    gap: 0.6rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .play-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .play-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .grip-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .song-card-wrapper > div:not(.song-card-controls) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .song-card-controls {
+    gap: 0.5rem;
+  }
+
+  .play-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .play-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .grip-icon {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+@media (max-width: 375px) {
+  .song-card-controls {
+    gap: 0.4rem;
+  }
+
+  .play-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .play-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .grip-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .drag-handle {
+    padding: 0.2rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .song-card-controls {
+    gap: 0.3rem;
+  }
+
+  .play-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .play-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .grip-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .drag-handle {
+    padding: 0.15rem;
+  }
+}
+
+/* ============================================
+   Header Navigation Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .mobile-menu-button {
+    display: flex !important;
+  }
+
+  .mobile-nav {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 0.75rem 0 !important;
+  }
+
+  header .container > div {
+    gap: 0.5rem;
+  }
+
+  header a[href="/dashboard"] span {
+    font-size: 1rem !important;
+  }
+}
+
+/* ============================================
+   Landing Page - About Eva Section
+   ============================================ */
+
+@media (max-width: 720px) {
+  .about-eva-wrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+  }
+
+  .about-eva-icon {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .about-eva-icon svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .about-eva-content h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .about-eva-content p {
+    font-size: 0.9375rem !important;
+  }
+
+  .about-eva-stats {
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-eva-wrapper {
+    gap: 1rem !important;
+  }
+
+  .about-eva-icon {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .about-eva-icon svg {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .about-eva-content h2 {
+    font-size: 1.125rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .about-eva-content p {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .about-eva-stats {
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .about-eva-stats span {
+    font-size: 0.8125rem !important;
+  }
+}
+
+/* ============================================
+   ItemCard Responsive
+   ============================================ */
+
+@media (max-width: 400px) {
+  .item-card-responsive .item-card-main-content {
+    min-width: 100% !important;
+  }
+
+  .item-card-responsive .item-card-left-controls {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .note-name-responsive {
+    display: none !important;
+  }
+
+  .item-card-responsive {
+    padding: 0.75rem !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .item-card-responsive * {
+    max-width: 100% !important;
+  }
+
+  .item-card-responsive > div > div[style*="marginTop"] {
+    margin-top: 0 !important;
+  }
+
+  .item-card-responsive h3 {
+    font-size: 0.9375rem !important;
+  }
+
+  .item-card-responsive .form-label {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .item-card-responsive .form-input {
+    font-size: 0.8125rem !important;
+    padding: 0.5rem !important;
+  }
+
+  .item-card-responsive .form-group {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .item-card-responsive [style*="marginBottom"][style*="padding"] {
+    margin-bottom: 0.75rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"] {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0.35rem !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"] svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"]:last-child {
+    display: none !important;
+  }
+
+  .item-card-responsive > div > div:first-child > div:last-child {
+    gap: 0.1rem !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+  }
+
+  .item-card-responsive .action-button-group {
+    justify-content: flex-start !important;
+    width: auto !important;
+    margin: 0 !important;
+    gap: 0.1rem !important;
+  }
+
+  .item-card-responsive div[style*="marginLeft"] > div {
+    margin-left: 0 !important;
+  }
+
+  .item-card-responsive div[style*="justifyContent"][style*="flex-end"] {
+    justify-content: flex-start !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  .item-card-main-content {
+    min-width: 0 !important;
+  }
+
+  .item-card-responsive div[style*="minWidth"] {
+    min-width: 0 !important;
+  }
+
+  .item-card-responsive div[style*="marginLeft: auto"] {
+    margin-left: 0 !important;
+    order: -1 !important;
+  }
+
+  .item-card-responsive .item-card-main-content > div:nth-child(3) {
+    justify-content: flex-start !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .item-card-responsive div[style*="width: 100%"][style*="gap"] {
+    width: auto !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .note-name-responsive {
+    display: none !important;
+  }
+
+  .item-card-responsive {
+    padding: 0.5rem !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .item-card-responsive * {
+    max-width: 100% !important;
+  }
+
+  .item-card-responsive > div > div[style*="marginTop"] {
+    margin-top: 0 !important;
+  }
+
+  .item-card-responsive h3 {
+    font-size: 0.875rem !important;
+  }
+
+  .item-card-responsive .form-label {
+    font-size: 0.6875rem !important;
+  }
+
+  .item-card-responsive .form-input {
+    font-size: 0.75rem !important;
+    padding: 0.375rem !important;
+  }
+
+  .item-card-responsive .form-group {
+    margin-bottom: 0.375rem !important;
+  }
+
+  .item-card-responsive [style*="marginBottom"][style*="padding"] {
+    margin-bottom: 0.5rem !important;
+    padding: 0.5rem !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"] {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0.3rem !important;
+  }
+
+  .item-card-responsive button[style*="minWidth"] svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .item-card-responsive > div > div:first-child > div:last-child {
+    gap: 0.1rem !important;
+    justify-content: flex-start !important;
+  }
+
+  .item-card-responsive div[style*="justifyContent"][style*="flex-end"] {
+    justify-content: flex-start !important;
+  }
+
+  table {
+    font-size: 0.65rem !important;
+  }
+
+  table th,
+  table td {
+    padding: 0 0.15rem 0.15rem 0.15rem !important;
+  }
+
+  table code {
+    font-size: 0.625rem !important;
+  }
+}
+
+/* ============================================
+   LessonModal Content Responsive
+   ============================================ */
+
+@media (max-width: 600px) {
+  /* Nadpisy v LessonModal */
+  [style*="maxWidth: 900px"] h1 {
+    font-size: 1.5rem !important;
+  }
+
+  [style*="maxWidth: 900px"] h3 {
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Badges v LessonModal */
+  [style*="maxWidth: 900px"] .badge {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.6rem !important;
+  }
+
+  /* Note cards container */
+  [style*="maxWidth: 900px"] [style*="display: flex"][style*="gap: 1rem"][style*="padding: 1.5rem"] {
+    padding: 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Individual note cards */
+  [style*="maxWidth: 900px"] [style*="flex: 1"][style*="textAlign: center"][style*="fontSize: 1.5rem"] {
+    font-size: 1.125rem !important;
+    padding: 0.75rem !important;
+  }
+
+  /* Instructions list */
+  [style*="maxWidth: 900px"] ol {
+    padding-left: 1rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Complete button */
+  [style*="maxWidth: 900px"] button[style*="padding: 1rem 2rem"] {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  /* Zmenšit horizontal padding */
+  [style*="maxWidth: 900px"] > div > div {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  [style*="maxWidth: 900px"] h1 {
+    font-size: 1.25rem !important;
+  }
+
+  [style*="maxWidth: 900px"] h3 {
+    font-size: 0.9375rem !important;
+  }
+
+  [style*="maxWidth: 900px"] .badge {
+    font-size: 0.6rem !important;
+    padding: 0.15rem 0.5rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="display: flex"][style*="gap: 1rem"][style*="padding: 1.5rem"] {
+    padding: 0.5rem !important;
+    gap: 0.4rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="flex: 1"][style*="textAlign: center"][style*="fontSize: 1.5rem"] {
+    font-size: 1rem !important;
+    padding: 0.5rem !important;
+  }
+
+  [style*="maxWidth: 900px"] button[style*="padding: 1rem 2rem"] {
+    padding: 0.625rem 1.25rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  /* Zmenšit horizontal padding */
+  [style*="maxWidth: 900px"] > div > div {
+    padding-left: 0.375rem !important;
+    padding-right: 0.375rem !important;
+  }
+}
+
+@media (max-width: 320px) {
+  [style*="maxWidth: 900px"] h1 {
+    font-size: 1.125rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  [style*="maxWidth: 900px"] h3 {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.375rem !important;
+  }
+
+  [style*="maxWidth: 900px"] p {
+    font-size: 0.8125rem !important;
+  }
+
+  [style*="maxWidth: 900px"] .badge {
+    font-size: 0.5625rem !important;
+    padding: 0.125rem 0.4rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="display: flex"][style*="gap: 1rem"][style*="padding: 1.5rem"] {
+    padding: 0.375rem !important;
+    gap: 0.3rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="flex: 1"][style*="textAlign: center"][style*="fontSize: 1.5rem"] {
+    font-size: 0.875rem !important;
+    padding: 0.375rem !important;
+  }
+
+  [style*="maxWidth: 900px"] ol {
+    padding-left: 0.75rem !important;
+    gap: 0.375rem !important;
+  }
+
+  [style*="maxWidth: 900px"] button[style*="padding: 1rem 2rem"] {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Zmenšit ikony v LessonModal */
+  [style*="maxWidth: 900px"] svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Odstranit horizontal padding v LessonModal sekcích */
+  [style*="maxWidth: 900px"] > div > div {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="marginBottom: 1.5rem"] {
+    margin-bottom: 0.75rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="marginBottom: 2rem"] {
+    margin-bottom: 1rem !important;
+  }
+
+  [style*="maxWidth: 900px"] [style*="paddingBottom: 1.5rem"] {
+    padding-bottom: 0.75rem !important;
+  }
+}
+
+/* ============================================
+   Form Inputs Mobile
+   ============================================ */
+
+@media (max-width: 600px) {
+  /* Menší font pro date inputy na mobilu */
+  input[type="date"] {
+    font-size: 0.75rem;
+  }
+}

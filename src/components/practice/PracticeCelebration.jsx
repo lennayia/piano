@@ -1,156 +1,171 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy } from 'lucide-react';
+import { Trophy, Music, Target, BookOpen, Star, Award, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Confetti from '../common/Confetti';
+import Modal from '../ui/Modal';
 
 /**
- * Univerzální komponenta pro oslavy při perfektním zahrání v režimu výzvy
- * Zobrazuje konfety a success modal
+ * Univerzální komponenta pro oslavy
+ * Používá existující moduly: Modal, Confetti
+ * @param {boolean} showCelebration - Zobrazit konfety
+ * @param {boolean} showSuccessModal - Zobrazit modal
+ * @param {string} icon - Lucide ikona
+ * @param {string} iconColor - Barva ikony
+ * @param {string} title - Hlavní nadpis
+ * @param {string} subtitle - Podnadpis
+ * @param {number} xpAwarded - Počet XP
+ * @param {string} xpLabel - Popisek k XP
+ * @param {Function} onClose - Callback po zavření
  */
 function PracticeCelebration({
   showCelebration = false,
   showSuccessModal = false,
+  icon = 'Trophy',
+  iconColor = 'var(--color-primary)',
+  title = 'Skvěle, naprosto bez chyb!',
+  subtitle = '',
   completedItemTitle = '',
   xpAwarded = 100,
+  xpLabel = 'Odměna za perfektní zahrání',
   onClose
 }) {
+  const iconMap = { Trophy, Music, Target, BookOpen, Star, Award, Zap };
+  const Icon = iconMap[icon] || Trophy;
+
   return (
     <>
-      {/* Confetti při perfektním zahrání */}
       <Confetti show={showCelebration} onComplete={() => {}} />
 
-      {/* Success Modal */}
-      <AnimatePresence>
-        {showSuccessModal && (
+      <Modal isOpen={showSuccessModal} onClose={onClose} hideHeader={true}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 252, 0.95) 100%)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 'var(--radius-xxl)',
+            padding: '2rem'
+          }}>
+          {/* Icon */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{
+              type: 'spring',
+              stiffness: 200,
+              damping: 15,
+              delay: 0.1
+            }}
             style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0, 0, 0, 0.5)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              width: '120px',
+              height: '120px',
+              margin: '0 auto 2rem',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%)',
+              borderRadius: '32px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 9999,
-              padding: '1rem'
-            }}
-          >
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04)',
+              border: 'none'
+            }}>
             <motion.div
-              initial={{ scale: 0.8, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 50 }}
-              onClick={(e) => e.stopPropagation()}
-              className="card"
-              style={{
-                maxWidth: '500px',
-                width: '100%',
-                padding: '2rem',
-                background: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '2px solid rgba(181, 31, 101, 0.3)',
-                boxShadow: '0 20px 60px rgba(181, 31, 101, 0.4)',
-                textAlign: 'center'
+              animate={{
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
               }}
             >
-              {/* Trophy Icon */}
-              <div style={{
-                width: '80px',
-                height: '80px',
-                margin: '0 auto 1.5rem',
-                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.2) 0%, rgba(221, 51, 121, 0.2) 100%)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '3px solid rgba(181, 31, 101, 0.3)'
-              }}>
-                <Trophy size={40} color="var(--color-primary)" />
-              </div>
-
-              {/* Success Message */}
-              <h2 style={{
-                marginBottom: '0.5rem',
-                color: '#1e293b',
-                fontSize: '1.75rem'
-              }}>
-                Skvěle, naprosto bez chyb!
-              </h2>
-
-              <p style={{
-                fontSize: '1.125rem',
-                color: '#64748b',
-                marginBottom: '1.5rem'
-              }}>
-                Dokončili jste <strong style={{ color: 'var(--color-primary)' }}>"{completedItemTitle}"</strong>
-              </p>
-
-              {/* Reward Info */}
-              <div style={{
-                padding: '1.5rem',
-                background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.1) 0%, rgba(221, 51, 121, 0.1) 100%)',
-                borderRadius: 'var(--radius)',
-                marginBottom: '1.5rem',
-                border: '2px solid rgba(181, 31, 101, 0.2)'
-              }}>
-                <div style={{
-                  fontSize: '2.5rem',
-                  fontWeight: 'bold',
-                  color: 'var(--color-primary)',
-                  marginBottom: '0.5rem'
-                }}>
-                  +{xpAwarded} XP
-                </div>
-                <div style={{
-                  fontSize: '0.875rem',
-                  color: '#64748b'
-                }}>
-                  Odměna za perfektní zahrání
-                </div>
-              </div>
-
-              {/* Info where to find stats */}
-              <p style={{
-                fontSize: '0.875rem',
-                color: '#64748b',
-                marginBottom: '1.5rem'
-              }}>
-                Své statistiky a odměny najdete na{' '}
-                <strong style={{ color: 'var(--color-primary)' }}>Dashboardu</strong>
-              </p>
-
-              {/* Close Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onClose}
-                className="btn btn-primary"
-                style={{
-                  padding: '0.75rem 2rem',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.9) 0%, rgba(221, 51, 121, 0.9) 100%)',
-                  border: '2px solid rgba(181, 31, 101, 0.3)',
-                  color: '#ffffff',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 16px rgba(181, 31, 101, 0.3)',
-                  transition: 'all 0.3s'
-                }}
-              >
-                Pokračovat
-              </motion.button>
+              <Icon size={56} color={iconColor} strokeWidth={2} />
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+
+          {/* Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-2"
+            style={{ fontWeight: 'bold' }}
+          >
+            {title}
+          </motion.h1>
+
+          {/* Subtitle */}
+          {(subtitle || completedItemTitle) && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-secondary mb-4"
+              style={{ fontSize: '1.125rem' }}
+            >
+              Dokončili jste <strong>"{subtitle || completedItemTitle}"</strong>
+            </motion.p>
+          )}
+
+          {/* XP Panel */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, type: 'spring' }}
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 240, 245, 0.9) 0%, rgba(255, 245, 250, 0.7) 100%)',
+              borderRadius: '24px',
+              padding: '2rem',
+              marginBottom: '2rem',
+              border: 'none',
+              boxShadow: '0 8px 24px rgba(181, 31, 101, 0.12), inset 0 0 40px rgba(181, 31, 101, 0.05)'
+            }}>
+            <div className="text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
+                style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-primary)' }}
+              >
+                +{xpAwarded} XP
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-secondary"
+                style={{ fontSize: '1rem', marginTop: '0.5rem' }}
+              >
+                {xpLabel}
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Info */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="text-secondary mb-4"
+            style={{ fontSize: '1rem' }}
+          >
+            Své statistiky a odměny najdete na <strong>Dashboardu</strong>
+          </motion.p>
+
+          {/* Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            whileHover={{ scale: 1.05, boxShadow: '0 8px 24px rgba(45, 91, 120, 0.4)' }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onClose}
+            className="btn btn-primary"
+          >
+            Pokračovat
+          </motion.button>
+        </motion.div>
+      </Modal>
     </>
   );
 }

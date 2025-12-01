@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import audioEngine from '../../utils/audio';
+import { CloseButton } from './ButtonComponents';
 
-function Modal({ isOpen, onClose, children, title }) {
+function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -31,6 +30,7 @@ function Modal({ isOpen, onClose, children, title }) {
         <>
           {/* Backdrop with blur */}
           <motion.div
+            className="modal-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -66,7 +66,7 @@ function Modal({ isOpen, onClose, children, title }) {
                 WebkitBackdropFilter: 'blur(40px)',
                 border: '1px solid rgba(255, 255, 255, 0.4)',
                 boxShadow: '0 20px 60px rgba(31, 38, 135, 0.3)',
-                borderRadius: 'calc(var(--radius) * 2)',
+                borderRadius: 'var(--radius-xxl)',
                 maxWidth: '900px',
                 width: '100%',
                 maxHeight: '90vh',
@@ -74,49 +74,32 @@ function Modal({ isOpen, onClose, children, title }) {
                 position: 'relative'
               }}
             >
-              {/* Header */}
-              <div style={{
-                position: 'sticky',
-                top: 0,
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-                padding: '1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                zIndex: 10,
-                borderRadius: 'calc(var(--radius) * 2) calc(var(--radius) * 2) 0 0'
-              }}>
-                {title && <h2 style={{ margin: 0, color: '#1e293b' }}>{title}</h2>}
-                <motion.button
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    audioEngine.playClick();
-                    onClose();
-                  }}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: '36px',
-                    height: '36px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    marginLeft: 'auto'
-                  }}
-                >
-                  <X size={20} color="#ef4444" />
-                </motion.button>
-              </div>
+              {/* Header - podmíněně skrytý */}
+              {!hideHeader && (
+                <div style={{
+                  position: 'sticky',
+                  top: 0,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+                  padding: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  zIndex: 10,
+                  borderRadius: 'var(--radius-xxl) var(--radius-xxl) 0 0'
+                }}>
+                  {title && <h2 style={{ margin: 0, color: '#1e293b' }}>{title}</h2>}
+                  <CloseButton
+                    onClick={onClose}
+                    style={{ marginLeft: 'auto' }}
+                  />
+                </div>
+              )}
 
               {/* Body */}
-              <div style={{ padding: '1.5rem' }}>
+              <div className="modal-body" style={{ padding: '1.5rem' }}>
                 {children}
               </div>
             </motion.div>

@@ -13,6 +13,7 @@ import Cviceni from './pages/Cviceni';
 import TheoryQuizzes from './pages/TheoryQuizzes';
 import NavigationVariantsDemo from './pages/NavigationVariantsDemo';
 import TextDemo from './pages/TextDemo';
+import CelebrationDemo from './pages/CelebrationDemo';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import useUserStore from './store/useUserStore';
 import './styles/index.css';
@@ -37,6 +38,7 @@ function App() {
           {/* DEMO stránky - smazat po dokončení */}
           <Route path="/navigation-demo" element={<NavigationVariantsDemo />} />
           <Route path="/text-demo" element={<TextDemo />} />
+          <Route path="/celebration-demo" element={<CelebrationDemo />} />
 
           {/* Chráněné routes - vyžadují přihlášení */}
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />

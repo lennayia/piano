@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CheckCircle, Music, Clock, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '../ui/Modal';
+import { CloseButton } from '../ui/ButtonComponents';
 import PianoKeyboard from './PianoKeyboard';
 import NoteCard from './NoteCard';
 import { getDifficultyColor, LESSON_XP_REWARD, MODAL_AUTO_CLOSE_DELAY } from '../../utils/lessonUtils';
@@ -10,7 +11,7 @@ import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 import { supabase } from '../../lib/supabase';
 
-function LessonModal({ lesson, isOpen, onClose }) {
+function LessonModal({ lesson, isOpen, onClose, onComplete }) {
   const [isCompleted, setIsCompleted] = useState(false);
   const currentUser = useUserStore((state) => state.currentUser);
 
@@ -87,6 +88,11 @@ function LessonModal({ lesson, isOpen, onClose }) {
         setIsCompleted(true);
         audioEngine.playSuccess();
 
+        // Zavolat callback pro denní cíl
+        if (onComplete) {
+          onComplete(lesson.id);
+        }
+
         // Zavřít modal po 2 sekundách
         setTimeout(() => {
           onClose();
@@ -98,39 +104,47 @@ function LessonModal({ lesson, isOpen, onClose }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} hideHeader={true}>
       <div>
         {/* Header */}
         <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h1>{lesson.title}</h1>
-            {isCompleted && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="badge badge-success"
-                style={{ padding: '0.5rem 1rem' }}
-              >
-                <CheckCircle size={16} />
-                Dokončeno
-              </motion.span>
-            )}
+          {/* První řádek: Chipy vlevo, očičko vpravo */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {isCompleted && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="badge badge-xs"
+                  style={{
+                    backgroundColor: 'rgba(45, 91, 120, 0.1)',
+                    color: 'var(--color-secondary)',
+                    padding: '0.2rem 0.4rem'
+                  }}
+                  title="Dokončeno"
+                >
+                  <CheckCircle size={14} />
+                </motion.span>
+              )}
+              <span className={`badge badge-xs ${getDifficultyColor(lesson.difficulty)}`}>
+                <TrendingUp size={14} />
+                {lesson.difficulty}
+              </span>
+              <span className="badge badge-xs">
+                <Clock size={14} />
+                {lesson.duration}
+              </span>
+            </div>
+            <CloseButton onClick={onClose} />
           </div>
 
+          {/* Nadpis */}
+          <h1 style={{ marginBottom: '0.75rem' }}>{lesson.title}</h1>
+
+          {/* Popis */}
           <p>
             {lesson.description}
           </p>
-
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <span className={`badge ${getDifficultyColor(lesson.difficulty)}`}>
-              <TrendingUp size={14} />
-              {lesson.difficulty}
-            </span>
-            <span className="badge">
-              <Clock size={14} />
-              {lesson.duration}
-            </span>
-          </div>
         </div>
 
         {/* Lesson Content */}
