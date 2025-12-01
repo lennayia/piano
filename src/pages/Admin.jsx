@@ -3,6 +3,7 @@ import { Shield, BarChart3, Users, Trophy, Gamepad2, Zap, Eye, Settings } from '
 import AdminDashboard from '../components/admin/Dashboard';
 import UserList from '../components/admin/UserList';
 import AchievementManager from '../components/admin/AchievementManager';
+import AchievementManagerBackup from '../components/admin/AchievementManager-backup';
 import QuizManager from '../components/admin/QuizManager';
 import GamificationManager from '../components/admin/GamificationManager';
 import GamificationManagerBackup from '../components/admin/GamificationManager-backup';
@@ -32,7 +33,8 @@ function Admin() {
     management: [
       { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
       { id: 'xp-rules', label: 'XP body', icon: Zap },
-      { id: 'achievements', label: 'Odměny', icon: Trophy }
+      { id: 'achievements', label: 'Odměny', icon: Trophy },
+      { id: 'achievements-backup', label: 'Odměny - Záloha', icon: Eye }
     ]
   };
 
@@ -103,6 +105,10 @@ function Admin() {
         achievements: {
           title: 'Správa odměn',
           description: 'Vytvářejte a upravujte jednorázové odměny za dosažené milníky.'
+        },
+        'achievements-backup': {
+          title: 'Správa odměn - Záloha',
+          description: 'Původní verze před refactoringem - pro porovnání.'
         }
       }
     };
@@ -245,6 +251,11 @@ function Admin() {
         {/* SPRÁVA - Odměny */}
         {activeMainTab === 'management' && activeSubTab === 'achievements' && (
           <AchievementManager />
+        )}
+
+        {/* SPRÁVA - Odměny - Záloha */}
+        {activeMainTab === 'management' && activeSubTab === 'achievements-backup' && (
+          <AchievementManagerBackup />
         )}
       </PageSection>
     </>
