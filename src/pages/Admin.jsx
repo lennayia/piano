@@ -1,22 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Shield, BarChart3, Users, Trophy, Gamepad2, Zap, Eye, Settings, Music, BookOpen } from 'lucide-react';
-import TabButtons from '../components/ui/TabButtons';
-import AdminDashboard from '../components/admin/Dashboard';
-import UserList from '../components/admin/UserList';
-import AchievementManager from '../components/admin/AchievementManager';
-import AchievementManagerBackup from '../components/admin/AchievementManager-backup';
-import QuizManager from '../components/admin/QuizManager';
-import GamificationManager from '../components/admin/GamificationManager';
-import GamificationManagerBackup from '../components/admin/GamificationManager-backup';
+import { Shield, BarChart3, Users, Gamepad2, Zap, Eye, Settings, Music, BookOpen } from 'lucide-react';
 import PageSection from '../components/ui/PageSection';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
 
+// Wrapper komponenty pro 3. úroveň navigace
+import QuizzesListening from '../components/admin/quizzes/QuizzesListening';
+import QuizzesTheory from '../components/admin/quizzes/QuizzesTheory';
+import GamificationManagement from '../components/admin/gamification/GamificationManagement';
+import GamificationOverview from '../components/admin/gamification/GamificationOverview';
+import StatisticsOverview from '../components/admin/overview/StatisticsOverview';
+import UsersOverview from '../components/admin/overview/UsersOverview';
+
 function Admin() {
-  // 3-úrovňová navigace
+  // 2-úrovňová navigace (3. úroveň je ve wrapper komponentách)
   const [activeMainTab, setActiveMainTab] = useState('quizzes');
   const [activeSubTab, setActiveSubTab] = useState('listening');
-  const [activeThirdTab, setActiveThirdTab] = useState('chords');
 
   const currentUser = useUserStore((state) => state.currentUser);
   const getAllUsers = useUserStore((state) => state.getAllUsers);
@@ -40,60 +39,12 @@ function Admin() {
     ]
   };
 
-  // Third level tabs pro každý sub tab (úroveň 3)
-  const thirdLevelTabs = {
-    'quizzes-listening': [
-      { id: 'chords', label: 'Akordy', icon: Music }
-    ],
-    'quizzes-theory': [
-      { id: 'chords', label: 'Akordy', icon: Music },
-      { id: 'theory', label: 'Teorie', icon: BookOpen },
-      { id: 'intervals', label: 'Intervaly', icon: Music },
-      { id: 'scales', label: 'Stupnice', icon: Music },
-      { id: 'rhythm', label: 'Rytmus', icon: Music },
-      { id: 'mix', label: 'Mix', icon: Trophy }
-    ],
-    'gamification-management': [
-      { id: 'xp-rules', label: 'XP body', icon: Zap },
-      { id: 'bonuses', label: 'Bonusy', icon: Trophy },
-      { id: 'achievements', label: 'Odměny', icon: Trophy },
-      { id: 'achievements-backup', label: 'Odměny - Záloha', icon: Eye },
-      { id: 'levels', label: 'Levely', icon: BarChart3 }
-    ],
-    'gamification-overview': [
-      { id: 'xp-rules', label: 'XP body', icon: Zap },
-      { id: 'bonuses', label: 'Bonusy', icon: Trophy },
-      { id: 'achievements', label: 'Odměny', icon: Trophy },
-      { id: 'achievements-backup', label: 'Odměny - Záloha', icon: Eye },
-      { id: 'levels', label: 'Levely', icon: BarChart3 }
-    ],
-    'overview-statistics': [
-      { id: 'general', label: 'Obecné', icon: BarChart3 },
-      { id: 'gamification', label: 'Gamifikace', icon: Zap },
-      { id: 'gamification-backup', label: 'Gamifikace - Záloha', icon: Eye },
-      { id: 'leaderboard', label: 'Žebříček', icon: Trophy }
-    ],
-    'overview-users': [
-      { id: 'overview', label: 'Přehled', icon: Users },
-      { id: 'history', label: 'Historie', icon: BookOpen },
-      { id: 'statistics', label: 'Statistiky', icon: BarChart3 }
-    ]
-  };
-
   // Při změně hlavního tabu nastav první sub-tab
   useEffect(() => {
     if (subTabs[activeMainTab]?.[0]?.id) {
       setActiveSubTab(subTabs[activeMainTab][0].id);
     }
   }, [activeMainTab]);
-
-  // Při změně sub-tabu nastav první third-level tab
-  useEffect(() => {
-    const thirdTabsKey = `${activeMainTab}-${activeSubTab}`;
-    if (thirdLevelTabs[thirdTabsKey]?.[0]?.id) {
-      setActiveThirdTab(thirdLevelTabs[thirdTabsKey][0].id);
-    }
-  }, [activeMainTab, activeSubTab]);
 
   // Načíst všechny uživatele při otevření Admin stránky
   useEffect(() => {
@@ -123,116 +74,39 @@ function Admin() {
     { id: 'overview', label: 'Přehledy', icon: BarChart3 }
   ];
 
-  // Dynamický obsah podle aktivních tabů (3 úrovně)
+  // Dynamický obsah podle aktivních tabů (2 úrovně)
   const getSectionContent = () => {
-    // Klíč pro přístup ke content definici
-    const contentKey = `${activeMainTab}-${activeSubTab}-${activeThirdTab}`;
+    const contentKey = `${activeMainTab}-${activeSubTab}`;
 
     const content = {
       // KVÍZY
-      'quizzes-listening-chords': {
-        title: 'Poslech - Akordy',
+      'quizzes-listening': {
+        title: 'Správa kvízů - Poslech',
         description: 'Správa akordů pro poslechové kvízy.'
       },
-      'quizzes-theory-chords': {
-        title: 'Teorie - Akordy',
-        description: 'Správa akordových otázek pro teoretické kvízy.'
-      },
-      'quizzes-theory-theory': {
-        title: 'Teorie - Obecná teorie',
-        description: 'Správa obecných teoretických otázek.'
-      },
-      'quizzes-theory-intervals': {
-        title: 'Teorie - Intervaly',
-        description: 'Správa otázek o intervalech.'
-      },
-      'quizzes-theory-scales': {
-        title: 'Teorie - Stupnice',
-        description: 'Správa otázek o stupnicích.'
-      },
-      'quizzes-theory-rhythm': {
-        title: 'Teorie - Rytmus',
-        description: 'Správa otázek o rytmu.'
-      },
-      'quizzes-theory-mix': {
-        title: 'Teorie - Mix',
-        description: 'Správa smíšených teoretických otázek.'
+      'quizzes-theory': {
+        title: 'Správa kvízů - Teorie',
+        description: 'Správa teoretických otázek pro kvízy.'
       },
 
-      // GAMIFIKACE - SPRÁVA
-      'gamification-management-xp-rules': {
-        title: 'Správa XP pravidel',
-        description: 'Nastavte body za opakované akce - dokončení lekce, kvízu, písně atd.'
+      // GAMIFIKACE
+      'gamification-management': {
+        title: 'Správa gamifikace',
+        description: 'Nastavte XP pravidla, bonusy, odměny a levely.'
       },
-      'gamification-management-bonuses': {
-        title: 'Správa bonusů',
-        description: 'Nastavte bonusy za výkon - perfektní zahrání, rychlost, kontinuitu atd.'
-      },
-      'gamification-management-achievements': {
-        title: 'Správa odměn',
-        description: 'Vytvářejte a upravujte jednorázové odměny za dosažené milníky.'
-      },
-      'gamification-management-achievements-backup': {
-        title: 'Správa odměn - Záloha',
-        description: 'Původní verze před refactoringem - pro porovnání.'
-      },
-      'gamification-management-levels': {
-        title: 'Správa levelů',
-        description: 'Nastavte prahy XP a názvy pro jednotlivé levely.'
+      'gamification-overview': {
+        title: 'Přehled gamifikace',
+        description: 'Celkový přehled XP pravidel, bonusů, odměn a levelů.'
       },
 
-      // GAMIFIKACE - PŘEHLED
-      'gamification-overview-xp-rules': {
-        title: 'Přehled XP pravidel',
-        description: 'Celkový přehled nastavených XP pravidel.'
+      // PŘEHLEDY
+      'overview-statistics': {
+        title: 'Statistiky',
+        description: 'Obecné statistiky, gamifikace a žebříček.'
       },
-      'gamification-overview-bonuses': {
-        title: 'Přehled bonusů',
-        description: 'Celkový přehled nastavených bonusů.'
-      },
-      'gamification-overview-achievements': {
-        title: 'Přehled odměn',
-        description: 'Celkový přehled všech odměn v aplikaci.'
-      },
-      'gamification-overview-achievements-backup': {
-        title: 'Přehled odměn - Záloha',
-        description: 'Původní verze před refactoringem - pro porovnání.'
-      },
-      'gamification-overview-levels': {
-        title: 'Přehled levelů',
-        description: 'Celkový přehled nastavených levelů.'
-      },
-
-      // PŘEHLEDY - STATISTIKY
-      'overview-statistics-general': {
-        title: 'Obecné statistiky',
-        description: 'Přehled celkové aktivity a statistik aplikace.'
-      },
-      'overview-statistics-gamification': {
-        title: 'Statistiky gamifikace',
-        description: 'Statistiky XP, levelů a odměn.'
-      },
-      'overview-statistics-gamification-backup': {
-        title: 'Statistiky gamifikace - Záloha',
-        description: 'Původní verze před refactoringem - pro porovnání.'
-      },
-      'overview-statistics-leaderboard': {
-        title: 'Žebříček',
-        description: 'TOP 50 uživatelů podle celkového XP.'
-      },
-
-      // PŘEHLEDY - UŽIVATELÉ
-      'overview-users-overview': {
-        title: 'Přehled uživatelů',
-        description: 'Seznam všech registrovaných uživatelů a jejich statistiky.'
-      },
-      'overview-users-history': {
-        title: 'Historie aktivit',
-        description: 'Kompletní historie všech aktivit uživatelů.'
-      },
-      'overview-users-statistics': {
-        title: 'Statistiky uživatelů',
-        description: 'Detailní statistiky jednotlivých uživatelů.'
+      'overview-users': {
+        title: 'Uživatelé',
+        description: 'Přehled uživatelů, historie aktivit a statistiky.'
       }
     };
 
@@ -337,133 +211,19 @@ function Admin() {
         sectionTitle={sectionContent.title}
         sectionDescription={sectionContent.description}
       >
-        {/* 3. úroveň navigace (TabButtons pro third level) */}
-        {thirdLevelTabs[`${activeMainTab}-${activeSubTab}`] && (
-          <div style={{ marginBottom: '2rem' }}>
-            <TabButtons
-              tabs={thirdLevelTabs[`${activeMainTab}-${activeSubTab}`]}
-              activeTab={activeThirdTab}
-              onTabChange={setActiveThirdTab}
-              options={{ layout: 'pill', size: 'sm' }}
-            />
-          </div>
-        )}
+        {/* Wrapper komponenty pro 3. úroveň navigace */}
 
-        {/* ==================== KVÍZY ==================== */}
+        {/* KVÍZY */}
+        {activeMainTab === 'quizzes' && activeSubTab === 'listening' && <QuizzesListening />}
+        {activeMainTab === 'quizzes' && activeSubTab === 'theory' && <QuizzesTheory />}
 
-        {/* KVÍZY - POSLECH - Akordy */}
-        {activeMainTab === 'quizzes' && activeSubTab === 'listening' && activeThirdTab === 'chords' && (
-          <QuizManager />
-        )}
+        {/* GAMIFIKACE */}
+        {activeMainTab === 'gamification' && activeSubTab === 'management' && <GamificationManagement />}
+        {activeMainTab === 'gamification' && activeSubTab === 'overview' && <GamificationOverview />}
 
-        {/* KVÍZY - TEORIE - všechny sub-taby */}
-        {activeMainTab === 'quizzes' && activeSubTab === 'theory' && (
-          <>
-            {activeThirdTab === 'chords' && <QuizManager />}
-            {activeThirdTab === 'theory' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>📚 Teorie - Obecná teorie</h3>
-                <p>Komponenta pro správu obecných teoretických otázek</p>
-              </div>
-            )}
-            {activeThirdTab === 'intervals' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>🎵 Teorie - Intervaly</h3>
-                <p>Komponenta pro správu otázek o intervalech</p>
-              </div>
-            )}
-            {activeThirdTab === 'scales' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>🎹 Teorie - Stupnice</h3>
-                <p>Komponenta pro správu otázek o stupnicích</p>
-              </div>
-            )}
-            {activeThirdTab === 'rhythm' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>🥁 Teorie - Rytmus</h3>
-                <p>Komponenta pro správu otázek o rytmu</p>
-              </div>
-            )}
-            {activeThirdTab === 'mix' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>🎲 Teorie - Mix</h3>
-                <p>Komponenta pro správu smíšených teoretických otázek</p>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ==================== GAMIFIKACE ==================== */}
-
-        {/* GAMIFIKACE - SPRÁVA */}
-        {activeMainTab === 'gamification' && activeSubTab === 'management' && (
-          <>
-            {activeThirdTab === 'xp-rules' && <GamificationManager />}
-            {activeThirdTab === 'bonuses' && (
-              <div style={{ padding: '1rem', background: 'rgba(181, 31, 101, 0.1)', borderRadius: '8px' }}>
-                <h3>⚡ Bonusy - CRUD operace</h3>
-                <p>Tady bude NOVÁ komponenta pro správu bonusů za výkon</p>
-                <p>S možností přidat, upravit, duplikovat, smazat</p>
-              </div>
-            )}
-            {activeThirdTab === 'achievements' && <AchievementManager />}
-            {activeThirdTab === 'achievements-backup' && <AchievementManagerBackup />}
-            {activeThirdTab === 'levels' && (
-              <div style={{ padding: '1rem', background: 'rgba(181, 31, 101, 0.1)', borderRadius: '8px' }}>
-                <h3>📊 Levely - CRUD operace</h3>
-                <p>Tady bude komponenta pro správu levelů</p>
-                <p>S možností přidat, upravit, duplikovat, smazat</p>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* GAMIFIKACE - PŘEHLED */}
-        {activeMainTab === 'gamification' && activeSubTab === 'overview' && (
-          <>
-            {activeThirdTab === 'xp-rules' && <GamificationManager />}
-            {activeThirdTab === 'bonuses' && (
-              <div style={{ padding: '1rem', background: 'rgba(181, 31, 101, 0.1)', borderRadius: '8px' }}>
-                <h3>⚡ Přehled bonusů</h3>
-                <p>Přehled všech nastavených bonusů</p>
-              </div>
-            )}
-            {activeThirdTab === 'achievements' && <AchievementManager />}
-            {activeThirdTab === 'achievements-backup' && <AchievementManagerBackup />}
-            {activeThirdTab === 'levels' && <GamificationManager />}
-          </>
-        )}
-
-        {/* ==================== PŘEHLEDY ==================== */}
-
-        {/* PŘEHLEDY - STATISTIKY */}
-        {activeMainTab === 'overview' && activeSubTab === 'statistics' && (
-          <>
-            {activeThirdTab === 'general' && <AdminDashboard />}
-            {activeThirdTab === 'gamification' && <GamificationManager />}
-            {activeThirdTab === 'gamification-backup' && <GamificationManagerBackup />}
-            {activeThirdTab === 'leaderboard' && <GamificationManager />}
-          </>
-        )}
-
-        {/* PŘEHLEDY - UŽIVATELÉ */}
-        {activeMainTab === 'overview' && activeSubTab === 'users' && (
-          <>
-            {activeThirdTab === 'overview' && <UserList />}
-            {activeThirdTab === 'history' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>📜 Historie aktivit</h3>
-                <p>Komponenta pro zobrazení kompletní historie všech aktivit</p>
-              </div>
-            )}
-            {activeThirdTab === 'statistics' && (
-              <div style={{ padding: '1rem', background: 'rgba(45, 91, 120, 0.1)', borderRadius: '8px' }}>
-                <h3>📊 Statistiky uživatelů</h3>
-                <p>Komponenta pro detailní statistiky jednotlivých uživatelů</p>
-              </div>
-            )}
-          </>
-        )}
+        {/* PŘEHLEDY */}
+        {activeMainTab === 'overview' && activeSubTab === 'statistics' && <StatisticsOverview />}
+        {activeMainTab === 'overview' && activeSubTab === 'users' && <UsersOverview />}
       </PageSection>
     </>
   );
