@@ -14,10 +14,13 @@ import { RADIUS } from '../../utils/styleConstants';
  * @param {string} props.description - Popis pod nadpisem
  * @param {array} props.mainTabs - Pole hlavních tabs [{id, label, icon}]
  * @param {object} props.subTabs - Object s submenu pro každý hlavní tab: {mainTabId: [{id, label, icon}]}
+ * @param {object} props.thirdLevelTabs - Object s 3. úrovní tabů: {'mainTab-subTab': [{id, label, icon}]}
  * @param {string} props.activeMainTab - ID aktivního hlavního tabu
  * @param {string} props.activeSubTab - ID aktivního sub tabu
+ * @param {string} props.activeThirdLevelTab - ID aktivního 3. úrovně tabu
  * @param {function} props.onMainTabChange - Callback při změně hlavního tabu
  * @param {function} props.onSubTabChange - Callback při změně sub tabu
+ * @param {function} props.onThirdLevelTabChange - Callback při změně 3. úrovně tabu
  * @param {string} props.mainTabsSize - Velikost main tabs: 'sm' | 'md' | 'lg' (default: 'lg')
  * @param {string} props.sectionTitle - H2 nadpis content sekce
  * @param {string} props.sectionDescription - Popisný text pod section title
@@ -38,10 +41,13 @@ export function PageSection({
   description,
   mainTabs,
   subTabs = {},
+  thirdLevelTabs = {},
   activeMainTab,
   activeSubTab,
+  activeThirdLevelTab,
   onMainTabChange,
   onSubTabChange,
+  onThirdLevelTabChange,
   mainTabsSize = 'md',
   sectionTitle,
   sectionDescription,
@@ -58,6 +64,11 @@ export function PageSection({
   // Zjistit, jestli aktivní hlavní tab má submenu
   const currentSubTabs = subTabs[activeMainTab] || [];
   const hasSubMenu = currentSubTabs.length > 0;
+
+  // Zjistit, jestli aktivní kombinace main+sub má třetí úroveň
+  const thirdLevelKey = `${activeMainTab}-${activeSubTab}`;
+  const currentThirdLevelTabs = thirdLevelTabs[thirdLevelKey] || [];
+  const hasThirdLevel = currentThirdLevelTabs.length > 0;
 
   // Divider komponent
   const Divider = () => (
@@ -109,13 +120,23 @@ export function PageSection({
             options={{ size: mainTabsSize, style: { marginBottom: hasSubMenu ? '1rem' : 0 } }}
           />
 
-          {/* Submenu pills */}
+          {/* Submenu pills (2. úroveň) */}
           {hasSubMenu && (
             <TabButtons
               tabs={currentSubTabs}
               activeTab={activeSubTab}
               onTabChange={onSubTabChange}
-              options={{ layout: 'pill', style: { marginBottom: 0 } }}
+              options={{ layout: 'pill', size: 'sm', style: { marginBottom: hasThirdLevel ? '0.75rem' : 0 } }}
+            />
+          )}
+
+          {/* Third level pills (3. úroveň) */}
+          {hasThirdLevel && (
+            <TabButtons
+              tabs={currentThirdLevelTabs}
+              activeTab={activeThirdLevelTab}
+              onTabChange={onThirdLevelTabChange}
+              options={{ layout: 'pill', size: 'xs', style: { marginBottom: 0 } }}
             />
           )}
 
