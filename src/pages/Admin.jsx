@@ -4,9 +4,10 @@ import PageSection from '../components/ui/PageSection';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import useUserStore from '../store/useUserStore';
 
-// Wrapper komponenty pro 3. úroveň navigace
-import QuizzesListening from '../components/admin/quizzes/QuizzesListening';
-import QuizzesTheory from '../components/admin/quizzes/QuizzesTheory';
+// Komponenty
+import QuizManager from '../components/admin/QuizManager';
+
+// Wrapper komponenty pro 3. úroveň navigace (Gamifikace a Přehledy)
 import GamificationManagement from '../components/admin/gamification/GamificationManagement';
 import GamificationOverview from '../components/admin/gamification/GamificationOverview';
 import StatisticsOverview from '../components/admin/overview/StatisticsOverview';
@@ -211,17 +212,15 @@ function Admin() {
         sectionTitle={sectionContent.title}
         sectionDescription={sectionContent.description}
       >
-        {/* Wrapper komponenty pro 3. úroveň navigace */}
+        {/* KVÍZY - QuizManager má vlastní TabButtons */}
+        {activeMainTab === 'quizzes' && activeSubTab === 'listening' && <QuizManager />}
+        {activeMainTab === 'quizzes' && activeSubTab === 'theory' && <QuizManager />}
 
-        {/* KVÍZY */}
-        {activeMainTab === 'quizzes' && activeSubTab === 'listening' && <QuizzesListening />}
-        {activeMainTab === 'quizzes' && activeSubTab === 'theory' && <QuizzesTheory />}
-
-        {/* GAMIFIKACE */}
+        {/* GAMIFIKACE - wrapper komponenty s vlastními TabButtons */}
         {activeMainTab === 'gamification' && activeSubTab === 'management' && <GamificationManagement />}
         {activeMainTab === 'gamification' && activeSubTab === 'overview' && <GamificationOverview />}
 
-        {/* PŘEHLEDY */}
+        {/* PŘEHLEDY - wrapper komponenty s vlastními TabButtons */}
         {activeMainTab === 'overview' && activeSubTab === 'statistics' && <StatisticsOverview />}
         {activeMainTab === 'overview' && activeSubTab === 'users' && <UsersOverview />}
       </PageSection>
