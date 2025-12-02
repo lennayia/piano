@@ -38,6 +38,22 @@ export const COLORS = {
   danger: '#ef4444',
 };
 
+// Drawer Spacing System (responzivní)
+export const DRAWER_SPACING = {
+  mobile: {
+    contentPadding: '0.75rem 0.75rem 0.5rem 0.75rem',
+    margin: '0.75rem',
+    cardPadding: '0.75rem',
+    sectionGap: '0.5rem'
+  },
+  desktop: {
+    contentPadding: '2rem 2rem 1.5rem 2rem',
+    margin: '1.5rem',
+    cardPadding: '1rem',
+    sectionGap: '1rem'
+  }
+};
+
 // Použití:
-// import { RADIUS, SHADOW, BORDER } from '@/utils/styleConstants';
+// import { RADIUS, SHADOW, BORDER, DRAWER_SPACING } from '@/utils/styleConstants';
 // style={{ borderRadius: RADIUS.xl, boxShadow: SHADOW.subtle, border: BORDER.none }}

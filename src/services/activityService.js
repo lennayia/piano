@@ -1,0 +1,395 @@
+import { supabase } from '../lib/supabase';
+
+/**
+ * Activity Service - Centralizované funkce pro načítání aktivit uživatele
+ * Odděleno z celebrationService.js pro lepší modularitu
+ */
+
+/**
+ * Získá nedávné aktivity uživatele ze všech completion tabulek
+ * @param {string} userId - ID uživatele
+ * @param {number} limit - Počet aktivit k načtení (default: 5)
+ * @returns {Promise<Array>} Pole aktivit s type, title, date, xp, icon
+ */
+export const getRecentActivities = async (userId, limit = 5) => {
+  if (!userId) return [];
+
+  try {
+    const allActivities = [];
+
+    // Fetch recent song completions
+    const { data: songs } = await supabase
+      .from('piano_song_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false })
+      .limit(3);
+
+    if (songs) {
+      songs.forEach(song => {
+        allActivities.push({
+          id: `song-${song.id}`,
+          type: 'song',
+          title: song.song_title,
+          date: new Date(song.completed_at),
+          xp: song.xp_earned || 100,
+          icon: 'Music'
+        });
+      });
+    }
+
+    // Fetch recent quiz completions
+    const { data: quizzes } = await supabase
+      .from('piano_quiz_scores')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false })
+      .limit(3);
+
+    if (quizzes) {
+      quizzes.forEach(quiz => {
+        const quizTypeLabels = {
+          'chord_practice': 'Cvičení akordů',
+          'theory': 'Kvíz: Hudební teorie',
+          'interval': 'Kvíz: Intervaly',
+          'scale': 'Kvíz: Stupnice',
+          'rhythm': 'Kvíz: Rytmus',
+          'mixed': 'Kvíz: Mix'
+        };
+
+        allActivities.push({
+          id: `quiz-${quiz.id}`,
+          type: 'quiz',
+          title: quizTypeLabels[quiz.quiz_type] || 'Kvíz',
+          date: new Date(quiz.completed_at),
+          xp: quiz.score * 5, // Odhadovaná hodnota
+          icon: 'Gamepad2'
+        });
+      });
+    }
+
+    // Fetch recent lesson completions
+    const { data: lessons } = await supabase
+      .from('piano_lesson_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false })
+      .limit(3);
+
+    if (lessons) {
+      lessons.forEach(lesson => {
+        allActivities.push({
+          id: `lesson-${lesson.id}`,
+          type: 'lesson',
+          title: lesson.lesson_title || 'Lekce',
+          date: new Date(lesson.completed_at),
+          xp: lesson.xp_earned || 50,
+          icon: 'BookOpen'
+        });
+      });
+    }
+
+    // Sort by date and take only requested number
+    allActivities.sort((a, b) => b.date - a.date);
+    return allActivities.slice(0, limit);
+  } catch (error) {
+    console.error('Chyba při načítání nedávné aktivity:', error);
+    return [];
+  }
+};
+
+/**
+ * Získá VŠECHNY aktivity uživatele (pro stránku Historie)
+ * @param {string} userId - ID uživatele
+ * @returns {Promise<Array>} Pole všech aktivit
+ */
+export const getAllUserActivities = async (userId) => {
+  if (!userId) return [];
+
+  try {
+    const allActivities = [];
+
+    // Fetch song completions
+    const { data: songs } = await supabase
+      .from('piano_song_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false });
+
+    if (songs) {
+      songs.forEach(song => {
+        allActivities.push({
+          id: `song-${song.id}`,
+          type: 'song',
+          title: song.song_title,
+          date: new Date(song.completed_at),
+          xp: song.xp_earned || 100,
+          isPerfect: song.is_perfect,
+          mistakes: song.mistakes_count,
+          icon: 'Music'
+        });
+      });
+    }
+
+    // Fetch quiz completions (stará tabulka)
+    const { data: oldQuizzes } = await supabase
+      .from('piano_quiz_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false });
+
+    if (oldQuizzes) {
+      oldQuizzes.forEach(quiz => {
+        allActivities.push({
+          id: `quiz-old-${quiz.id}`,
+          type: 'quiz',
+          title: 'Poznáte akord?',
+          date: new Date(quiz.completed_at),
+          xp: quiz.xp_earned || 50,
+          score: quiz.score,
+          totalQuestions: quiz.total_questions,
+          icon: 'Gamepad2'
+        });
+      });
+    }
+
+    // Fetch quiz scores (nová tabulka)
+    const { data: quizScores } = await supabase
+      .from('piano_quiz_scores')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false });
+
+    if (quizScores) {
+      quizScores.forEach(quiz => {
+        const quizTypeLabels = {
+          'chord_practice': 'Cvičení akordů',
+          'chord_quiz': 'Poznáte akord?',
+          'theory': 'Kvíz: Hudební teorie',
+          'interval': 'Kvíz: Intervaly',
+          'scale': 'Kvíz: Stupnice',
+          'rhythm': 'Kvíz: Rytmus',
+          'mixed': 'Kvíz: Mix'
+        };
+
+        allActivities.push({
+          id: `quiz-${quiz.id}`,
+          type: quiz.quiz_type === 'chord_practice' ? 'chord_practice' : 'quiz',
+          title: quizTypeLabels[quiz.quiz_type] || 'Kvíz',
+          date: new Date(quiz.completed_at),
+          xp: quiz.score * 5,
+          score: quiz.score,
+          totalQuestions: quiz.total_questions,
+          icon: quiz.quiz_type === 'chord_practice' ? 'Music' : 'Gamepad2'
+        });
+      });
+    }
+
+    // Fetch lesson completions
+    const { data: lessons } = await supabase
+      .from('piano_lesson_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false });
+
+    if (lessons) {
+      lessons.forEach(lesson => {
+        allActivities.push({
+          id: `lesson-${lesson.id}`,
+          type: 'lesson',
+          title: lesson.lesson_title || 'Lekce',
+          date: new Date(lesson.completed_at),
+          xp: lesson.xp_earned || 50,
+          icon: 'Book'
+        });
+      });
+    }
+
+    // Fetch daily goal completions
+    const { data: dailyGoals } = await supabase
+      .from('piano_daily_goal_completions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('completed_at', { ascending: false });
+
+    if (dailyGoals) {
+      dailyGoals.forEach(goal => {
+        const goalTypeLabels = {
+          'lessons': 'lekcí',
+          'songs': 'písní',
+          'quizzes': 'kvízů',
+          'harmonizations': 'harmonizací'
+        };
+        const goalLabel = goalTypeLabels[goal.goal_type] || 'aktivit';
+
+        allActivities.push({
+          id: `daily-goal-${goal.id}`,
+          type: 'daily_goal',
+          title: `🎯 Denní cíl splněn!`,
+          subtitle: `${goal.completed_count} ${goalLabel}`,
+          date: new Date(goal.completed_at),
+          xp: goal.xp_earned || 50,
+          icon: 'Trophy',
+          isSpecial: true
+        });
+      });
+    }
+
+    // Fetch level ups
+    const { data: levelUps } = await supabase
+      .from('piano_level_ups')
+      .select('*')
+      .eq('user_id', userId)
+      .order('achieved_at', { ascending: false });
+
+    if (levelUps) {
+      levelUps.forEach(levelUp => {
+        allActivities.push({
+          id: `level-up-${levelUp.id}`,
+          type: 'level_up',
+          title: `⭐ Level ${levelUp.new_level} dosažen!`,
+          subtitle: `${levelUp.total_xp} XP celkem`,
+          date: new Date(levelUp.achieved_at),
+          xp: 0,
+          icon: 'Star',
+          isSpecial: true,
+          isLevelUp: true
+        });
+      });
+    }
+
+    // Sort by date (newest first)
+    allActivities.sort((a, b) => b.date - a.date);
+
+    return allActivities;
+  } catch (error) {
+    console.error('Chyba při načítání všech aktivit:', error);
+    return [];
+  }
+};
+
+/**
+ * Získá aktivity, které přispěly k odemčení konkrétního achievementu
+ * @param {string} userId - ID uživatele
+ * @param {string} requirementType - Typ požadavku achievementu
+ * @param {number} requirementValue - Hodnota požadavku
+ * @returns {Promise<Array>} Pole aktivit
+ */
+export const getActivitiesForAchievement = async (userId, requirementType, requirementValue) => {
+  if (!userId) return [];
+
+  try {
+    const activities = [];
+
+    switch (requirementType) {
+      case 'lessons_completed': {
+        const { data } = await supabase
+          .from('piano_lesson_completions')
+          .select('lesson_title, completed_at, xp_earned')
+          .eq('user_id', userId)
+          .order('completed_at', { ascending: true })
+          .limit(requirementValue);
+
+        if (data) {
+          data.forEach(item => activities.push({
+            title: item.lesson_title || 'Lekce',
+            date: new Date(item.completed_at),
+            xp: item.xp_earned || 50
+          }));
+        }
+        break;
+      }
+
+      case 'quizzes_completed': {
+        const { data } = await supabase
+          .from('piano_quiz_scores')
+          .select('quiz_type, completed_at, score')
+          .eq('user_id', userId)
+          .order('completed_at', { ascending: true })
+          .limit(requirementValue);
+
+        if (data) {
+          data.forEach(item => activities.push({
+            title: `Kvíz: ${item.quiz_type}`,
+            date: new Date(item.completed_at),
+            xp: item.score * 5
+          }));
+        }
+        break;
+      }
+
+      case 'songs_completed': {
+        const { data } = await supabase
+          .from('piano_song_completions')
+          .select('song_title, completed_at, xp_earned')
+          .eq('user_id', userId)
+          .order('completed_at', { ascending: true })
+          .limit(requirementValue);
+
+        if (data) {
+          data.forEach(item => activities.push({
+            title: item.song_title || 'Píseň',
+            date: new Date(item.completed_at),
+            xp: item.xp_earned || 100
+          }));
+        }
+        break;
+      }
+
+      case 'xp':
+      case 'total_xp':
+      case 'streak':
+      case 'current_streak': {
+        // Pro XP a streak, načíst všechny aktivity a vypočítat kumulativní XP
+        const allActivities = [];
+
+        // Lessons
+        const { data: lessonData } = await supabase
+          .from('piano_lesson_completions')
+          .select('lesson_title, completed_at, xp_earned')
+          .eq('user_id', userId)
+          .order('completed_at', { ascending: true });
+
+        if (lessonData) {
+          lessonData.forEach(item => allActivities.push({
+            title: item.lesson_title || 'Lekce',
+            date: new Date(item.completed_at),
+            xp: item.xp_earned || 50
+          }));
+        }
+
+        // Songs
+        const { data: songData } = await supabase
+          .from('piano_song_completions')
+          .select('song_title, completed_at, xp_earned')
+          .eq('user_id', userId)
+          .order('completed_at', { ascending: true });
+
+        if (songData) {
+          songData.forEach(item => allActivities.push({
+            title: item.song_title || 'Píseň',
+            date: new Date(item.completed_at),
+            xp: item.xp_earned || 100
+          }));
+        }
+
+        // Sort chronologically
+        allActivities.sort((a, b) => a.date - b.date);
+
+        // Take activities until we reach requirementValue XP
+        let cumulativeXP = 0;
+        for (const activity of allActivities) {
+          if (cumulativeXP >= requirementValue) break;
+          activities.push(activity);
+          cumulativeXP += activity.xp;
+        }
+        break;
+      }
+    }
+
+    return activities;
+  } catch (error) {
+    console.error('Chyba při načítání aktivit pro achievement:', error);
+    return [];
+  }
+};

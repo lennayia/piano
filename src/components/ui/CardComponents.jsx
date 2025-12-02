@@ -15,6 +15,7 @@ export function PageCard({ children, style = {}, ...props }) {
       style={{
         background: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(10px)',
+        border: 'none',
         boxShadow: SHADOW.default,
         borderRadius: RADIUS.xl,
         padding: '1.25rem',
@@ -44,7 +45,7 @@ export function QuestionCard({ children, isActive = true, as: Component = 'div',
           ? 'rgba(255, 255, 255, 0.8)'
           : 'rgba(200, 200, 200, 0.5)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(181, 31, 101, 0.1)',
+        border: 'none',
         borderRadius: RADIUS.xl,
         padding: '1.25rem',
         display: 'flex',
@@ -95,7 +96,7 @@ export function InfoPanel({ title, icon: Icon, variant = 'primary', children, st
         background: variantStyle.background,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: RADIUS.lg,
+        borderRadius: RADIUS.xl,
         marginTop: '0.75rem',
         border: variantStyle.border,
         boxShadow: variantStyle.boxShadow,
@@ -106,10 +107,10 @@ export function InfoPanel({ title, icon: Icon, variant = 'primary', children, st
       {title && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           {Icon && <Icon size={16} color={variantStyle.iconColor} />}
-          <strong style={{ fontSize: '0.875rem', color: '#1e293b' }}>{title}</strong>
+          <strong style={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>{title}</strong>
         </div>
       )}
-      <div style={{ fontSize: '0.875rem', color: '#475569', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+      <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
         {children}
       </div>
     </div>
@@ -150,7 +151,7 @@ export function ProgressBar({ current, total, title = 'Položka', label, style =
       }}>
         <span style={{
           fontSize: '0.75rem',
-          color: '#94a3b8',
+          color: 'var(--color-text-secondary)',
           fontWeight: 500
         }}>
           {title} {current} z {total}
@@ -189,6 +190,89 @@ export function ProgressBar({ current, total, title = 'Položka', label, style =
             borderRadius: '999px'
           }}
         />
+      </div>
+    </motion.div>
+  );
+}
+
+/**
+ * StatCard - Klikací karta se statistikou (Icon, hodnota, label)
+ * Používá se v UserDashboard pro zobrazení statistik (lekce, body, streak atd.)
+ *
+ * @param {React.ElementType} icon - Ikona komponenta z lucide-react (např. Award, Zap, Flame)
+ * @param {string|number} value - Hodnota statistiky (číslo)
+ * @param {string} label - Popisek (např. "Dokončených lekcí", "Bodů")
+ * @param {function} onClick - Callback při kliknutí (nepovinný - pokud není, karta není klikací)
+ * @param {number} delay - Delay pro animaci v sekundách (default: 0)
+ * @param {object} style - Dodatečné styly
+ */
+export function StatCard({
+  icon: Icon,
+  value,
+  label,
+  onClick,
+  delay = 0,
+  style = {},
+  ...props
+}) {
+  const isClickable = !!onClick;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay }}
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        cursor: isClickable ? 'pointer' : 'default',
+        padding: '0.5rem',
+        borderRadius: 'var(--radius)',
+        transition: 'background 0.2s',
+        ...style
+      }}
+      whileHover={isClickable ? { backgroundColor: 'rgba(181, 31, 101, 0.05)' } : {}}
+      {...props}
+    >
+      <motion.div
+        whileHover={isClickable ? { rotate: 360, scale: 1.1 } : {}}
+        transition={{ duration: 0.5 }}
+        style={{
+          width: '48px',
+          height: '48px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 'var(--radius)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: 'none',
+          boxShadow: SHADOW.default
+        }}
+      >
+        {Icon && <Icon size={24} color="var(--color-primary)" />}
+      </motion.div>
+      <div>
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: delay + 0.1, type: 'spring' }}
+          style={{
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            color: 'var(--color-text)'
+          }}
+        >
+          {value}
+        </motion.div>
+        <div style={{
+          fontSize: '0.875rem',
+          color: 'var(--color-text-secondary)'
+        }}>
+          {label}
+        </div>
       </div>
     </motion.div>
   );
@@ -253,7 +337,7 @@ export function ItemCard({
         background: 'rgba(255, 255, 255, 0.75)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.3)',
+        border: 'none',
         boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
         borderRadius: RADIUS.xl,
         padding: '1.25rem',
@@ -423,8 +507,7 @@ export function ItemCard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            paddingTop: '1rem',
-            borderTop: '1px solid var(--color-border)'
+            paddingTop: '1rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               {footer}

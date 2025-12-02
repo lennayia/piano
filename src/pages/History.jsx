@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { History as HistoryIcon, Music, Gamepad2, Book, Trophy, Calendar, Clock, Award, Star } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
-import { supabase } from '../lib/supabase';
+import { getAllUserActivities } from '../services/activityService';
 
 function History() {
   const [activities, setActivities] = useState([]);
@@ -19,129 +19,21 @@ function History() {
   const fetchUserHistory = async () => {
     setLoading(true);
     try {
-      const allActivities = [];
+      // Použít centralizovanou helper funkci (OPTIMALIZACE - odstranění duplicity!)
+      const allActivities = await getAllUserActivities(currentUser.id);
 
-      // Fetch song completions
-      const { data: songs, error: songsError } = await supabase
-        .from('piano_song_completions')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('completed_at', { ascending: false });
+      // Mapovat ikony ze stringů na Lucide komponenty
+      const activitiesWithIcons = allActivities.map(activity => ({
+        ...activity,
+        icon: activity.icon === 'Music' ? Music :
+              activity.icon === 'Gamepad2' ? Gamepad2 :
+              activity.icon === 'Book' ? Book :
+              activity.icon === 'Trophy' ? Trophy :
+              activity.icon === 'Star' ? Star :
+              Book
+      }));
 
-      if (!songsError && songs) {
-        songs.forEach(song => {
-          allActivities.push({
-            id: `song-${song.id}`,
-            type: 'song',
-            title: song.song_title,
-            date: new Date(song.completed_at),
-            xp: 100,
-            isPerfect: song.is_perfect,
-            mistakes: song.mistakes_count,
-            icon: Music
-          });
-        });
-      }
-
-      // Fetch quiz completions
-      const { data: quizzes, error: quizzesError } = await supabase
-        .from('piano_quiz_completions')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('completed_at', { ascending: false });
-
-      if (!quizzesError && quizzes) {
-        quizzes.forEach(quiz => {
-          allActivities.push({
-            id: `quiz-${quiz.id}`,
-            type: 'quiz',
-            title: 'Poznáte akord?',
-            date: new Date(quiz.completed_at),
-            xp: quiz.xp_earned || 50,
-            score: quiz.score,
-            totalQuestions: quiz.total_questions,
-            icon: Gamepad2
-          });
-        });
-      }
-
-      // Fetch lesson completions
-      const { data: lessons, error: lessonsError } = await supabase
-        .from('piano_lesson_completions')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('completed_at', { ascending: false });
-
-      if (!lessonsError && lessons) {
-        lessons.forEach(lesson => {
-          allActivities.push({
-            id: `lesson-${lesson.id}`,
-            type: 'lesson',
-            title: lesson.lesson_title || 'Lekce',
-            date: new Date(lesson.completed_at),
-            xp: lesson.xp_earned || 50,
-            icon: Book
-          });
-        });
-      }
-
-      // Fetch daily goal completions
-      const { data: dailyGoals, error: dailyGoalsError } = await supabase
-        .from('piano_daily_goal_completions')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('completed_at', { ascending: false });
-
-      if (!dailyGoalsError && dailyGoals) {
-        dailyGoals.forEach(goal => {
-          const goalTypeLabels = {
-            'lessons': 'lekcí',
-            'songs': 'písní',
-            'quizzes': 'kvízů',
-            'harmonizations': 'harmonizací'
-          };
-          const goalLabel = goalTypeLabels[goal.goal_type] || 'aktivit';
-
-          allActivities.push({
-            id: `daily-goal-${goal.id}`,
-            type: 'daily_goal',
-            title: `🎯 Denní cíl splněn!`,
-            subtitle: `${goal.completed_count} ${goalLabel}`,
-            date: new Date(goal.completed_at),
-            xp: goal.xp_earned || 50,
-            icon: Trophy,
-            isSpecial: true
-          });
-        });
-      }
-
-      // Fetch level ups
-      const { data: levelUps, error: levelUpsError } = await supabase
-        .from('piano_level_ups')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('achieved_at', { ascending: false });
-
-      if (!levelUpsError && levelUps) {
-        levelUps.forEach(levelUp => {
-          allActivities.push({
-            id: `level-up-${levelUp.id}`,
-            type: 'level_up',
-            title: `⭐ Level ${levelUp.new_level} dosažen!`,
-            subtitle: `${levelUp.total_xp} XP celkem`,
-            date: new Date(levelUp.achieved_at),
-            xp: 0,
-            icon: Star,
-            isSpecial: true,
-            isLevelUp: true
-          });
-        });
-      }
-
-      // Sort by date (newest first)
-      allActivities.sort((a, b) => b.date - a.date);
-
-      setActivities(allActivities);
+      setActivities(activitiesWithIcons);
     } catch (error) {
       console.error('Chyba při načítání historie:', error);
     } finally {

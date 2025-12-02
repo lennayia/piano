@@ -73,6 +73,28 @@
   color: var(--color-text-secondary);
 }
 
+/* Font Sizes */
+.text-xs {
+  font-size: 0.7rem;    /* 11.2px - Extra small */
+}
+
+.text-sm {
+  font-size: 0.75rem;   /* 12px - Small */
+}
+
+.text-base {
+  font-size: 0.875rem;  /* 14px - Base */
+}
+
+/* Font Weights */
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
 /* ============================================
    Song Library Specific
    ============================================ */

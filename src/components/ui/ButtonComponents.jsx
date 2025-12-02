@@ -791,6 +791,50 @@ export function MelodyNote({ note, isCurrent = false, isNext = false, isPlayed =
 }
 
 /**
+ * PrimaryButton - Univerzální primární tlačítko
+ * @param {function} onClick - Callback funkce
+ * @param {React.ReactNode} children - Obsah tlačítka (text, ikony)
+ * @param {boolean} fullWidth - Roztáhnout na celou šířku? (default: false)
+ * @param {object} style - Dodatečné styly
+ */
+export function PrimaryButton({ onClick, children, fullWidth = false, style = {}, ...props }) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        padding: '0.875rem 1.5rem',
+        borderRadius: 'var(--radius-lg)',
+        fontSize: '0.95rem',
+        fontWeight: 600,
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        background: 'linear-gradient(135deg, rgba(181, 31, 101, 1) 0%, rgba(221, 51, 121, 1) 100%)',
+        color: '#ffffff',
+        boxShadow: isHovered
+          ? '0 6px 20px rgba(181, 31, 101, 0.4)'
+          : '0 4px 12px rgba(181, 31, 101, 0.3)',
+        width: fullWidth ? '100%' : 'auto',
+        ...style
+      }}
+      {...props}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+/**
  * CloseButton - Modulární zavírací tlačítko s animací oka
  * @param {function} onClick - Funkce volaná při kliknutí
  * @param {number} size - Velikost ikony (default: 20)
