@@ -4,6 +4,67 @@ import { Eye, EyeOff } from 'lucide-react';
 import { RADIUS, SHADOW } from '../../utils/styleConstants';
 
 /**
+ * Card - Univerzální karta komponenta s glassmorphism efektem
+ * Základní building block pro všechny karty v aplikaci
+ *
+ * @param {React.ReactNode} children - Obsah karty
+ * @param {'none'|'default'|'primary'|'secondary'|'gold'} shadow - Typ stínu (default: 'default')
+ * @param {'sm'|'md'|'lg'|'xl'} radius - Border radius (default: 'lg')
+ * @param {string|number} blur - Backdrop filter blur hodnota (default: '30px')
+ * @param {number} opacity - Průhlednost pozadí 0-1 (default: 0.8)
+ * @param {string} className - Dodatečné CSS třídy
+ * @param {object} style - Dodatečné inline styly
+ */
+export function Card({
+  children,
+  shadow = 'default',
+  radius = 'lg',
+  blur = '30px',
+  opacity = 0.8,
+  className = '',
+  style = {},
+  ...props
+}) {
+  // Shadow variants
+  const shadows = {
+    none: 'none',
+    default: SHADOW.default,
+    primary: '0 8px 32px rgba(181, 31, 101, 0.15)',
+    secondary: '0 8px 32px rgba(45, 91, 120, 0.15)',
+    gold: '0 4px 15px rgba(255, 215, 0, 0.3)'
+  };
+
+  // Radius mapping
+  const radiusMap = {
+    sm: RADIUS.sm,
+    md: RADIUS.md,
+    lg: RADIUS.lg,
+    xl: RADIUS.xl
+  };
+
+  // Normalize blur value
+  const blurValue = typeof blur === 'number' ? `${blur}px` : blur;
+
+  return (
+    <div
+      className={className}
+      style={{
+        background: `rgba(255, 255, 255, ${opacity})`,
+        backdropFilter: `blur(${blurValue})`,
+        WebkitBackdropFilter: `blur(${blurValue})`,
+        border: 'none',
+        borderRadius: radiusMap[radius] || RADIUS.lg,
+        boxShadow: shadows[shadow] || shadows.default,
+        ...style
+      }}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
  * PageCard - hlavní card kontejner pro stránky s animovaným gradientem
  *
  * @param {React.ReactNode} children - Obsah karty
@@ -229,7 +290,7 @@ export function StatCard({
         gap: '0.75rem',
         cursor: isClickable ? 'pointer' : 'default',
         padding: '0.5rem',
-        borderRadius: 'var(--radius)',
+        borderRadius: 'var(--radius-md)',
         transition: 'background 0.2s',
         ...style
       }}
@@ -244,7 +305,7 @@ export function StatCard({
           height: '48px',
           background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(10px)',
-          borderRadius: 'var(--radius)',
+          borderRadius: 'var(--radius-lg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

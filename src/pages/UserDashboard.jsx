@@ -9,7 +9,11 @@ import { getRecentActivities, getActivitiesForAchievement } from '../services/ac
 import * as LucideIcons from 'lucide-react';
 import TabButtons from '../components/ui/TabButtons';
 import Leaderboard from '../components/dashboard/Leaderboard';
-import { StatCard, ProgressBar } from '../components/ui/CardComponents';
+import UserStatsGrid from '../components/dashboard/UserStatsGrid';
+import AchievementGrid from '../components/dashboard/AchievementGrid';
+import RecentActivityList from '../components/dashboard/RecentActivityList';
+import AchievementDetail from '../components/dashboard/AchievementDetail';
+import { ProgressBar, Card } from '../components/ui/CardComponents';
 import { PrimaryButton, Chip, CloseButton } from '../components/ui/ButtonComponents';
 import Drawer from '../components/ui/Drawer';
 import { useResponsive } from '../hooks/useResponsive';
@@ -176,11 +180,13 @@ function UserDashboard() {
         if (!isEarned) {
           switch (achievement.requirement_type) {
             case 'total_xp':
+            case 'xp':
               currentValue = currentUser.stats?.total_xp || 0;
               break;
             case 'level':
               currentValue = currentUser.stats?.level || 1;
               break;
+            case 'streak':
             case 'current_streak':
               currentValue = currentUser.stats?.current_streak || 0;
               break;
@@ -316,15 +322,16 @@ function UserDashboard() {
   return (
     <div className="container">
       {/* Welcome Section */}
-      <div className="card" style={{
-        background: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(30px)',
-        WebkitBackdropFilter: 'blur(30px)',
-        boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
-        marginBottom: '2rem',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
+      <Card
+        className="card"
+        shadow="primary"
+        radius="xl"
+        style={{
+          marginBottom: '2rem',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
         <h1 style={{ marginBottom: '0.5rem', color: 'var(--color-text)' }}>
           Vítejte, {toVocative(currentUser.first_name)}!
         </h1>
@@ -332,71 +339,33 @@ function UserDashboard() {
           Těšíte se na svoje další pokroky? Pojďme na to!
         </p>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1.5rem' }}>
-          <StatCard
-            icon={Award}
-            value={completedLessons}
-            label="Dokončených lekcí"
-            onClick={() => handleStatClick('lessons_completed')}
-            delay={0.2}
-          />
-
-          <StatCard
-            icon={BookOpen}
-            value={totalLessons}
-            label="Dostupných lekcí"
-            delay={0.4}
-          />
-
-          <StatCard
-            icon={Zap}
-            value={points}
-            label="Bodů"
-            onClick={() => handleStatClick('total_xp')}
-            delay={0.6}
-          />
-
-          <StatCard
-            icon={Flame}
-            value={streak}
-            label="Dní v řadě"
-            onClick={() => handleStatClick('current_streak')}
-            delay={0.8}
-          />
-
-          <StatCard
-            icon={Gamepad2}
-            value={quizzesCompleted}
-            label="Dokončených kvízů"
-            onClick={() => handleStatClick('quizzes_completed')}
-            delay={1.0}
-          />
-
-          <StatCard
-            icon={Music}
-            value={songsCompleted}
-            label="Zahraných písní"
-            onClick={() => handleStatClick('songs_completed')}
-            delay={1.2}
-          />
-        </div>
-      </div>
+        <UserStatsGrid
+          stats={{
+            completedLessons,
+            totalLessons,
+            points,
+            streak,
+            quizzesCompleted,
+            songsCompleted
+          }}
+          onStatClick={handleStatClick}
+        />
+      </Card>
 
       {/* Achievements & Leaderboard Section */}
-      <motion.div
+      <Card
         className="card"
-        data-section="achievements"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        style={{
-          background: 'rgba(255, 255, 255, 0.4)',
-          backdropFilter: 'blur(30px)',
-          WebkitBackdropFilter: 'blur(30px)',
-          boxShadow: '0 8px 32px rgba(181, 31, 101, 0.15)',
-          marginBottom: '2rem'
-        }}
+        shadow="primary"
+        radius="xl"
+        opacity={0.4}
+        style={{ marginBottom: '2rem' }}
       >
+        <motion.div
+          data-section="achievements"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+        >
         {/* Tabs */}
         <div style={{ marginBottom: '2rem' }}>
           <TabButtons
@@ -460,314 +429,35 @@ function UserDashboard() {
                 Načítání achievementů...
               </div>
             ) : allAchievements.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '3rem',
-                color: 'var(--color-text-secondary)',
-                background: 'rgba(255, 255, 255, 0.6)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: 'var(--radius-md)',
-                border: 'none',
-                boxShadow: '0 1px 3px rgba(148, 163, 184, 0.1)'
-              }}>
+              <Card
+                opacity={0.6}
+                blur="10px"
+                radius="md"
+                style={{
+                  textAlign: 'center',
+                  padding: '3rem'
+                }}
+              >
                 <Trophy size={48} color="var(--color-primary)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                <p>Zatím nejsou k dispozici žádné odměny.</p>
-              </div>
+                <p style={{ color: 'var(--color-text-secondary)' }}>Zatím nejsou k dispozici žádné odměny.</p>
+              </Card>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
-                {allAchievements.map((achievement, index) => {
-                  const isEarned = achievement.isEarned;
-                  const isHighlighted = !activeFilter || achievement.requirement_type === activeFilter;
-                  const isDimmed = activeFilter && achievement.requirement_type !== activeFilter;
-
-                  return (
-                    <motion.div
-                      key={achievement.id}
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{
-                        scale: 1,
-                        rotate: 0,
-                        opacity: isDimmed ? 0.3 : 1
-                      }}
-                      transition={{ delay: index * 0.05, type: 'spring' }}
-                      whileHover={{ scale: isDimmed ? 1 : 1.05, y: isDimmed ? 0 : -5 }}
-                      onClick={() => !isDimmed && handleAchievementClick(achievement)}
-                      style={{
-                        padding: '1.5rem',
-                        background: isDimmed
-                          ? 'rgba(255, 255, 255, 0.3)'
-                          : isEarned
-                            ? 'rgba(255, 255, 255, 0.9)'
-                            : 'rgba(255, 255, 255, 0.5)',
-                        backdropFilter: 'blur(30px)',
-                        WebkitBackdropFilter: 'blur(30px)',
-                        borderRadius: 'var(--radius-xl)',
-                        border: 'none',
-                        textAlign: 'center',
-                        cursor: isDimmed ? 'default' : 'pointer',
-                        boxShadow: isDimmed
-                          ? 'none'
-                          : isEarned
-                            ? '0 8px 24px rgba(181, 31, 101, 0.25)'
-                            : '0 4px 12px rgba(148, 163, 184, 0.15)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        position: 'relative',
-                        filter: isDimmed ? 'grayscale(80%)' : 'none',
-                        transform: isHighlighted && activeFilter ? 'scale(1.02)' : 'scale(1)',
-                        transition: 'all 0.3s ease'
-                      }}
-                      title={isDimmed ? achievement.description : 'Klikněte pro více informací'}
-                    >
-                      {/* Earned Badge - zelená ikona vlevo dole */}
-                      {isEarned && !isDimmed && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: index * 0.05 + 0.3, type: 'spring' }}
-                          style={{
-                            position: 'absolute',
-                            bottom: '0.75rem',
-                            left: '0.75rem',
-                            zIndex: 1,
-                            width: '32px',
-                            height: '32px',
-                            background: '#ffffff',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
-                            border: 'none'
-                          }}
-                        >
-                          <CheckCircle size={20} color="#10b981" fill="none" strokeWidth={2.5} />
-                        </motion.div>
-                      )}
-
-                      {/* Icon */}
-                      <div style={{
-                        width: '64px',
-                        height: '64px',
-                        background: isEarned
-                          ? 'rgba(255, 255, 255, 0.95)'
-                          : 'rgba(226, 232, 240, 0.6)',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: 'none',
-                        boxShadow: isEarned
-                          ? '0 4px 16px rgba(181, 31, 101, 0.25)'
-                          : '0 2px 8px rgba(148, 163, 184, 0.15)',
-                        filter: isEarned ? 'none' : 'grayscale(70%)'
-                      }}>
-                        {getAchievementIcon(achievement)}
-                      </div>
-
-                      {/* Title */}
-                      <div style={{
-                        fontWeight: 600,
-                        color: isEarned ? 'var(--color-text)' : 'var(--color-text-secondary)',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.3'
-                      }}>
-                        {achievement.title}
-                      </div>
-
-                      {/* Description */}
-                      <div className="text-sm" style={{
-                        color: 'var(--color-text-secondary)',
-                        lineHeight: '1.4',
-                        minHeight: '2.8em'
-                      }}>
-                        {achievement.description}
-                      </div>
-
-                      {/* XP Reward */}
-                      <Chip
-                        text={`+${achievement.xp_reward} XP`}
-                        variant={isEarned ? 'info' : 'inactive'}
-                      />
-
-                      {/* Progress Bar for Unearned */}
-                      {!isEarned && (
-                        <div style={{ width: '100%', marginTop: '0.25rem' }}>
-                          <div className="text-xs font-medium" style={{
-                            color: 'var(--color-text-secondary)',
-                            marginBottom: '0.375rem'
-                          }}>
-                            {achievement.currentValue} / {achievement.requirementValue}
-                          </div>
-                          <div style={{
-                            width: '100%',
-                            height: '6px',
-                            background: 'rgba(148, 163, 184, 0.2)',
-                            borderRadius: '3px',
-                            overflow: 'hidden'
-                          }}>
-                            <div style={{
-                              width: `${achievement.progress}%`,
-                              height: '100%',
-                              background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.6), rgba(221, 51, 121, 0.6))',
-                              transition: 'width 0.3s ease'
-                            }} />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Earned Date */}
-                      {isEarned && achievement.earnedAt && (
-                        <div className="text-xs" style={{
-                          color: 'var(--color-text-secondary)',
-                          marginTop: '0.25rem'
-                        }}>
-                          Získáno {new Date(achievement.earnedAt).toLocaleDateString('cs-CZ')}
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
+              <AchievementGrid
+                achievements={allAchievements}
+                activeFilter={activeFilter}
+                onAchievementClick={handleAchievementClick}
+                getAchievementIcon={getAchievementIcon}
+              />
             )}
           </div>
         )}
 
         {activeTab === 'leaderboard' && <Leaderboard />}
-      </motion.div>
+        </motion.div>
+      </Card>
 
       {/* Recent Activity */}
-      {!loadingActivities && recentActivities.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          style={{ marginBottom: '2rem' }}
-        >
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1rem'
-          }}>
-            <h2 style={{
-              color: 'var(--color-text)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: 0
-            }}>
-              <History size={24} color="var(--color-primary)" />
-              Nedávná aktivita
-            </h2>
-            <Link
-              to="/history"
-              className="text-base font-medium"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                textDecoration: 'none',
-                color: 'var(--color-primary)',
-                transition: 'opacity 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.7'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              Ukázat všechno →
-            </Link>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0' : '0.5rem' }}>
-            {recentActivities.map((activity, index) => {
-              const Icon = activity.icon;
-              const formatDate = (date) => {
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                return `${day}.${month}.`;
-              };
-              const formatTime = (date) => {
-                const hours = date.getHours().toString().padStart(2, '0');
-                const minutes = date.getMinutes().toString().padStart(2, '0');
-                return `${hours}:${minutes}`;
-              };
-
-              return (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.2 + index * 0.05 }}
-                  whileHover={{ scale: 1.01, x: 4 }}
-                  className="card"
-                  style={{
-                    padding: isMobile ? '0.75rem' : '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: isMobile ? '0.75rem' : '1rem',
-                    background: 'rgba(255, 255, 255, 0.7)',
-                    border: 'none',
-                    cursor: 'default',
-                    borderRadius: isMobile ? 'var(--radius-md)' : 'var(--radius-lg)'
-                  }}
-                >
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: 'var(--radius-xl)',
-                    background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(221, 51, 121, 0.15) 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: 'none',
-                    flexShrink: 0
-                  }}>
-                    <Icon size={20} color="var(--color-primary)" />
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="text-base font-semibold" style={{
-                      color: 'var(--color-text)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {activity.title}
-                    </div>
-                    <div className="text-sm" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      color: 'var(--color-text-secondary)',
-                      marginTop: '0.25rem'
-                    }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Calendar size={12} />
-                        {formatDate(activity.date)}
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Clock size={12} />
-                        {formatTime(activity.date)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Chip
-                    text={`+${activity.xp} XP`}
-                    variant="info"
-                    style={{
-                      whiteSpace: 'nowrap',
-                      flexShrink: 0
-                    }}
-                  />
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
-      )}
+      {!loadingActivities && <RecentActivityList activities={recentActivities} isMobile={isMobile} />}
 
       {/* Achievement Detail Drawer */}
       <Drawer
@@ -776,257 +466,14 @@ function UserDashboard() {
         title={selectedAchievement?.title}
         width="500px"
       >
-        {selectedAchievement && (
-          <div>
-              {/* Icon */}
-              <div style={{
-                width: '64px',
-                height: '64px',
-                background: selectedAchievement.isEarned
-                  ? 'rgba(255, 255, 255, 0.95)'
-                  : 'rgba(226, 232, 240, 0.6)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: 'none',
-                boxShadow: selectedAchievement.isEarned
-                  ? '0 4px 16px rgba(181, 31, 101, 0.25)'
-                  : '0 2px 8px rgba(148, 163, 184, 0.15)',
-                filter: selectedAchievement.isEarned ? 'none' : 'grayscale(70%)',
-                margin: `0 auto ${spacing.margin}`
-              }}>
-                <div style={{ transform: 'scale(1.0)' }}>
-                  {getAchievementIcon(selectedAchievement)}
-                </div>
-              </div>
-
-              {/* Description */}
-              <p className="text-base" style={{
-                textAlign: 'center',
-                color: 'var(--color-text-secondary)',
-                lineHeight: '1.5',
-                marginBottom: spacing.margin
-              }}>
-                {selectedAchievement.description}
-              </p>
-
-              {/* Requirements & Progress */}
-              <div style={{
-                background: 'rgba(248, 250, 252, 0.8)',
-                borderRadius: 'var(--radius-lg)',
-                border: 'none',
-                padding: spacing.cardPadding,
-                marginBottom: spacing.margin
-              }}>
-                {/* Progress bar */}
-                <div style={{
-                  width: '100%',
-                  height: '4px',
-                  background: 'rgba(181, 31, 101, 0.06)',
-                  borderRadius: '999px',
-                  overflow: 'hidden',
-                  marginBottom: '0.5rem'
-                }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(selectedAchievement.currentValue / selectedAchievement.requirementValue) * 100}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                    style={{
-                      height: '100%',
-                      background: 'linear-gradient(90deg, rgba(181, 31, 101, 1) 0%, rgba(45, 91, 120, 1) 100%)',
-                      borderRadius: '999px'
-                    }}
-                  />
-                </div>
-                {/* Progress text */}
-                <div className="text-sm font-medium" style={{
-                  textAlign: 'center',
-                  color: 'var(--color-text-secondary)'
-                }}>
-                  {selectedAchievement.currentValue} z {selectedAchievement.requirementValue}
-                </div>
-              </div>
-
-              {/* Earned Date - show date of last contributing activity */}
-              {selectedAchievement.isEarned && achievementActivities.length > 0 && (() => {
-                const lastActivity = achievementActivities[achievementActivities.length - 1];
-                return (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    fontSize: '0.8rem',
-                    color: 'var(--color-text-secondary)',
-                    marginBottom: spacing.margin
-                  }}>
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      background: '#ffffff',
-                      borderRadius: 'var(--radius-md)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
-                      border: 'none'
-                    }}>
-                      <CheckCircle size={16} color="#10b981" fill="none" strokeWidth={2.5} />
-                    </div>
-                    <span>
-                      Splněno {lastActivity.date.toLocaleDateString('cs-CZ', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })} v {lastActivity.date.toLocaleTimeString('cs-CZ', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </div>
-                );
-              })()}
-
-              {/* XP Reward */}
-              <div style={{
-                textAlign: 'center',
-                marginBottom: spacing.margin
-              }}>
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 200,
-                    damping: 10,
-                    delay: 0.3
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  style={{ display: 'inline-block' }}
-                >
-                  <Chip
-                    text={`+${selectedAchievement.xp_reward} XP`}
-                    variant="info"
-                    style={{
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      padding: '0.5rem 1rem',
-                      color: 'var(--color-primary)',
-                      boxShadow: 'inset 0 0 16px rgba(181, 31, 101, 1), 0 1px 3px rgba(181, 31, 101, 0.15)'
-                    }}
-                  />
-                </motion.div>
-              </div>
-
-              {/* Activity Details Section */}
-              {achievementActivities.length > 0 && (
-                <div style={{
-                  marginBottom: spacing.margin,
-                  paddingTop: spacing.sectionGap
-                }}>
-                  {loadingModalActivities ? (
-                    <div style={{ textAlign: 'center', padding: '0.75rem', color: 'var(--color-text-secondary)' }}>
-                      Načítání...
-                    </div>
-                  ) : (
-                    <div style={{
-                      maxHeight: '70vh',
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      background: 'rgba(255, 255, 255, 0.7)',
-                      borderRadius: 'var(--radius-lg)',
-                      border: 'none',
-                      boxShadow: '0 1px 3px rgba(148, 163, 184, 0.1)'
-                    }}>
-                      {achievementActivities.map((activity, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          whileHover={{ backgroundColor: 'rgba(181, 31, 101, 0.03)' }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                            padding: '0.5rem 0.75rem',
-                            borderBottom: index < achievementActivities.length - 1
-                              ? '1px solid rgba(148, 163, 184, 0.1)'
-                              : 'none',
-                            cursor: 'default'
-                          }}
-                        >
-                          {/* Icon */}
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            minWidth: '32px',
-                            background: 'rgba(181, 31, 101, 0.12)',
-                            borderRadius: 'var(--radius-md)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: 'none'
-                          }}>
-                            <CheckCircle size={16} color="var(--color-primary)" fill="none" strokeWidth={2.5} />
-                          </div>
-
-                          {/* Content */}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div className="text-base font-medium" style={{
-                              color: 'var(--color-text)',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              marginBottom: '0.125rem'
-                            }}>
-                              {activity.title}
-                            </div>
-                            <div className="text-sm" style={{
-                              color: 'var(--color-text-secondary)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem'
-                            }}>
-                              {activity.date.toLocaleDateString('cs-CZ', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                              })}
-                              <span>•</span>
-                              {activity.date.toLocaleTimeString('cs-CZ', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </div>
-                          </div>
-
-                          {/* XP Badge */}
-                          <Chip
-                            text={`+${activity.xp}`}
-                            variant="success"
-                            style={{ whiteSpace: 'nowrap', borderRadius: 'var(--radius-md)' }}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Action Button */}
-              {!selectedAchievement.isEarned && (
-                <PrimaryButton
-                  onClick={(e) => navigateToAchievementSection(selectedAchievement.requirement_type, e)}
-                  style={{ margin: '0 auto' }}
-                >
-                  Jít splnit
-                  <ArrowRight size={18} />
-                </PrimaryButton>
-              )}
-          </div>
-        )}
+        <AchievementDetail
+          achievement={selectedAchievement}
+          activities={achievementActivities}
+          loadingActivities={loadingModalActivities}
+          spacing={spacing}
+          getAchievementIcon={getAchievementIcon}
+          onNavigateToSection={navigateToAchievementSection}
+        />
       </Drawer>
     </div>
   );

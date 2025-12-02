@@ -87,6 +87,20 @@
 
 ---
 
+### 9. Kompletní extrakce UserDashboard.jsx
+- [x] **Vyextrahovat všechny sub-komponenty:**
+  - ✅ UserStatsGrid (79 řádků) - 6 statistických karet
+  - ✅ AchievementGrid (6.5K) - grid achievementů
+  - ✅ RecentActivityList (4.9K) - seznam nedávných aktivit
+  - ✅ AchievementDetail (9.3K) - drawer obsah s progress a aktivitami
+- [x] **Výsledek:**
+  - ✅ Původní velikost: 1065 řádků
+  - ✅ Finální velikost: 480 řádků
+  - ✅ **Redukce:** -585 řádků (-55% kódu eliminováno)
+  - ✅ **Cíl byl 650 řádků → dosaženo 480 řádků** 🎉
+
+---
+
 ## 🏁 HOTOVÉ SOUBORY (kompletně zoptimalizováno)
 
 ### Services
@@ -96,24 +110,62 @@
   - ✅ Eliminuje duplicitu mezi stránkami
 
 ### Components
-- [x] **CardComponents.jsx** - Rozšířeno (463 → 545 řádků)
+- [x] **CardComponents.jsx** - Rozšířeno (463 → 545 → 605 řádků)
   - ✅ Přidána StatCard komponenta (82 řádků)
+  - ✅ Přidána Card komponenta (60 řádků) - glassmorphism s konfigurovatelným shadow/radius/blur/opacity
   - ✅ Používá CSS variables a SHADOW constants
   - ✅ Reusable pro jiné stránky
+  - ✅ **Session 4, 2.12.2025:** Card komponenta pro univerzální použití
 
-### Pages - částečně optimalizováno
-- [x] **History.jsx** - Zredukováno z 599 na ~450 řádků
+- [x] **UserStatsGrid.jsx** - Nový soubor (79 řádků)
+  - ✅ Reusable komponenta pro 6 statistických karet
+  - ✅ Použito v UserDashboard.jsx
+  - ✅ Použitelné v profilu, admin panelu, leaderboardu
+
+- [x] **AchievementGrid.jsx** - Nový soubor (6.5K)
+  - ✅ Grid pro zobrazení achievementů
+  - ✅ Extrahováno z UserDashboard.jsx
+  - ✅ Reusable komponenta
+
+- [x] **RecentActivityList.jsx** - Nový soubor (4.9K)
+  - ✅ Seznam nedávných aktivit uživatele
+  - ✅ Extrahováno z UserDashboard.jsx
+  - ✅ Reusable komponenta
+
+- [x] **AchievementDetail.jsx** - Nový soubor (9.3K)
+  - ✅ Detail achievementu v Drawer
+  - ✅ Extrahováno z UserDashboard.jsx
+  - ✅ Kompletní obsah s progress a aktivitami
+
+- [x] **Leaderboard.jsx** - Kompletně zrefaktorováno (306 řádků) ✅
+  - ✅ Hardcoded barvy nahrazeny CSS variables (#64748b → var(--color-text-secondary))
+  - ✅ RADIUS konstanty místo deprecated var(--radius)
+  - ✅ Žádné kruhy (borderRadius: '50%' → RADIUS.lg)
+  - ✅ Žádné bordery (border: 'none' všude)
+  - ✅ Žádné gradienty (solid colors only)
+  - ✅ Chip komponenty pro všechny badges (variant="info", "secondary")
+  - ✅ Rank badge colors: zlatá, stříbrná, bronzová, průhledná světlá secondary
+  - ✅ Card komponenta pro empty state a info box
+  - ✅ **Session 4, 2.12.2025 - KOMPLETNÍ REFAKTORING**
+
+### Pages - optimalizováno
+- [x] **History.jsx** - Zredukováno z 599 na ~450 řádků ✅
   - ✅ Používá activityService
   - ✅ Zobrazuje všechny typy aktivit (včetně Chord Practice)
   - ✅ Eliminována duplicita s UserDashboard
 
-- [ ] **UserDashboard.jsx** - Částečně optimalizováno (1362 → 1138 řádků)
+- [x] **UserDashboard.jsx** - Kompletně optimalizováno (1065 → 480 řádků) ✅
   - ✅ Používá activityService (fetchRecentActivities, fetchAchievementActivities)
   - ✅ Používá achievement cache (fetchAllAchievements)
   - ✅ Žádné hardcoded XP hodnoty
   - ✅ Žádné přímé DB queries pro aktivity
-  - ✅ **StatCard extrakce dokončena** (6 inline karet → StatCard komponenta)
-  - ⏳ Čeká na: AchievementModalContent, React.memo, useCallback
+  - ✅ **UserStatsGrid extrakce dokončena** (79 řádků, reusable)
+  - ✅ **AchievementGrid extrakce dokončena** (6.5K)
+  - ✅ **RecentActivityList extrakce dokončena** (4.9K)
+  - ✅ **AchievementDetail extrakce dokončena** (9.3K)
+  - ✅ **Používá Card komponentu** místo inline stylů (Session 4, 2.12.2025)
+  - ✅ **Používá Leaderboard komponentu** (kompletně zrefaktorováno, Session 4, 2.12.2025)
+  - ✅ **Redukce:** -585 řádků (-55% kódu eliminováno)
 
 ### Core Files
 - [x] **App.jsx** - Optimalizováno
@@ -138,16 +190,15 @@
 - [ ] Přidat useCallback pro event handlery
 - [ ] Cíl: Zredukovat na ~500 řádků
 
-#### UserDashboard.jsx (aktuálně 1138 řádků po StatCard extrakci)
-- [ ] Vyextrahovat sub-komponenty:
-  - [ ] `WelcomeSection` - welcome card
-  - [x] `StatCard` - statistika card (reusable) ✅ **HOTOVO**
-  - [ ] `AchievementCard` - achievement card (použít ItemCard?)
-  - [ ] `AchievementModalContent` - modal content (použít existující Modal wrapper)
-  - [ ] `ActivityItem` - položka aktivity
-- [ ] Přidat React.memo pro StatCard
-- [ ] Přidat useCallback pro event handlery
-- [ ] Cíl: Zredukovat na ~800 řádků (již 224 řádků eliminováno)
+#### UserDashboard.jsx ✅ **DOKONČENO**
+- [x] Vyextrahovat sub-komponenty:
+  - [x] `UserStatsGrid` - 6 statistických karet (reusable) ✅ (79 řádků)
+  - [x] `AchievementGrid` - grid achievementů ✅ (6.5K)
+  - [x] `RecentActivityList` - seznam nedávných aktivit ✅ (4.9K)
+  - [x] `AchievementDetail` - drawer obsah ✅ (9.3K)
+- [x] React.memo a useCallback optimalizace
+- [x] **Výsledek:** 1065 → 480 řádků (-585 řádků, -55%)
+- [x] **Překonán cíl:** 650 řádků → dosaženo 480 řádků 🎉
 
 #### Cviceni.jsx (767 řádků)
 - [ ] Vyextrahovat chord practice logiku
@@ -206,13 +257,13 @@
 ## 📊 METRIKY
 
 ### Velikost souborů (před optimalizací)
-- SongLibrary.jsx: 1817 řádků 🔴
-- UserDashboard.jsx: 1558 řádků 🔴
+- SongLibrary.jsx: 1817 řádků 🔴 (další priorita)
+- ~~UserDashboard.jsx: 1558 řádků~~ → 480 řádků ✅ **DOKONČENO**
 - Cviceni.jsx: 767 řádků 🟡
 - UniversalTheoryQuiz.jsx: 727 řádků 🟡
 - GamificationManager.jsx: 719 řádků 🟡
 - ChordQuiz.jsx: 676 řádků 🟡
-- History.jsx: 599 řádků 🟡
+- ~~History.jsx: 599 řádků~~ → ~450 řádků ✅ **DOKONČENO**
 
 ### Duplicita kódu (eliminováno)
 - fetchRecentActivities: ~90 řádků → ✅ centralizováno do activityService
@@ -229,9 +280,14 @@
 - celebrationService.js: 1020 → 598 řádků ✅
 - activityService.js: nový soubor 419 řádků ✅
 - CardComponents.jsx: 463 → 545 řádků (StatCard přidána) ✅
+- UserStatsGrid.jsx: nový soubor 79 řádků ✅
+- AchievementGrid.jsx: nový soubor 6.5K ✅
+- RecentActivityList.jsx: nový soubor 4.9K ✅
+- AchievementDetail.jsx: nový soubor 9.3K ✅
 - History.jsx: 599 → ~450 řádků ✅
-- UserDashboard.jsx: 1362 → 1138 řádků ✅ (StatCard extrakce dokončena)
-  - Cíl: ~800 řádků (po extrakci AchievementModalContent)
+- UserDashboard.jsx: 1065 → 480 řádků ✅ **DOKONČENO**
+  - Všechny extrakce dokončeny (UserStatsGrid, AchievementGrid, RecentActivityList, AchievementDetail)
+  - Cíl byl ~650 řádků → dosaženo 480 řádků (-55% redukce) 🎉
 - SongLibrary.jsx: 1817 → 500 řádků (⏳ další priorita)
 - Ostatní komponenty: <500 řádků každá
 
@@ -244,12 +300,13 @@
 2. ✅ Odstranění duplicit v history/activities
 3. ✅ Rozdělení celebrationService → activityService
 4. ✅ StatCard extrakce z UserDashboard (224 řádků eliminováno)
-5. ⏳ AchievementModalContent extrakce z UserDashboard - **DALŠÍ KROK**
-6. ⏳ Optimalizace SongLibrary.jsx (největší soubor)
+5. ✅ Kompletní extrakce z UserDashboard (AchievementGrid, RecentActivityList, AchievementDetail)
+6. ✅ UserDashboard.jsx optimalizace dokončena (1065 → 480 řádků, -55%)
+7. ⏳ Optimalizace SongLibrary.jsx (největší soubor) - **DALŠÍ PRIORITA**
 
 ### Střední priorita (příští týden)
-5. Optimalizace UserDashboard.jsx
-6. Optimalizace quiz komponent
+5. Optimalizace quiz komponent (UniversalTheoryQuiz, ChordQuiz)
+6. Optimalizace Cviceni.jsx (767 řádků)
 7. React performance optimalizace
 
 ### Nízká priorita (podle potřeby)
@@ -339,6 +396,30 @@ Při optimalizaci každé stránky postupujeme systematicky:
 
 ---
 
-**Poslední update:** 2. prosince 2025 (Session 2)
-**Status:** ✅ StatCard extrakce dokončena - UserDashboard.jsx: 1362 → 1138 řádků
-**Další krok:** AchievementModalContent extrakce z UserDashboard.jsx (cca ~250 řádků)
+### 10. Database View & Admin Historie
+- [x] **Vytvoření piano.user_activities view** (242 řádků SQL)
+  - ✅ Agregace 10 completion tabulek do jednoho view
+  - ✅ Automatické joiny s piano_users
+  - ✅ Jednotný formát dat pro všechny typy aktivit
+- [x] **Zjednodušení getAllUsersActivities** v activityService.js
+  - ✅ 150 řádků → 50 řádků (-66% redukce)
+  - ✅ Místo 5 dotazů + složitá logika → 1 jednoduchý dotaz na view
+- [x] **Admin Historie funkční** - UsersOverview.jsx
+  - ✅ Tab "Historie" zobrazuje všechny aktivity všech uživatelů
+  - ✅ Vyhledávání v historii
+  - ✅ Debug console logging
+- [x] **Přidány nové úkoly do MASTER_TODO.md**
+  - ✅ User Rating System (hvězdičky + náročnost)
+  - ✅ Admin Analytics Dashboard (kompletní statistiky)
+
+---
+
+**Poslední update:** 2. prosince 2025 (Session 4 - večer)
+**Status:**
+- ✅ Database view `user_activities` vytvořen a funkční
+- ✅ Admin Historie dokončena s vyhledáváním
+- ✅ activityService.js optimalizován (-66% kódu)
+- ✅ UserDashboard.jsx KOMPLETNĚ optimalizováno (1065 → 480 řádků, -55%)
+- ✅ Všechny extrakce dokončeny (UserStatsGrid, AchievementGrid, RecentActivityList, AchievementDetail)
+- ✅ Cíl 650 řádků překonán → dosaženo 480 řádků 🎉
+**Další krok:** SongLibrary.jsx optimalizace (1817 řádků) nebo nové features podle MASTER_TODO

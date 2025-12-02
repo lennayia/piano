@@ -336,11 +336,74 @@ export const getActivitiesForAchievement = async (userId, requirementType, requi
         break;
       }
 
-      case 'xp':
-      case 'total_xp':
       case 'streak':
       case 'current_streak': {
-        // Pro XP a streak, načíst všechny aktivity a vypočítat kumulativní XP
+        // Pro streak, načíst aktivity z posledních X dní (kde X = aktuální streak)
+        const allActivities = [];
+
+        // Vypočítat datum před X dny (kde X = requirementValue)
+        const daysAgo = new Date();
+        daysAgo.setDate(daysAgo.getDate() - requirementValue);
+        const startDate = daysAgo.toISOString();
+
+        // Lessons z posledních X dní
+        const { data: lessonData } = await supabase
+          .from('piano_lesson_completions')
+          .select('lesson_title, completed_at, xp_earned')
+          .eq('user_id', userId)
+          .gte('completed_at', startDate)
+          .order('completed_at', { ascending: false });
+
+        if (lessonData) {
+          lessonData.forEach(item => allActivities.push({
+            title: item.lesson_title || 'Lekce',
+            date: new Date(item.completed_at),
+            xp: item.xp_earned || 50
+          }));
+        }
+
+        // Songs z posledních X dní (NEMÁ xp_earned sloupec - použijeme default 100)
+        const { data: songData } = await supabase
+          .from('piano_song_completions')
+          .select('song_title, completed_at')
+          .eq('user_id', userId)
+          .gte('completed_at', startDate)
+          .order('completed_at', { ascending: false });
+
+        if (songData) {
+          songData.forEach(item => allActivities.push({
+            title: item.song_title || 'Píseň',
+            date: new Date(item.completed_at),
+            xp: 100 // Songs nemají xp_earned sloupec
+          }));
+        }
+
+        // Quizzes z posledních X dní
+        const { data: quizData } = await supabase
+          .from('piano_quiz_scores')
+          .select('quiz_type, completed_at, score')
+          .eq('user_id', userId)
+          .gte('completed_at', startDate)
+          .order('completed_at', { ascending: false });
+
+        if (quizData) {
+          quizData.forEach(item => allActivities.push({
+            title: `Kvíz: ${item.quiz_type}`,
+            date: new Date(item.completed_at),
+            xp: item.score * 5
+          }));
+        }
+
+        // Sort by date (newest first)
+        allActivities.sort((a, b) => b.date - a.date);
+
+        // Return all activities from last X days
+        return allActivities;
+      }
+
+      case 'xp':
+      case 'total_xp': {
+        // Pro XP achievementy, načíst aktivity dokud nedosáhneme požadovaného XP
         const allActivities = [];
 
         // Lessons
@@ -358,10 +421,10 @@ export const getActivitiesForAchievement = async (userId, requirementType, requi
           }));
         }
 
-        // Songs
+        // Songs (NEMÁ xp_earned sloupec - použijeme default 100)
         const { data: songData } = await supabase
           .from('piano_song_completions')
-          .select('song_title, completed_at, xp_earned')
+          .select('song_title, completed_at')
           .eq('user_id', userId)
           .order('completed_at', { ascending: true });
 
@@ -369,7 +432,7 @@ export const getActivitiesForAchievement = async (userId, requirementType, requi
           songData.forEach(item => allActivities.push({
             title: item.song_title || 'Píseň',
             date: new Date(item.completed_at),
-            xp: item.xp_earned || 100
+            xp: 100 // Songs nemají xp_earned sloupec
           }));
         }
 
@@ -390,6 +453,60 @@ export const getActivitiesForAchievement = async (userId, requirementType, requi
     return activities;
   } catch (error) {
     console.error('Chyba při načítání aktivit pro achievement:', error);
+    return [];
+  }
+};
+
+/**
+ * Získá všechny aktivity všech uživatelů (pro admin panel)
+ * Používá database view 'user_activities' pro efektivní dotazování
+ * @param {number} limit - Počet aktivit k načtení (default: 100)
+ * @returns {Promise<Array>} Pole všech aktivit s informacemi o uživateli
+ */
+export const getAllUsersActivities = async (limit = 100) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_activities')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Chyba při načítání aktivit:', error);
+      return [];
+    }
+
+    // Transform data to expected format
+    const activities = data.map(activity => ({
+      id: activity.id,
+      type: activity.type,
+      title: activity.title,
+      subtitle: activity.subtitle,
+      date: new Date(activity.date),
+      xp: activity.xp,
+      isPerfect: activity.is_perfect,
+      mistakes: activity.mistakes_count,
+      icon: activity.icon,
+      isSpecial: activity.is_special,
+      user: {
+        id: activity.user_id,
+        first_name: activity.first_name,
+        last_name: activity.last_name,
+        email: activity.email
+      }
+    }));
+
+    console.log('✅ Loaded', activities.length, 'activities from user_activities view');
+    console.log('📊 Activities by type:', {
+      songs: activities.filter(a => a.type === 'song').length,
+      quizzes: activities.filter(a => a.type === 'quiz').length,
+      lessons: activities.filter(a => a.type === 'lesson').length,
+      dailyGoals: activities.filter(a => a.type === 'daily_goal').length
+    });
+
+    return activities;
+  } catch (error) {
+    console.error('Chyba při načítání aktivit všech uživatelů:', error);
     return [];
   }
 };

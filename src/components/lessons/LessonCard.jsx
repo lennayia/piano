@@ -44,23 +44,26 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
     />
   );
 
+  // Completion status - zobrazí se vlevo dole (statusChips)
+  const statusChips = isCompleted ? (
+    <motion.span
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className="badge badge-xs"
+      style={{
+        backgroundColor: 'var(--color-success-transparent)',
+        color: 'var(--color-success)',
+        padding: '0.2rem 0.4rem'
+      }}
+      title="Dokončeno"
+    >
+      <CheckCircle size={14} />
+    </motion.span>
+  ) : null;
+
+  // Footer - obtížnost a délka (zobrazí se nahoře)
   const footer = (
     <>
-      {isCompleted && (
-        <motion.span
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="badge badge-xs"
-          style={{
-            backgroundColor: 'var(--color-success-transparent)',
-            color: 'var(--color-success)',
-            padding: '0.2rem 0.4rem'
-          }}
-          title="Dokončeno"
-        >
-          <CheckCircle size={14} />
-        </motion.span>
-      )}
       <span className={`badge ${getDifficultyColor(lesson.difficulty)}`}>
         <TrendingUp size={14} />
         {lesson.difficulty}
@@ -78,6 +81,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
       description={lesson.description}
       headerActions={headerActions}
       footer={footer}
+      statusChips={statusChips}
       dragHandle={dragHandle}
       isExpanded={isEditing}
       onClick={handleClick}
