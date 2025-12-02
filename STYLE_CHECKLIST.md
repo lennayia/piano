@@ -140,19 +140,75 @@ import { PageCard, InfoPanel, ItemCard } from '../ui/CardComponents';
 
 ---
 
-## ✅ FONTY - Používat globální CSS třídy
+## ✅ FONTY - Používat utility třídy z utilities.css
 
 ### ❌ ŠPATNĚ (inline styles):
 ```jsx
-<h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Title</h1>
-<p style={{ fontSize: '0.875rem', color: '#64748b' }}>Text</p>
+<div style={{ fontSize: '0.7rem', fontWeight: '600' }}>Label</div>
+<span style={{ fontSize: '0.75rem', fontWeight: '500' }}>Text</span>
+<h3 style={{ fontSize: '0.875rem', color: '#64748b' }}>Title</h3>
+<div style={{ fontWeight: 'bold' }}>Bold</div>  // String místo čísla!
 ```
 
-### ✅ SPRÁVNĚ (CSS classes nebo variables):
+### ✅ SPRÁVNĚ (utility classes z utilities.css):
 ```jsx
-<h1>Title</h1>  // dědí z global.css
-<p className="text-secondary">Text</p>  // utility class
-<div style={{ color: 'var(--color-text-secondary)' }}>Text</div>
+// Font Sizes:
+<div className="text-xs">Label</div>          // 0.7rem (11.2px)
+<span className="text-sm">Text</span>          // 0.75rem (12px)
+<h3 className="text-base">Title</h3>           // 0.875rem (14px)
+
+// Font Weights:
+<div className="font-medium">Text</div>        // 500
+<div className="font-semibold">Bold</div>      // 600
+
+// Kombinace:
+<span className="text-sm font-medium">(Vy)</span>
+<div className="text-xs">XP</div>
+```
+
+### ✅ POKUD NENÍ UTILITY CLASS - číselné hodnoty:
+```jsx
+// Pokud utilities.css nemá odpovídající class, použij číselné hodnoty:
+<div style={{ fontSize: '1rem' }}>Username</div>          // OK - není utility
+<div style={{ fontSize: '1.25rem' }}>Rank</div>           // OK - není utility
+<div style={{ fontWeight: 700 }}>Bold</div>               // OK - číslo, ne string!
+<div style={{ fontWeight: 600 }}>Semibold</div>           // OK - číslo
+
+// ❌ NIKDY stringy pro čísla:
+<div style={{ fontWeight: 'bold' }}>Bad</div>             // ŠPATNĚ!
+<div style={{ fontWeight: '600' }}>Bad</div>              // ŠPATNĚ!
+```
+
+### Dostupné utility classes (utilities.css):
+```css
+/* Font Sizes */
+.text-xs    { font-size: 0.7rem; }    /* 11.2px - Extra small */
+.text-sm    { font-size: 0.75rem; }   /* 12px - Small */
+.text-base  { font-size: 0.875rem; }  /* 14px - Base */
+
+/* Font Weights */
+.font-medium   { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+```
+
+### Příklad refaktoringu (Leaderboard.jsx):
+```jsx
+// PŘED:
+<div style={{
+  fontSize: '0.75rem',
+  fontWeight: '500',
+  color: 'var(--color-primary)'
+}}>
+  (Vy)
+</div>
+
+// PO:
+<span
+  className="text-sm font-medium"
+  style={{ color: 'var(--color-primary)' }}
+>
+  (Vy)
+</span>
 ```
 
 ---
@@ -184,7 +240,13 @@ boxShadow: 'var(--glass-shadow)'
 - [ ] `color:` nebo `background:` s hex/rgba - nahradit CSS variable
 - [ ] Custom karty - nahradit PageCard/ItemCard
 - [ ] Custom buttons - nahradit PrimaryButton/SecondaryButton
-- [ ] Inline font styles - nahradit CSS classes nebo odstranit
+- [ ] **Inline font styles:**
+  - [ ] `fontSize: '0.7rem'` → `className="text-xs"`
+  - [ ] `fontSize: '0.75rem'` → `className="text-sm"`
+  - [ ] `fontSize: '0.875rem'` → `className="text-base"`
+  - [ ] `fontWeight: '500'` → `className="font-medium"` nebo `fontWeight: 500`
+  - [ ] `fontWeight: '600'` → `className="font-semibold"` nebo `fontWeight: 600`
+  - [ ] `fontWeight: 'bold'` → `fontWeight: 700` (číselná hodnota!)
 
 ### Krok 2: Přidat importy
 ```jsx
@@ -346,4 +408,107 @@ DRAWER_SPACING.desktop = {
 
 ---
 
+## ✅ DATABASE VIEWS - Modularizace na databázové úrovni
+
+### ❌ ŠPATNĚ (složitá aplikační logika):
+```javascript
+// 150+ řádků kódu pro agregaci dat
+export const getAllUsersActivities = async (limit = 100) => {
+  const allActivities = [];
+
+  // Fetch all users first
+  const { data: allUsers } = await supabase
+    .from('piano_users')
+    .select('*');
+
+  const usersMap = new Map();
+  allUsers.forEach(user => usersMap.set(user.id, user));
+
+  // Fetch songs
+  const { data: songs } = await supabase
+    .from('piano_song_completions')
+    .select('*');
+
+  // Manuální join a mapping...
+  songs.forEach(song => {
+    const user = usersMap.get(song.user_id);
+    allActivities.push({ ...song, user });
+  });
+
+  // Opakování pro každou tabulku (lessons, quizzes, atd.)
+  // ...další 100 řádků
+};
+```
+
+### ✅ SPRÁVNĚ (SQL view + jednoduchý dotaz):
+```sql
+-- migrations/create_user_activities_view.sql
+CREATE OR REPLACE VIEW piano.user_activities AS
+SELECT
+  CONCAT('song-', psc.id::text) as id,
+  'song' as type,
+  psc.song_title as title,
+  psc.completed_at as date,
+  100 as xp,
+  psc.user_id,
+  pu.first_name,
+  pu.last_name,
+  pu.email
+FROM piano.piano_song_completions psc
+JOIN piano.piano_users pu ON psc.user_id = pu.id
+UNION ALL
+-- ... další completion tabulky
+```
+
+```javascript
+// activityService.js - 50 řádků místo 150
+export const getAllUsersActivities = async (limit = 100) => {
+  const { data, error } = await supabase
+    .from('user_activities')
+    .select('*')
+    .order('date', { ascending: false })
+    .limit(limit);
+
+  return data.map(activity => ({
+    id: activity.id,
+    type: activity.type,
+    title: activity.title,
+    date: new Date(activity.date),
+    xp: activity.xp,
+    user: {
+      id: activity.user_id,
+      first_name: activity.first_name,
+      last_name: activity.last_name,
+      email: activity.email
+    }
+  }));
+};
+```
+
+### Výhody database views:
+- ✅ **Redukce kódu** - 150 řádků → 50 řádků (-66%)
+- ✅ **Výkon** - database JOIN je rychlejší než aplikační mapping
+- ✅ **Jednotné API** - všechny completion tabulky mají stejný formát
+- ✅ **Údržba** - změny v databázi = úprava view, ne JS kód
+- ✅ **Testovatelnost** - SQL view lze testovat přímo v databázi
+
+### Kdy používat views:
+- Agregace dat z více tabulek
+- Složité JOINy s user informacemi
+- Transformace dat (CASE, CONCAT, kalkulace XP)
+- Opakované dotazy napříč aplikací
+
+**Příklad:** `piano.user_activities` view agreguje 10 completion tabulek do jednoho konzistentního formátu.
+
+---
+
 **Použití:** Kontrolovat podle tohoto checklistu při každé extrakci komponenty!
+
+---
+
+**Poslední update:** 2. prosince 2025 (Session 4 - večer)
+**Aktualizováno:**
+- FONTY sekce - detailní návod na utility classes z utilities.css
+- Kontrolní postup - rozšířen o konkrétní font style checks
+- Příklady z Leaderboard.jsx refaktoringu (text-xs, text-sm, text-base, font-medium, font-semibold)
+**Dříve přidáno:** Database Views - Modularizace na databázové úrovni

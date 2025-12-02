@@ -1,6 +1,10 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 2. prosince 2025
+Datum poslední aktualizace: 2. prosince 2025 (večer - Session 4)
+
+## 🆕 Nově přidané úkoly (2.12.2025)
+1. **User Rating System** - Hodnocení aktivit (hvězdičky + náročnost)
+2. **Admin Analytics** - Kompletní dashboard pro analýzu použití aktivit
 
 ---
 
@@ -60,7 +64,188 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ## 🔥 Priorita 2 - Vysoká (Důležité pro UX)
 
-### 2. ⏳ Metronom
+### 1. ⏳ User Rating System - Hodnocení aktivit
+**Status:** Pending
+**Priorita:** 🟠 Vysoká
+
+**Popis:**
+- Umožnit uživatelům hodnotit lekce, písně, kvízy, cvičení
+- **Oblíbenost** - hodnocení hvězdičkami (1-5 hvězdiček)
+- **Náročnost** - subjektivní obtížnost (Easy/Medium/Hard)
+- Zobrazení průměrného hodnocení u každé aktivity
+- Filtrování podle hodnocení
+- Analytics pro admina - co je nejoblíbenější
+
+**Databázové změny:**
+- Nová tabulka `piano_user_ratings`:
+  - `id` (uuid, PK)
+  - `user_id` (uuid, FK → piano_users)
+  - `activity_type` (ENUM: 'lesson', 'song', 'quiz', 'exercise')
+  - `activity_id` (text) - ID aktivity (lesson_id, song_id, quiz_type)
+  - `rating` (integer, 1-5) - hvězdičky oblíbenosti
+  - `difficulty_rating` (ENUM: 'easy', 'medium', 'hard') - subjektivní náročnost
+  - `comment` (text, nullable) - volitelný komentář
+  - `created_at` (timestamp)
+  - UNIQUE constraint na (user_id, activity_type, activity_id)
+
+- Přidat sloupce do aktivit pro agregaci:
+  - `piano_lessons.avg_rating` (decimal) - průměrné hodnocení
+  - `piano_lessons.rating_count` (integer) - počet hodnocení
+  - `piano_lessons.avg_difficulty` (text) - převažující náročnost
+  - Podobně pro `piano_songs`, `piano_quiz_chords`, atd.
+
+**UI komponenty:**
+- `src/components/rating/StarRating.jsx` - hvězdičky pro hodnocení
+- `src/components/rating/DifficultyRating.jsx` - Easy/Medium/Hard buttons
+- `src/components/rating/RatingModal.jsx` - modal pro ohodnocení po dokončení
+- `src/components/rating/RatingDisplay.jsx` - zobrazení průměrného hodnocení
+
+**Integrace:**
+- Po dokončení lekce/písně/kvízu → zobrazit RatingModal
+- "Jak byste ohodnotil/a tuto aktivitu?"
+- Hvězdičky + náročnost + volitelný komentář
+- "Přeskočit" button pro uživatele, kteří nechtějí hodnotit
+
+**Admin Analytics:**
+- Dashboard s Top 10 nejoblíbenějších aktivit
+- Filter podle typu aktivity
+- Zobrazení průměrného ratingu a počtu hodnocení
+- Export do CSV
+
+**Design:**
+- Hvězdičky: žluté (plné), šedé (prázdné), animace při hover
+- Náročnost: zelená (Easy), oranžová (Medium), červená (Hard)
+- Tooltip s průměrným hodnocením a počtem uživatelů
+- Použít RADIUS, SHADOW konstanty
+
+**RLS Policies:**
+- User může vytvořit/upravit pouze své vlastní hodnocení
+- User může číst všechna hodnocení (pro zobrazení průměru)
+- Admin může číst všechna hodnocení
+
+---
+
+### 2. ⏳ Admin Analytics - Statistiky použití aktivit
+**Status:** Pending
+**Priorita:** 🟠 Vysoká
+
+**Popis:**
+- Kompletní analytics pro admina o využívání aktivit
+- Grafy, tabulky, export dat
+- Zjistit co uživatelé nejvíc používají
+- Identifikovat nepoužívané aktivity (kandidáti na vylepšení/odstranění)
+
+**Features:**
+
+**1. Dashboard "Přehled aktivit":**
+- Karta pro každý typ aktivity (Lekce, Písně, Kvízy, Cvičení)
+- Celkový počet dokončení
+- Průměrné hodnocení
+- Top 5 nejpoužívanějších
+- Bottom 5 nejméně používaných
+
+**2. Detailní statistiky podle typu:**
+
+**Lekce:**
+- Tabulka všech lekcí s:
+  - Název lekce
+  - Počet dokončení
+  - Průměrné hodnocení (hvězdičky)
+  - Průměrná náročnost (Easy/Medium/Hard)
+  - Poslední použití
+  - Akce: Zobrazit detail / Upravit
+- Třídění podle:
+  - Oblíbenosti (rating DESC)
+  - Počtu dokončení (completion_count DESC)
+  - Názvu (alphabetical)
+  - Náročnosti
+  - Data poslední použití
+
+**Písně:**
+- Stejná struktura jako lekce
+- Navíc: Režim (Procvičovat vs Výzva)
+- Perfect rate (kolik % bez chyb)
+
+**Kvízy:**
+- Název kvízu / typ
+- Počet dokončení
+- Průměrné skóre
+- Průměrné hodnocení
+- Třídění jako výše
+
+**Cvičení:**
+- Typ cvičení (Akordy, Stupnice, atd.)
+- Počet dokončení
+- Průměrné hodnocení
+- Třídění jako výše
+
+**3. Grafy a vizualizace:**
+- Line chart: Dokončení aktivit v čase (týden/měsíc)
+- Bar chart: Top 10 aktivit podle typu
+- Pie chart: Rozložení typů aktivit (kolik % lekcí vs písní vs kvízů)
+- Heatmap: Aktivita podle dne v týdnu a hodiny
+
+**4. Filtry:**
+- Časové období (týden, měsíc, rok, custom range)
+- Typ aktivity (všechny, lekce, písně, kvízy)
+- Obtížnost (všechny, easy, medium, hard)
+- Rating (všechny, 4+, 3+, 2+, 1+)
+
+**5. Export:**
+- CSV export pro každou tabulku
+- PDF report s grafy
+- JSON export pro další zpracování
+
+**Soubory k vytvoření:**
+- `src/pages/admin/Analytics.jsx` - hlavní stránka analytics
+- `src/components/admin/analytics/ActivityStatsTable.jsx` - tabulka statistik
+- `src/components/admin/analytics/TopActivities.jsx` - top aktivit
+- `src/components/admin/analytics/ActivityChart.jsx` - grafy
+- `src/components/admin/analytics/UsageHeatmap.jsx` - heatmap
+- `src/services/analyticsService.js` - API funkce pro data
+
+**Databázové views:**
+- `piano_activity_stats` - agregované statistiky aktivit
+- JOIN completion tabulek s ratings
+- Agregace: COUNT, AVG, MAX, MIN
+
+**SQL příklad:**
+```sql
+CREATE VIEW piano_lesson_stats AS
+SELECT
+  pl.id,
+  pl.title,
+  COUNT(plc.id) as completion_count,
+  AVG(pur.rating) as avg_rating,
+  COUNT(pur.id) as rating_count,
+  MODE() WITHIN GROUP (ORDER BY pur.difficulty_rating) as common_difficulty,
+  MAX(plc.completed_at) as last_completed
+FROM piano_lessons pl
+LEFT JOIN piano_lesson_completions plc ON pl.id = plc.lesson_id
+LEFT JOIN piano_user_ratings pur ON pur.activity_type = 'lesson' AND pur.activity_id = pl.id
+GROUP BY pl.id, pl.title;
+```
+
+**Knihovny:**
+- `recharts` - pro grafy
+- `react-table` - pro tabulky s třídením
+- `date-fns` - pro práci s datumy
+
+**Design:**
+- Dashboard layout s kartami
+- Tabulky s inline sorting
+- Barevné indikátory (zelená: high usage, žlutá: medium, červená: low)
+- Export button v každé sekci
+- Responsivní (mobile: stacked layout)
+
+**Admin navigace:**
+- Přidat "Analytics" do Admin menu
+- Ikona: BarChart3 z lucide-react
+- Umístění: mezi "Přehled" a "Uživatelé"
+
+---
+
+### 3. ⏳ Metronom
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -1144,6 +1329,126 @@ const addContact = async (email, name) => {
 ---
 
 ## ✅ Nedávno dokončené úkoly
+
+### Leaderboard Refactoring + Admin Table (2.12.2025 večer)
+**Dokončeno:** ✅
+**Popis:** Kompletní refaktoring Leaderboard komponenty a vytvoření admin table verze
+
+**Změny:**
+- ✅ **Leaderboard.jsx font style refactoring:**
+  - Konverze inline font styles na utilities.css třídy
+  - Oprava `fontWeight: 'bold'` → `fontWeight: 700` (číselná hodnota)
+  - Aplikace .text-xs, .text-sm, .text-base, .font-medium, .font-semibold tříd
+  - Změna "Vaše pozice" chip na variant="primary" bez shadow
+  - Stat chips změněny na nový variant="light"
+
+- ✅ **Nový Chip variant - "light":**
+  - Background: `rgba(45, 91, 120, 0.1)`
+  - Bez borderu, bez stínu
+  - Použití pro stat badges (Lekce, Kvízy, Písně, Cíle)
+
+- ✅ **LeaderboardTable.jsx - nový admin komponent:**
+  - Kompaktní tabulková verze pro admin panel
+  - Pagination: 50 uživatelů na stránku
+  - Responzivní: 3 breakpointy (<480px, 480-640px, >640px)
+  - Minimální padding (0.5rem), žádné ikony
+  - Email sloupec skrytý pod 480px
+  - Stats sloupce skryté na mobile (≤640px)
+  - Integrace do StatisticsOverview.jsx
+
+- ✅ **STYLE_CHECKLIST.md aktualizace:**
+  - Přidána kompletní sekce pro fonty (lines 143-213)
+  - Návod na utilities.css třídy
+  - Příklady správného/špatného použití
+  - Kontrolní postup pro font style audit
+
+- ✅ **Rozhodnutí o architektuře:**
+  - Separate LeaderboardTable component (Composition over Configuration)
+  - Leaderboard.jsx: Card-based view (TOP 10, visual emphasis)
+  - LeaderboardTable.jsx: Table view (all users, data density)
+
+**Soubory:**
+- `src/components/dashboard/Leaderboard.jsx` (393 řádků, refactored)
+- `src/components/ui/ButtonComponents.jsx` (nový variant "light")
+- `src/components/admin/LeaderboardTable.jsx` (444 řádků, nový soubor)
+- `src/components/admin/overview/StatisticsOverview.jsx` (integrace)
+- `STYLE_CHECKLIST.md` (aktualizováno)
+- `LEADERBOARD_CHECKLIST.md` (označeno jako hotové)
+
+**Benefity:**
+- Konzistentní font styles napříč komponentou
+- Admin může vidět všechny uživatele s paginací
+- Responzivní design pro 3 velikosti obrazovky
+- Dokumentované font guidelines pro budoucí komponenty
+- Znovupoužitelný "light" Chip variant
+
+**Dokumentace:**
+- `SESSION_CONTEXT-20251202-leaderboard.md` (nový soubor)
+
+---
+
+### Database View pro Admin Historie - user_activities (2.12.2025)
+**Dokončeno:** ✅
+**Popis:** Vytvoření SQL view pro sjednocení všech aktivit uživatelů do jednoho pohledu
+
+**Změny:**
+- ✅ **Vytvoření piano.user_activities view:**
+  - Agregace 10 completion tabulek do jednoho view
+  - Automatické joiny s piano_users
+  - Jednotný formát dat (id, type, title, subtitle, date, xp, icon, user info)
+
+- ✅ **Zahrnuté tabulky:**
+  1. `piano_song_completions` - písně (100 XP default, subtitle: perfektní/chyby)
+  2. `piano_quiz_scores` - obecné kvízy (score × 5 XP)
+  3. `piano_quiz_completions` - starý chord quiz (má xp_earned)
+  4. `piano_quiz_interval_completions` - Kvíz: Intervaly (10 XP pokud správně)
+  5. `piano_quiz_mixed_completions` - Kvíz: Mix (10 XP pokud správně)
+  6. `piano_quiz_rhythm_completions` - Kvíz: Rytmus (10 XP pokud správně)
+  7. `piano_quiz_scale_completions` - Kvíz: Stupnice (10 XP pokud správně)
+  8. `piano_quiz_theory_completions` - Kvíz: Teorie (10 XP pokud správně)
+  9. `piano_lesson_completions` - lekce (má xp_earned)
+  10. `piano_daily_goal_completions` - denní cíle (má xp_earned)
+
+- ✅ **Zjednodušení activityService.js:**
+  - getAllUsersActivities: 150 řádků → 50 řádků (-66%)
+  - Místo 5 dotazů + složitá logika → 1 jednoduchý dotaz
+  - Automatická transformace dat z view
+
+- ✅ **Admin Historie funkční:**
+  - Admin → Přehledy → Uživatelé → Historie
+  - Zobrazení všech typů aktivit
+  - Vyhledávání v historii
+  - Konzole logging pro debug
+
+**Problém řešený:**
+- Původní dotazy selhávaly kvůli chybějícím foreign key vztahům
+- View používá explicitní joiny místo Supabase auto-joins
+- Workaround: načíst všechny users do Map a přiřadit ručně
+
+**Soubory:**
+- `migrations/create_user_activities_view.sql` (242 řádků, nový soubor)
+- `src/services/activityService.js` (getAllUsersActivities refactored)
+- `src/components/admin/overview/UsersOverview.jsx` (používá novou funkci)
+
+**SQL view features:**
+- Řazení podle data (DESC)
+- Unifikované sloupce pro všechny typy aktivit
+- XP výpočty podle typu aktivity
+- Subtitle s kontextovými informacemi (score, chyby, atd.)
+- Grant SELECT pro authenticated users
+
+**Benefity:**
+- Admin vidí kompletní přehled aktivit všech uživatelů
+- Jednoduchá údržba (1 view místo 10 dotazů)
+- Připraveno pro budoucí analytics
+- Rychlejší dotazy díky database-level agregaci
+
+**Účel:**
+- Admin může analyzovat, co uživatelé nejvíc používají
+- Podklad pro budoucí User Rating System
+- Podklad pro budoucí Admin Analytics Dashboard
+
+---
 
 ### Refaktoring Help dokumentace - Modularizace nápovědy (29.11.2025)
 **Dokončeno:** ✅

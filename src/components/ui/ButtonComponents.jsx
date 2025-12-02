@@ -9,7 +9,7 @@ import audioEngine from '../../utils/audio';
  * Chip - malý barevný chip pro zobrazení obtížnosti, odpovědí atd.
  *
  * @param {string|number} text - Text nebo číslo chipu
- * @param {string} variant - 'difficulty' | 'answer' | 'inactive'
+ * @param {string} variant - 'primary' | 'secondary' | 'light' | 'difficulty' | 'answer' | 'info' | 'inactive'
  * @param {number} level - Úroveň obtížnosti 1-3 (pro variant='difficulty')
  * @param {boolean} isCorrect - Je odpověď správná? (pro variant='answer')
  * @param {object} style - Dodatečné styly
@@ -17,6 +17,27 @@ import audioEngine from '../../utils/audio';
 export function Chip({ text, variant = 'answer', level = 1, isCorrect = false, style = {}, ...props }) {
   // Definice barev pro různé varianty
   const variants = {
+    // Primary - čistá primary barva bez borderu a stínu
+    primary: {
+      background: 'var(--color-primary)',
+      color: '#ffffff',
+      border: 'none',
+      boxShadow: 'none'
+    },
+    // Secondary - čistá secondary barva bez borderu a stínu
+    secondary: {
+      background: 'var(--color-secondary)',
+      color: '#ffffff',
+      border: 'none',
+      boxShadow: 'none'
+    },
+    // Light - světlá secondary barva bez borderu a stínu
+    light: {
+      background: 'rgba(45, 91, 120, 0.1)',
+      color: 'var(--color-secondary)',
+      border: 'none',
+      boxShadow: 'none'
+    },
     // Obtížnost - jednotná barva, číslo určuje level
     difficulty: {
       background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.08) 0%, rgba(181, 31, 101, 0.12) 100%)',
