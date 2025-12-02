@@ -1,6 +1,6 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 30. listopadu 2025
+Datum poslední aktualizace: 2. prosince 2025
 
 ---
 
@@ -60,7 +60,91 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ## 🔥 Priorita 2 - Vysoká (Důležité pro UX)
 
-### 2. ⏳ Dokončit refaktoring TabButtons
+### 2. ⏳ Metronom
+**Status:** Pending
+**Priorita:** 🟠 Vysoká
+
+**Popis:**
+- Essential nástroj pro cvičení rytmu
+- Nastavitelné tempo (BPM) - rozsah 40-200
+- Různé rytmy (2/4, 3/4, 4/4, 6/8)
+- Vizuální + zvukový feedback
+- Accent na první dobu
+- Tracking kolikrát cvičili s metronomem → achievement
+
+**Soubory k vytvoření:**
+- `src/components/practice/Metronome.jsx` - hlavní komponenta
+- `src/utils/metronomeEngine.js` - audio engine pro metronom
+- `src/store/useMetronomeStore.js` - Zustand store pro nastavení
+
+**Databáze:**
+- `piano_metronome_sessions` - tracking použití metronomu
+- Sloupce: user_id, duration_seconds, tempo, time_signature, created_at
+
+**Features:**
+- BPM slider (40-200)
+- Time signature selector (2/4, 3/4, 4/4, 6/8)
+- Start/Stop/Pause
+- Tap tempo (klikání pro nastavení tempa)
+- Visual metronome (blikající indikátor)
+- Volume control
+- Subdivision options (quarter notes, eighth notes)
+
+**Design:**
+- Použít RADIUS, SHADOW, BORDER konstanty
+- Ikony z lucide-react (Play, Pause, Volume2)
+- Kruhový vizuál s animací
+- Framer Motion pro smooth animace
+
+**Integrace:**
+- Přidat do `src/pages/Cviceni.jsx` jako novou sekci
+- Floating metronome button pro použití během jiných aktivit
+- Achievement: "Rytmický mistr" - 10 hodin s metronomem
+
+---
+
+### 3. ⏳ Denní cvičební rutina
+**Status:** Pending
+**Priorita:** 🟠 Vysoká
+
+**Popis:**
+- Strukturovaný denní plán pro začátečníky
+- Doporučená rutina: "10 min škály, 15 min písně, 5 min teorie"
+- Tracking času cvičení
+- Streak za každodenní cvičení
+- Reminder notifications (pokud má povolen notifications)
+
+**Soubory k vytvoření:**
+- `src/components/practice/DailyRoutine.jsx` - hlavní komponenta
+- `src/components/practice/PracticeTimer.jsx` - timer pro jednotlivé sekce
+- `src/store/usePracticeRoutineStore.js` - Zustand store
+
+**Databáze:**
+- `piano_practice_sessions` - tracking cvičebních session
+- Sloupce: user_id, activity_type, duration_minutes, completed_at
+- `piano_daily_routine_completions` - denní completion tracking
+
+**Features:**
+- Přednastavené rutiny podle úrovně:
+  - Začátečník: 20 min/den
+  - Pokročilý: 30 min/den
+  - Expert: 45+ min/den
+- Vlastní rutina (custom plán)
+- Timer s automatickým přechodem mezi sekcemi
+- Pause/Resume
+- Statistiky: celkový čas za týden/měsíc
+- Heatmap kalendář (jako GitHub contributions)
+- Achievement: "30denní výzva" - 30 dní v řadě
+
+**Design:**
+- Karta s timeline jednotlivých aktivit
+- Progress bar pro každou sekci
+- Barevné kategorie (škály: modrá, písně: zelená, teorie: fialová)
+- Countdown timer s kruhovou animací
+
+---
+
+### 4. ⏳ Dokončit refaktoring TabButtons
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -224,29 +308,240 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 8. ⏳ Nácvik stupnic
+### 8. ⏳ Škály a technická cvičení
 **Status:** Pending
 **Priorita:** 🟡 Střední
 
 **Popis:**
-- Přidat možnost procvičovat stupnice (C dur, A moll, atd.)
-- Podobné jako nácvik akordů, ale s postupným zahráním not
-- Vizuální zvýraznění not na klaviatuře
-- Tempo control (pomalé/rychlé)
+- Strukturované cvičení stupnic pro rozvoj techniky
+- Gamifikace: "Zahraj škálu C dur 5x bez chyby"
+- Různé varianty (legato, staccato, různá tempa)
+- Tracking které škály už umí
+- Prstoklady (fingering) zobrazené u každé noty
 
 **Typy stupnic:**
 - Durové stupnice (C, D, E, F, G, A, H)
 - Mollové stupnice (a, d, e, g, h)
 - Chromatická stupnice
+- Arpeggia (rozložené akordy)
 
 **Soubory k vytvoření:**
-- `src/components/games/ScalePractice.jsx` - komponenta
-- `src/data/scales.js` - definice stupnic
+- `src/components/practice/ScalePractice.jsx` - hlavní komponenta
+- `src/components/practice/FingeringDisplay.jsx` - zobrazení prstokladů
+- `src/data/scales.js` - definice stupnic s fingering
 - Přidat do `src/pages/Cviceni.jsx`
 
 **Databáze:**
 - `piano_scales` - tabulka s definicemi stupnic
+  - Sloupce: id, name, notes (JSON), fingering (JSON), difficulty, type
 - `piano_scale_completions` - historie procvičování
+  - Sloupce: user_id, scale_id, mistakes_count, tempo, completed_at
+
+**Features:**
+- Metronom integrace
+- Tempo adjustment (slow, medium, fast)
+- Visualization: čísla prstů (1-5) nad notami
+- Challenge mode: bez prstokladů
+- Practice mode: s prstoklady
+- Achievement: "Mistr stupnic" - všechny stupnice perfektně
+
+**Design:**
+- Barevné kódování prstů (např. palec = modrá, ukazovák = zelená)
+- Animace postupu (zleva doprava)
+- Progress tracking per scale
+
+---
+
+### 9. ⏳ Notová osnova - čtení not
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Mini-hra na trénink čtení not z notové osnovy
+- "Která nota je to na osnově?" - zobrazí notu, user klikne na klavír
+- Violinový (G klíč) i basový klíč (F klíč)
+- Gamifikace čtení not - score, streak, time limit
+- Postupné odemykání (začít s C-G, pak přidat H/Fis atd.)
+
+**Soubory k vytvoření:**
+- `src/components/games/NoteReadingGame.jsx` - hlavní hra
+- `src/components/music/StaffNotation.jsx` - komponenta notové osnovy
+- `src/utils/musicNotation.js` - helper funkce pro notový zápis
+
+**Databáze:**
+- `piano_note_reading_scores` - tracking progress
+- Sloupce: user_id, clef_type, notes_correct, notes_total, avg_time, completed_at
+
+**Features:**
+- Dva režimy:
+  - Treble clef (violinový klíč) - pravá ruka
+  - Bass clef (basový klíč) - levá ruka
+- Difficulty levels:
+  - Easy: C-G (bez předznamenání)
+  - Medium: C-C (oktáva, s křížky/béčky)
+  - Hard: 2 oktávy
+- Timer: kolik sekund na notu
+- Streak counter
+- Leaderboard
+- Achievement: "Notový mistr" - 100 not správně
+
+**Design:**
+- SVG notová osnova (canvas nebo react-music)
+- Animace noty při správné/špatné odpovědi
+- Sound feedback
+- Score display v rohu
+
+---
+
+### 10. ⏳ Rytmická cvičení
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Trénink rytmu bez hraní not
+- Tleskání/tapping rytmů
+- Rozpoznávání notových hodnot (celá, půlová, čtvrťová, osminová)
+- Quiz na rytmy - "Jaká je hodnota této noty?"
+- Rytmické diktáty - slyš rytmus, zopakuj ho
+
+**Soubory k vytvoření:**
+- `src/components/games/RhythmTraining.jsx` - hlavní komponenta
+- `src/components/games/RhythmDictation.jsx` - rytmické diktáty
+- `src/utils/rhythmEngine.js` - přehrávání rytmů
+
+**Databáze:**
+- `piano_rhythm_scores` - tracking progress
+- Sloupce: user_id, exercise_type, score, completed_at
+
+**Features:**
+- Rytmické vzory:
+  - Základní: celá, půlová, čtvrťová
+  - Pokročilé: osminové, tečkované noty, trioly
+- Tap game: klikej podle rytmu
+- Rhythm dictation: slyš → zopakuj
+- Visual metronome během cvičení
+- Různé time signatures (2/4, 3/4, 4/4, 6/8)
+
+**Design:**
+- Vizuální reprezentace rytmu (obdélníky různých délek)
+- Animace při tapping
+- Score a accuracy feedback
+
+---
+
+### 11. ⏳ Repertoár - "Co umím zahrát"
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Seznam písní které už perfektně umí
+- Možnost označit jako:
+  - 🎵 "Zatím se učím"
+  - ✅ "Umím zahrát"
+  - ⭐ "Perfektně ovládám"
+- Sharing s kamarády (pokud implementujeme social features)
+- Export repertoáru do PDF
+
+**Soubory k vytvoření:**
+- `src/components/repertoire/RepertoireManager.jsx` - správa repertoáru
+- `src/components/repertoire/RepertoireCard.jsx` - karta písně
+- `src/pages/Repertoire.jsx` - samostatná stránka
+
+**Databáze:**
+- Přidat sloupec do `piano_song_completions`:
+  - `mastery_level` - ENUM('learning', 'can_play', 'mastered')
+- `piano_repertoire_items` - custom user repertoár
+  - Sloupce: user_id, title, composer, mastery_level, last_practiced, notes
+
+**Features:**
+- Filtrování podle mastery level
+- Sorting podle data, abecedy, obtížnosti
+- "Kdy jsem naposledy hrál?" - reminder
+- Statistics: kolik písní v každé kategorii
+- Achievement: "Velký repertoár" - 50 písní na úrovni "Umím"
+
+**Design:**
+- Grid nebo seznam s kartami
+- Barevné kódování podle mastery (šedá, žlutá, zelená)
+- Progress bar: učící se → umím → perfektní
+
+---
+
+### 12. ⏳ Progress tracking & vizualizace
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Graf pokroku v čase
+- "Před měsícem jsi udělal X lekcí, teď Y"
+- Milníky: "První píseň!", "10 lekcí dokončeno!", "Level 5!"
+- Heatmap aktivity (jako GitHub contributions)
+- Porovnání s minulým týdnem/měsícem
+
+**Soubory k vytvoření:**
+- `src/components/stats/ProgressChart.jsx` - grafy
+- `src/components/stats/Heatmap.jsx` - heatmap kalendář
+- `src/components/stats/Milestones.jsx` - milníky
+- `src/pages/Progress.jsx` - samostatná stránka pro pokrok
+
+**Knihovny:**
+- `recharts` - pro grafy
+- `react-calendar-heatmap` - pro heatmap
+
+**Features:**
+- Line chart: XP v čase
+- Bar chart: aktivity za týden
+- Heatmap: dny kdy praktikoval
+- Milestones timeline
+- Comparison: tento týden vs minulý týden
+- Export dat do CSV/JSON
+
+**Design:**
+- Moderní dashboard s kartami
+- Barevné grafy (modrá pro XP, zelená pro písně)
+- Tooltip s detaily při hover
+- Responsive (na mobilu stacked layout)
+
+---
+
+### 13. ⏳ Audio ukázky písní
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Možnost poslechnout si, jak má píseň znít
+- Zpomalené přehrávání (50%, 75%, 100%)
+- Loop sekce písně
+- Přehrávání s vizuálním highlightem not
+
+**Soubory k vytvoření:**
+- `src/components/audio/AudioPlayer.jsx` - audio přehrávač
+- `src/components/audio/SpeedControl.jsx` - control rychlosti
+- `src/utils/audioProcessor.js` - zpracování audio (tempo change)
+
+**Databáze:**
+- Přidat sloupec do `piano_songs`:
+  - `audio_url` - URL k audio souboru (Supabase Storage)
+  - `audio_duration` - délka v sekundách
+
+**Features:**
+- Upload audio v admin panelu
+- Playback speed control (0.5x, 0.75x, 1x, 1.25x)
+- Loop mode
+- A-B repeat (označit sekci a opakovat)
+- Waveform visualization
+- Sync s notami (highlight aktuální nota)
+
+**Knihovny:**
+- `howler.js` - audio playback
+- `wavesurfer.js` - waveform viz
+- Web Audio API pro tempo change bez pitch change
+
+**Design:**
+- Moderní audio player pod písní
+- Waveform s progress
+- Speed dropdown
+- Loop button
 
 ---
 
@@ -254,7 +549,43 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ## 🔥 Priorita 4 - Nízká (Budoucí features)
 
-### 11. ⏳ Skladatel - skládání melodií
+### 14. ⏳ Videonávody k lekcím
+**Status:** Pending
+**Priorita:** 🔵 Nízká
+
+**Popis:**
+- Krátká videa (1-3 min) ukazující správnou techniku
+- Tipy od "učitele" nebo virtuálního asistenta
+- Embedding YouTube nebo Vimeo videí
+- Nebo vlastní video hosting v Supabase Storage
+
+**Soubory k vytvoření:**
+- `src/components/video/VideoPlayer.jsx` - video přehrávač
+- `src/components/lessons/LessonVideo.jsx` - integrace do lekcí
+
+**Databáze:**
+- Přidat sloupec do `piano_lessons`:
+  - `video_url` - URL k video souboru
+  - `video_provider` - ENUM('youtube', 'vimeo', 'supabase')
+  - `video_duration` - délka v sekundách
+
+**Features:**
+- Embed YouTube/Vimeo s YouTube IFrame API
+- Vlastní upload video do Supabase Storage
+- Video progress tracking (sledovat, kolik procent shlédli)
+- Playback controls
+- Fullscreen mode
+- Captions/subtitles support
+
+**Design:**
+- Moderní video player
+- Thumbnail preview
+- Play overlay button
+- Progress bar
+
+---
+
+### 15. ⏳ Skladatel - skládání melodií
 **Status:** Pending
 **Priorita:** 🔵 Nízká
 

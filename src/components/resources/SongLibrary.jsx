@@ -30,6 +30,7 @@ import { useItemEdit } from '../../hooks/useItemEdit';
 import useSongStore from '../../store/useSongStore';
 import useUserStore from '../../store/useUserStore';
 import { supabase } from '../../lib/supabase';
+import { celebrate, triggerCelebration } from '../../services/celebrationService';
 
 // Komponenta s tabulkami pro nápovědu formátu not
 function NoteFormatHelpContent() {
@@ -689,7 +690,23 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
       setTimeout(() => audioEngine.playApplause(), 500);
 
       // Uložit do databáze pouze při challenge mode
-      await saveSongCompletion(song, totalNotes);
+      const result = await saveSongCompletion(song, totalNotes);
+
+      // Pokud došlo k level-upu, zobrazit speciální oslavu po hlavní oslavě
+      if (result?.success && result.data?.leveledUp && result.data?.levelUpConfig) {
+        setTimeout(() => {
+          triggerCelebration(
+            result.data.levelUpConfig.confettiType,
+            result.data.levelUpConfig.sound,
+            {
+              title: `⭐ Level ${result.data.level}!`,
+              message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
+              type: 'success',
+              duration: 5000
+            }
+          );
+        }, 3500); // Po hlavní oslavě (3000ms) + krátká pauza
+      }
 
       // Uložit název písně a zobrazit success modal
       setCompletedSongTitle(song.title);
@@ -713,54 +730,35 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
   const saveSongCompletion = async (song, totalNotes) => {
     const currentUser = useUserStore.getState().currentUser;
-    if (!currentUser) return;
+    if (!currentUser) return null;
 
     try {
-      // 1. Uložit do historie
-      const { error: completionError } = await supabase
-        .from('piano_song_completions')
-        .insert([{
-          user_id: currentUser.id,
-          song_id: song.id.toString(),
-          song_title: song.title,
+      // Použít centralizovaný celebration service
+      const isChallenge = challengeMode === song.id;
+      const result = await celebrate({
+        type: 'song',
+        userId: currentUser.id,
+        itemId: song.id,
+        itemTitle: song.title,
+        metadata: {
+          mode: isChallenge ? 'challenge' : 'practice',
           mistakes_count: 0,
           is_perfect: true
-        }]);
+        }
+      });
 
-      if (completionError) {
-        console.error('Chyba při ukládání dokončení písně:', completionError);
-      }
-
-      // 2. Aktualizovat statistiky
-      const { data: stats, error: statsError } = await supabase
-        .from('piano_user_stats')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .single();
-
-      if (stats && !statsError) {
-        const { error: updateError } = await supabase
-          .from('piano_user_stats')
-          .update({
-            songs_completed: (stats.songs_completed || 0) + 1,
-            songs_perfect_score: (stats.songs_perfect_score || 0) + 1,
-            total_xp: (stats.total_xp || 0) + 100, // 100 XP za perfektní píseň
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', currentUser.id);
-
-        if (updateError) {
-          console.error('Chyba při aktualizaci statistik:', updateError);
-        } else {
-          // Aktualizovat lokální store
-          const updateUserStats = useUserStore.getState().updateUserStats;
-          if (updateUserStats) {
-            updateUserStats();
-          }
+      if (result.success) {
+        // Aktualizovat lokální store
+        const updateUserStats = useUserStore.getState().updateUserStats;
+        if (updateUserStats) {
+          updateUserStats();
         }
       }
+
+      return result;
     } catch (error) {
       console.error('Chyba při ukládání písně:', error);
+      return null;
     }
   };
 

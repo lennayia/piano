@@ -132,6 +132,8 @@ const useRewardsConfigStore = create((set, get) => ({
       xp_value: reward.xp_value,
       icon_type: reward.icon_type,
       icon_color: reward.icon_color,
+      celebration_sound: reward.celebration_sound || 'success',
+      confetti_type: reward.confetti_type || 'metallic',
       display_order: reward.display_order + 1,
       is_active: true
     };

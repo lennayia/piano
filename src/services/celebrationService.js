@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import useXPRulesStore from '../store/useXPRulesStore';
 import useQuizXPStore from '../store/useQuizXPStore';
+import useRewardsConfigStore from '../store/useRewardsConfigStore';
+import useAchievementsStore from '../store/useAchievementsStore';
 
 /**
  * Centralizovaný celebration service pro všechny typy dokončení
@@ -40,11 +42,22 @@ export const celebrate = async ({ type, userId, itemId, itemTitle, metadata = {}
     // 4. Aktualizovat user stats (pouze pokud ještě nebylo dokončeno)
     const updatedStats = await updateUserStats(userId, xpEarned, type);
 
+    // 4a. Pokud došlo k level-upu, zapsat do historie
+    if (updatedStats.leveledUp) {
+      await saveLevelUp(userId, updatedStats.oldLevel, updatedStats.level, updatedStats.total_xp);
+    }
+
     // 5. Zkontrolovat achievements
     const unlockedAchievements = await checkAndUnlockAchievements(userId, type, itemId, updatedStats);
 
     // 6. Získat celebration konfiguraci
-    const celebrationConfig = await getCelebrationConfig(type, unlockedAchievements);
+    const celebrationConfig = await getCelebrationConfig(type, unlockedAchievements, metadata);
+
+    // 6a. Pokud došlo k level-upu, přidat level-up celebration config
+    let levelUpConfig = null;
+    if (updatedStats.leveledUp) {
+      levelUpConfig = await getCelebrationConfig('level_up', [], {});
+    }
 
     return {
       success: true,
@@ -55,6 +68,7 @@ export const celebrate = async ({ type, userId, itemId, itemTitle, metadata = {}
         leveledUp: updatedStats.leveledUp,
         unlockedAchievements,
         celebrationConfig,
+        levelUpConfig,
         isFirstTime: !isAlreadyCompleted
       }
     };
@@ -119,6 +133,12 @@ async function getXPForCompletion(type, metadata) {
     return baseXP + bonusXP;
   }
 
+  if (type === 'chord_practice') {
+    // XP za dokončení série akordů
+    const { chordsCompleted = 0 } = metadata;
+    return chordsCompleted * 10; // 10 XP za akord
+  }
+
   if (type === 'achievement') {
     return metadata.xp_reward || 20;
   }
@@ -174,6 +194,22 @@ async function saveCompletion(type, userId, itemId, itemTitle, xpEarned, metadat
 
     if (error) throw error;
   }
+
+  if (type === 'chord_practice') {
+    const { chordsCompleted, difficulty, isShuffled } = metadata;
+    const { error } = await supabase
+      .from('piano_quiz_scores')
+      .insert({
+        user_id: userId,
+        quiz_type: 'chord_practice',
+        score: chordsCompleted,
+        total_questions: chordsCompleted,
+        streak: 0,
+        completed_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+  }
 }
 
 /**
@@ -221,6 +257,15 @@ async function updateUserStats(userId, xpEarned, type) {
 
     if (type === 'lesson') {
       updates.lessons_completed = (existingStats.lessons_completed || 0) + 1;
+    } else if (type === 'song') {
+      updates.songs_completed = (existingStats.songs_completed || 0) + 1;
+      // Pouze v challenge mode počítáme jako perfect score
+      if (metadata?.mode === 'challenge') {
+        updates.songs_perfect_score = (existingStats.songs_perfect_score || 0) + 1;
+      }
+    } else if (type === 'chord_practice') {
+      const { chordsCompleted = 0 } = metadata;
+      updates.chords_completed = (existingStats.chords_completed || 0) + chordsCompleted;
     }
 
     const { error: updateError } = await supabase
@@ -233,7 +278,8 @@ async function updateUserStats(userId, xpEarned, type) {
     return {
       ...existingStats,
       ...updates,
-      leveledUp
+      leveledUp,
+      oldLevel
     };
   } else {
     // Vytvořit nové statistiky
@@ -245,6 +291,9 @@ async function updateUserStats(userId, xpEarned, type) {
       current_streak: 1,
       best_streak: 1,
       lessons_completed: type === 'lesson' ? 1 : 0,
+      songs_completed: type === 'song' ? 1 : 0,
+      songs_perfect_score: (type === 'song' && metadata?.mode === 'challenge') ? 1 : 0,
+      chords_completed: type === 'chord_practice' ? (metadata?.chordsCompleted || 0) : 0,
       last_activity_date: today,
       created_at: new Date().toISOString()
     };
@@ -266,20 +315,13 @@ async function updateUserStats(userId, xpEarned, type) {
  * Zkontroluje a odemkne achievements
  */
 async function checkAndUnlockAchievements(userId, type, itemId, stats) {
-  // Získat všechny achievements
-  const { data: achievements, error } = await supabase
-    .from('piano_achievements')
-    .select(`
-      *,
-      piano_achievement_triggers (
-        trigger_type,
-        trigger_id
-      )
-    `);
+  // Získat achievements z cache (OPTIMALIZACE!)
+  const achievementsStore = useAchievementsStore.getState();
+  let achievements = achievementsStore.getAchievements();
 
-  if (error) {
-    console.error('Chyba při načítání achievements:', error);
-    return [];
+  // Pokud cache je prázdná, načíst z DB
+  if (achievements.length === 0) {
+    achievements = await achievementsStore.loadAchievements();
   }
 
   // Získat již odemčené achievements
@@ -329,7 +371,7 @@ async function checkAndUnlockAchievements(userId, type, itemId, stats) {
         .insert({
           user_id: userId,
           achievement_id: achievement.id,
-          unlocked_at: new Date().toISOString()
+          earned_at: new Date().toISOString()
         });
 
       if (!unlockError) {
@@ -350,9 +392,10 @@ async function checkAndUnlockAchievements(userId, type, itemId, stats) {
  * Získá konfiguraci pro oslavu
  * @param {string} type - Typ aktivity ('lesson', 'song', 'quiz', 'daily_goal')
  * @param {Array} unlockedAchievements - Pole odemčených achievements
+ * @param {Object} metadata - Dodatečná data (např. mode pro songs)
  * @returns {Object} Config pro celebration
  */
-export function getCelebrationConfig(type, unlockedAchievements) {
+export function getCelebrationConfig(type, unlockedAchievements, metadata = {}) {
   // Pokud byly odemčeny achievements, použít konfiguraci prvního
   if (unlockedAchievements && unlockedAchievements.length > 0) {
     const achievement = unlockedAchievements[0];
@@ -366,43 +409,53 @@ export function getCelebrationConfig(type, unlockedAchievements) {
     };
   }
 
-  // Výchozí konfigurace podle typu
-  const configs = {
-    lesson: {
-      sound: 'success',
-      icon: 'BookOpen',
-      iconColor: 'secondary',
-      confetti: true,
-      confettiType: 'blue',
-      message: 'Lekce dokončena!'
-    },
-    song: {
-      sound: 'fanfare',
-      icon: 'Music',
-      iconColor: 'primary',
-      confetti: true,
-      confettiType: 'rainbow',
-      message: 'Píseň zahrána!'
-    },
-    quiz: {
-      sound: 'achievement',
-      icon: 'Target',
-      iconColor: 'secondary',
-      confetti: true,
-      confettiType: 'golden',
-      message: 'Kvíz dokončen!'
-    },
-    daily_goal: {
-      sound: 'achievement',
-      icon: 'Target',
-      iconColor: 'primary',
-      confetti: true,
-      confettiType: 'golden',
-      message: 'Denní cíl splněn!'
-    }
+  // Mapování typu na action_type v rewards_config
+  const typeToActionType = {
+    lesson: 'lesson_completion',
+    song: metadata.mode === 'challenge' ? 'song_played_challenge' : 'song_played_practice',
+    quiz: 'quiz_completion',
+    chord_practice: 'chord_practice_completion',
+    daily_goal: 'daily_goal_completion',
+    level_up: 'level_up'
   };
 
-  return configs[type] || configs.lesson;
+  // Pokusit se načíst konfiguraci z rewards_config
+  const actionType = typeToActionType[type];
+  if (actionType) {
+    const reward = useRewardsConfigStore.getState().getRewardByActionType(actionType);
+    if (reward) {
+      return {
+        sound: reward.celebration_sound || 'success',
+        icon: reward.icon_type || 'Trophy',
+        iconColor: reward.icon_color || 'primary',
+        confetti: true,
+        confettiType: reward.confetti_type || 'metallic',
+        message: getMessageForType(type)
+      };
+    }
+  }
+
+  // Fallback výchozí konfigurace
+  return {
+    sound: 'success',
+    icon: 'Trophy',
+    iconColor: 'primary',
+    confetti: true,
+    confettiType: 'metallic',
+    message: getMessageForType(type)
+  };
+}
+
+// Pomocná funkce pro výchozí zprávy
+function getMessageForType(type) {
+  const messages = {
+    lesson: 'Lekce dokončena!',
+    song: 'Píseň zahrána!',
+    quiz: 'Kvíz dokončen!',
+    chord_practice: 'Série akordů dokončena!',
+    daily_goal: 'Denní cíl splněn!'
+  };
+  return messages[type] || 'Výborně!';
 }
 
 // Pomocná funkce pro včerejší datum
@@ -410,6 +463,29 @@ function getYesterdayDate() {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   return yesterday.toISOString().split('T')[0];
+}
+
+/**
+ * Uloží level-up do historie
+ */
+async function saveLevelUp(userId, oldLevel, newLevel, totalXP) {
+  try {
+    const { error } = await supabase
+      .from('piano_level_ups')
+      .insert({
+        user_id: userId,
+        old_level: oldLevel,
+        new_level: newLevel,
+        total_xp: totalXP,
+        achieved_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('Chyba při ukládání level-up:', error);
+    }
+  } catch (error) {
+    console.error('Chyba při ukládání level-up:', error);
+  }
 }
 
 /**

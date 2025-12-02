@@ -17,6 +17,7 @@ import { getChordNotesWithOctaves, shuffleArray } from '../utils/noteUtils';
 import { supabase } from '../lib/supabase';
 import useProgressTracking from '../hooks/useProgressTracking';
 import PracticeCelebration from '../components/practice/PracticeCelebration';
+import { celebrate, triggerCelebration } from '../services/celebrationService';
 
 function Cviceni() {
   const navigate = useNavigate();
@@ -104,33 +105,42 @@ function Cviceni() {
         setShowCelebration(true);
         setShowSuccessModal(true);
 
-        // Uložit do databáze - statistiky + XP
+        // Použít centralizovaný celebration service
         try {
-          const { data: stats, error: statsError } = await supabase
-            .from('piano_user_stats')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .single();
+          const result = await celebrate({
+            type: 'chord_practice',
+            userId: currentUser.id,
+            itemId: 'chord_series',
+            itemTitle: `Série ${chords.length} akordů`,
+            metadata: {
+              chordsCompleted: chords.length,
+              difficulty: selectedDifficulty,
+              isShuffled: isShuffled,
+              mode: 'challenge' // Pouze v režimu výzvy se ukládá completion
+            }
+          });
 
-          if (stats && !statsError) {
-            const xpEarned = chords.length * 10; // 10 XP za akord
-            const { error: updateError } = await supabase
-              .from('piano_user_stats')
-              .update({
-                chords_completed: (stats.chords_completed || 0) + chords.length,
-                total_xp: (stats.total_xp || 0) + xpEarned,
-                updated_at: new Date().toISOString()
-              })
-              .eq('user_id', currentUser.id);
+          if (result.success) {
+            // Aktualizovat lokální store
+            const updateUserStats = useUserStore.getState().updateUserStats;
+            if (updateUserStats) {
+              updateUserStats();
+            }
 
-            if (updateError) {
-              console.error('Chyba při aktualizaci statistik:', updateError);
-            } else {
-              // Aktualizovat lokální store
-              const updateUserStats = useUserStore.getState().updateUserStats;
-              if (updateUserStats) {
-                updateUserStats();
-              }
+            // Pokud došlo k level-upu, zobrazit speciální oslavu
+            if (result.data?.leveledUp && result.data?.levelUpConfig) {
+              setTimeout(() => {
+                triggerCelebration(
+                  result.data.levelUpConfig.confettiType,
+                  result.data.levelUpConfig.sound,
+                  {
+                    title: `⭐ Level ${result.data.level}!`,
+                    message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
+                    type: 'success',
+                    duration: 5000
+                  }
+                );
+              }, 3500);
             }
           }
         } catch (error) {
@@ -138,7 +148,7 @@ function Cviceni() {
         }
       }, 500);
     }
-  }, [challengeMode, completedCount, chords.length, currentUser]);
+  }, [challengeMode, completedCount, chords.length, currentUser, selectedDifficulty, isShuffled]);
 
   const currentChord = chords[currentChordIndex];
 

@@ -31,7 +31,11 @@ const useLevelStore = create((set, get) => ({
     try {
       const { data, error } = await supabase
         .from('piano_level_thresholds')
-        .insert([levelData])
+        .insert([{
+          ...levelData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
         .select()
         .single();
 
@@ -54,7 +58,10 @@ const useLevelStore = create((set, get) => ({
     try {
       const { error } = await supabase
         .from('piano_level_thresholds')
-        .update(levelData)
+        .update({
+          ...levelData,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -69,16 +76,26 @@ const useLevelStore = create((set, get) => ({
     }
   },
 
-  // Smazat level
-  deleteLevel: async (id) => {
+  // Smazat level (nebo deaktivovat)
+  deleteLevel: async (id, hardDelete = false) => {
     set({ loading: true, error: null });
     try {
-      const { error } = await supabase
-        .from('piano_level_thresholds')
-        .delete()
-        .eq('id', id);
+      if (hardDelete) {
+        const { error } = await supabase
+          .from('piano_level_thresholds')
+          .delete()
+          .eq('id', id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Soft delete - jen deaktivovat
+        const { error } = await supabase
+          .from('piano_level_thresholds')
+          .update({ is_active: false, updated_at: new Date().toISOString() })
+          .eq('id', id);
+
+        if (error) throw error;
+      }
 
       // Reload levels po smazání
       await get().loadLevels();
@@ -98,7 +115,7 @@ const useLevelStore = create((set, get) => ({
       min_xp: level.max_xp ? level.max_xp + 1 : level.min_xp + 100,
       max_xp: level.max_xp ? level.max_xp + 100 : null,
       icon_type: level.icon_type,
-      icon_color: level.icon_color,
+      icon_color: level.icon_color || 'primary',
       is_active: true,
       display_order: level.display_order + 1
     };

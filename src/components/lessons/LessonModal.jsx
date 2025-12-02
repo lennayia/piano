@@ -10,6 +10,7 @@ import { RADIUS } from '../../utils/styleConstants';
 import useUserStore from '../../store/useUserStore';
 import audioEngine from '../../utils/audio';
 import { supabase } from '../../lib/supabase';
+import { celebrate, triggerCelebration } from '../../services/celebrationService';
 
 function LessonModal({ lesson, isOpen, onClose, onComplete }) {
   const [isCompleted, setIsCompleted] = useState(false);
@@ -46,57 +47,52 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
   const handleComplete = async () => {
     if (currentUser && !isCompleted) {
       try {
-        // 1. Uložit do historie
-        const { error: lessonError } = await supabase
-          .from('piano_lesson_completions')
-          .insert([{
-            user_id: currentUser.id,
-            lesson_id: lesson.id.toString(),
-            lesson_title: lesson.title,
-            xp_earned: LESSON_XP_REWARD
-          }]);
+        // Použít centralizovaný celebration service
+        const result = await celebrate({
+          type: 'lesson',
+          userId: currentUser.id,
+          itemId: lesson.id,
+          itemTitle: lesson.title,
+          metadata: {}
+        });
 
-        if (lessonError) {
-          console.error('Chyba při ukládání lekce:', lessonError);
-          return;
-        }
-
-        // 2. Aktualizovat statistiky
-        const { data: stats, error: statsError } = await supabase
-          .from('piano_user_stats')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .single();
-
-        if (stats && !statsError) {
-          await supabase
-            .from('piano_user_stats')
-            .update({
-              lessons_completed: (stats.lessons_completed || 0) + 1,
-              total_xp: (stats.total_xp || 0) + LESSON_XP_REWARD,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', currentUser.id);
+        if (result.success) {
+          setIsCompleted(true);
+          audioEngine.playSuccess();
 
           // Aktualizovat lokální store
           const updateUserStats = useUserStore.getState().updateUserStats;
           if (updateUserStats) {
             updateUserStats();
           }
+
+          // Pokud došlo k level-upu, zobrazit speciální oslavu
+          if (result.data.leveledUp && result.data.levelUpConfig) {
+            // Malé zpoždění, aby se nejdřív zavřel modal lekce
+            setTimeout(() => {
+              triggerCelebration(
+                result.data.levelUpConfig.confettiType,
+                result.data.levelUpConfig.sound,
+                {
+                  title: `⭐ Level ${result.data.level}!`,
+                  message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
+                  type: 'success',
+                  duration: 5000
+                }
+              );
+            }, MODAL_AUTO_CLOSE_DELAY + 500);
+          }
+
+          // Zavolat callback pro denní cíl
+          if (onComplete) {
+            onComplete(lesson.id);
+          }
+
+          // Zavřít modal po 2 sekundách
+          setTimeout(() => {
+            onClose();
+          }, MODAL_AUTO_CLOSE_DELAY);
         }
-
-        setIsCompleted(true);
-        audioEngine.playSuccess();
-
-        // Zavolat callback pro denní cíl
-        if (onComplete) {
-          onComplete(lesson.id);
-        }
-
-        // Zavřít modal po 2 sekundách
-        setTimeout(() => {
-          onClose();
-        }, MODAL_AUTO_CLOSE_DELAY);
       } catch (error) {
         console.error('Chyba při ukládání lekce:', error);
       }

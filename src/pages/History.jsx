@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { History as HistoryIcon, Music, Gamepad2, Book, Trophy, Calendar, Clock, Award } from 'lucide-react';
+import { History as HistoryIcon, Music, Gamepad2, Book, Trophy, Calendar, Clock, Award, Star } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import { supabase } from '../lib/supabase';
 
@@ -85,6 +85,59 @@ function History() {
         });
       }
 
+      // Fetch daily goal completions
+      const { data: dailyGoals, error: dailyGoalsError } = await supabase
+        .from('piano_daily_goal_completions')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('completed_at', { ascending: false });
+
+      if (!dailyGoalsError && dailyGoals) {
+        dailyGoals.forEach(goal => {
+          const goalTypeLabels = {
+            'lessons': 'lekcí',
+            'songs': 'písní',
+            'quizzes': 'kvízů',
+            'harmonizations': 'harmonizací'
+          };
+          const goalLabel = goalTypeLabels[goal.goal_type] || 'aktivit';
+
+          allActivities.push({
+            id: `daily-goal-${goal.id}`,
+            type: 'daily_goal',
+            title: `🎯 Denní cíl splněn!`,
+            subtitle: `${goal.completed_count} ${goalLabel}`,
+            date: new Date(goal.completed_at),
+            xp: goal.xp_earned || 50,
+            icon: Trophy,
+            isSpecial: true
+          });
+        });
+      }
+
+      // Fetch level ups
+      const { data: levelUps, error: levelUpsError } = await supabase
+        .from('piano_level_ups')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('achieved_at', { ascending: false });
+
+      if (!levelUpsError && levelUps) {
+        levelUps.forEach(levelUp => {
+          allActivities.push({
+            id: `level-up-${levelUp.id}`,
+            type: 'level_up',
+            title: `⭐ Level ${levelUp.new_level} dosažen!`,
+            subtitle: `${levelUp.total_xp} XP celkem`,
+            date: new Date(levelUp.achieved_at),
+            xp: 0,
+            icon: Star,
+            isSpecial: true,
+            isLevelUp: true
+          });
+        });
+      }
+
       // Sort by date (newest first)
       allActivities.sort((a, b) => b.date - a.date);
 
@@ -101,6 +154,7 @@ function History() {
     if (filter === 'songs') return activity.type === 'song';
     if (filter === 'quizzes') return activity.type === 'quiz';
     if (filter === 'lessons') return activity.type === 'lesson';
+    if (filter === 'daily_goals') return activity.type === 'daily_goal';
     return true;
   });
 
@@ -121,12 +175,14 @@ function History() {
   const songCount = activities.filter(a => a.type === 'song').length;
   const quizCount = activities.filter(a => a.type === 'quiz').length;
   const lessonCount = activities.filter(a => a.type === 'lesson').length;
+  const dailyGoalCount = activities.filter(a => a.type === 'daily_goal').length;
 
   const filterButtons = [
     { id: 'all', label: 'Všechno', icon: HistoryIcon },
     { id: 'lessons', label: 'Lekce', icon: Book },
     { id: 'songs', label: 'Písničky', icon: Music },
     { id: 'quizzes', label: 'Kvízy', icon: Gamepad2 },
+    { id: 'daily_goals', label: 'Denní cíle', icon: Trophy },
   ];
 
   return (
@@ -295,117 +351,245 @@ function History() {
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {filteredActivities.map((activity, index) => {
-            const Icon = activity.icon;
-            return (
-              <motion.div
-                key={activity.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="card"
-                style={{
-                  padding: '1.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  background: 'rgba(255, 255, 255, 0.7)',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  transition: 'all 0.3s'
-                }}
-                whileHover={{
-                  scale: 1.01,
-                  y: -2,
-                  boxShadow: '0 8px 24px rgba(181, 31, 101, 0.15)'
-                }}
-              >
-                {/* Icon */}
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: 'var(--radius)',
-                  background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(221, 51, 121, 0.15) 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '2px solid rgba(181, 31, 101, 0.2)',
-                  flexShrink: 0
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          {/* Desktop - tabulka */}
+          <style>{`
+            @media (max-width: 768px) {
+              .history-table { display: none !important; }
+              .history-mobile { display: block !important; }
+            }
+            @media (min-width: 769px) {
+              .history-table { display: block !important; }
+              .history-mobile { display: none !important; }
+            }
+          `}</style>
+          <div className="history-table">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{
+                  background: 'rgba(181, 31, 101, 0.05)',
+                  borderBottom: '2px solid rgba(181, 31, 101, 0.1)'
                 }}>
-                  <Icon size={24} color="var(--color-primary)" />
-                </div>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Typ</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Aktivita</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Datum</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Čas</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Detaily</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>XP</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredActivities.map((activity, index) => {
+                  const Icon = activity.icon;
+                  return (
+                    <motion.tr
+                      key={activity.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.02 }}
+                      style={{
+                        background: activity.isSpecial
+                          ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.08), transparent)'
+                          : 'transparent',
+                        borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+                        cursor: 'default',
+                        transition: 'background 0.2s'
+                      }}
+                      whileHover={{
+                        background: activity.isSpecial
+                          ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.12), transparent)'
+                          : 'rgba(181, 31, 101, 0.03)'
+                      }}
+                    >
+                      <td style={{ padding: '0.625rem 0.75rem', width: '60px' }}>
+                        <div style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: 'var(--radius)',
+                          background: activity.isSpecial
+                            ? 'rgba(255, 215, 0, 0.15)'
+                            : 'rgba(181, 31, 101, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <Icon size={16} color={activity.isSpecial ? '#FFD700' : 'var(--color-primary)'} />
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.625rem 0.75rem' }}>
+                        <div style={{
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          color: '#1e293b',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {activity.title}
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.625rem 0.75rem', fontSize: '0.8125rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                        {formatDate(activity.date)}
+                      </td>
+                      <td style={{ padding: '0.625rem 0.75rem', fontSize: '0.8125rem', color: '#64748b', whiteSpace: 'nowrap' }}>
+                        {formatTime(activity.date)}
+                      </td>
+                      <td style={{ padding: '0.625rem 0.75rem', fontSize: '0.8125rem' }}>
+                        {activity.type === 'daily_goal' && activity.subtitle && (
+                          <span style={{ color: '#FFD700', fontWeight: 600 }}>
+                            {activity.subtitle}
+                          </span>
+                        )}
+                        {activity.type === 'level_up' && activity.subtitle && (
+                          <span style={{ color: '#FFD700', fontWeight: 600 }}>
+                            {activity.subtitle}
+                          </span>
+                        )}
+                        {activity.type === 'song' && activity.isPerfect && (
+                          <span style={{ color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Trophy size={14} />
+                            Perfektní!
+                          </span>
+                        )}
+                        {activity.type === 'song' && !activity.isPerfect && (
+                          <span style={{ color: '#94a3b8' }}>
+                            {activity.mistakes} {activity.mistakes === 1 ? 'chyba' : activity.mistakes < 5 ? 'chyby' : 'chyb'}
+                          </span>
+                        )}
+                        {activity.type === 'quiz' && (
+                          <span style={{ color: '#64748b' }}>
+                            {activity.score}/{activity.totalQuestions}
+                          </span>
+                        )}
+                        {activity.type === 'lesson' && (
+                          <span style={{ color: '#94a3b8' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.625rem 0.75rem', textAlign: 'right' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '0.25rem 0.625rem',
+                          borderRadius: 'var(--radius)',
+                          background: 'rgba(181, 31, 101, 0.1)',
+                          fontWeight: 600,
+                          fontSize: '0.8125rem',
+                          color: 'var(--color-primary)',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          +{activity.xp}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    color: '#1e293b',
-                    marginBottom: '0.25rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {activity.title}
-                  </h3>
+          {/* Mobile - kompaktní seznam */}
+          <div className="history-mobile">
+            {filteredActivities.map((activity, index) => {
+              const Icon = activity.icon;
+              return (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.02 }}
+                  style={{
+                    padding: '0.75rem',
+                    display: 'flex',
+                    gap: '0.75rem',
+                    alignItems: 'flex-start',
+                    background: activity.isSpecial
+                      ? 'linear-gradient(90deg, rgba(255, 215, 0, 0.08), transparent)'
+                      : 'transparent',
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+                  }}
+                >
+                  {/* Ikona */}
                   <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: 'var(--radius)',
+                    background: activity.isSpecial
+                      ? 'rgba(255, 215, 0, 0.15)'
+                      : 'rgba(181, 31, 101, 0.1)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1rem',
-                    fontSize: '0.875rem',
-                    color: '#64748b',
-                    flexWrap: 'wrap'
+                    justifyContent: 'center',
+                    flexShrink: 0
                   }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Calendar size={14} />
-                      {formatDate(activity.date)}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Clock size={14} />
-                      {formatTime(activity.date)}
-                    </span>
+                    <Icon size={16} color={activity.isSpecial ? '#FFD700' : 'var(--color-primary)'} />
+                  </div>
+
+                  {/* Obsah */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      marginBottom: '0.25rem'
+                    }}>
+                      {activity.title}
+                    </div>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      color: '#64748b',
+                      display: 'flex',
+                      gap: '0.5rem',
+                      flexWrap: 'wrap',
+                      marginBottom: '0.25rem'
+                    }}>
+                      <span>{formatDate(activity.date)}</span>
+                      <span>•</span>
+                      <span>{formatTime(activity.date)}</span>
+                    </div>
+                    {activity.type === 'daily_goal' && activity.subtitle && (
+                      <div style={{ fontSize: '0.75rem', color: '#FFD700', fontWeight: 600 }}>
+                        {activity.subtitle}
+                      </div>
+                    )}
+                    {activity.type === 'level_up' && activity.subtitle && (
+                      <div style={{ fontSize: '0.75rem', color: '#FFD700', fontWeight: 600 }}>
+                        {activity.subtitle}
+                      </div>
+                    )}
                     {activity.type === 'song' && activity.isPerfect && (
-                      <span style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        color: 'var(--color-primary)',
-                        fontWeight: 600
-                      }}>
-                        <Trophy size={14} />
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Trophy size={12} />
                         Perfektní!
-                      </span>
+                      </div>
                     )}
                     {activity.type === 'song' && !activity.isPerfect && (
-                      <span style={{ color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                         {activity.mistakes} {activity.mistakes === 1 ? 'chyba' : activity.mistakes < 5 ? 'chyby' : 'chyb'}
-                      </span>
+                      </div>
                     )}
                     {activity.type === 'quiz' && (
-                      <span style={{ color: '#64748b' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
                         Skóre: {activity.score}/{activity.totalQuestions}
-                      </span>
+                      </div>
                     )}
                   </div>
-                </div>
 
-                {/* XP Badge */}
-                <div style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: 'var(--radius)',
-                  background: 'linear-gradient(135deg, rgba(181, 31, 101, 0.15) 0%, rgba(221, 51, 121, 0.15) 100%)',
-                  border: '2px solid rgba(181, 31, 101, 0.2)',
-                  fontWeight: 600,
-                  fontSize: '0.875rem',
-                  color: 'var(--color-primary)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0
-                }}>
-                  +{activity.xp} XP
-                </div>
-              </motion.div>
-            );
-          })}
+                  {/* XP */}
+                  <div style={{
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: 'var(--radius)',
+                    background: 'rgba(181, 31, 101, 0.1)',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    color: 'var(--color-primary)',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}>
+                    +{activity.xp}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

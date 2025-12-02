@@ -114,9 +114,31 @@ function UniversalFormInline({
           </div>
         )}
 
-        {/* Název - pro achievement: "Název odměny", pro xp_rule: "Název (zobrazený)" */}
+        {/* LEVEL - Číslo levelu */}
+        {type === 'level' && (
+          <div>
+            <FormLabel text="Číslo levelu" />
+            <FormInput
+              type="number"
+              value={formData.level}
+              onChange={(e) => onChange({ ...formData, level: parseInt(e.target.value) || 1 })}
+              placeholder="1"
+              min="1"
+              disabled={!isCreating}
+            />
+            <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.25rem 0 0 0' }}>
+              {isCreating ? 'Unikátní číslo levelu (nelze změnit po vytvoření)' : 'Nelze změnit po vytvoření'}
+            </p>
+          </div>
+        )}
+
+        {/* Název - pro achievement: "Název odměny", pro level: "Název levelu", jinak "Název (zobrazený)" */}
         <div>
-          <FormLabel text={type === 'achievement' ? 'Název odměny' : 'Název (zobrazený)'} />
+          <FormLabel text={
+            type === 'achievement' ? 'Název odměny' :
+            type === 'level' ? 'Název levelu' :
+            'Název (zobrazený)'
+          } />
           <FormInput
             type="text"
             value={type === 'achievement' ? formData.title : formData.label}
@@ -124,20 +146,55 @@ function UniversalFormInline({
               ...formData,
               [type === 'achievement' ? 'title' : 'label']: e.target.value
             })}
-            placeholder={type === 'achievement' ? 'např. První kroky' : 'Dokončení lekce'}
+            placeholder={
+              type === 'achievement' ? 'např. První kroky' :
+              type === 'level' ? 'např. Začátečník' :
+              'Dokončení lekce'
+            }
           />
         </div>
 
-        {/* Popis */}
-        <div style={{ gridColumn: '1 / -1' }}>
-          <FormLabel text="Popis" />
-          <FormTextarea
-            value={formData.description}
-            onChange={(e) => onChange({ ...formData, description: e.target.value })}
-            placeholder={type === 'achievement' ? 'např. Dokončili jste svoji první lekci!' : 'Popis pravidla...'}
-            rows={2}
-          />
-        </div>
+        {/* Popis - POUZE PRO achievement, xp_rule, quiz_bonus (NE pro level) */}
+        {type !== 'level' && (
+          <div style={{ gridColumn: '1 / -1' }}>
+            <FormLabel text="Popis" />
+            <FormTextarea
+              value={formData.description}
+              onChange={(e) => onChange({ ...formData, description: e.target.value })}
+              placeholder={type === 'achievement' ? 'např. Dokončili jste svoji první lekci!' : 'Popis pravidla...'}
+              rows={2}
+            />
+          </div>
+        )}
+
+        {/* LEVEL - Min a Max XP */}
+        {type === 'level' && (
+          <>
+            <div>
+              <FormLabel text="Minimální XP" />
+              <FormInput
+                type="number"
+                value={formData.min_xp}
+                onChange={(e) => onChange({ ...formData, min_xp: parseInt(e.target.value) || 0 })}
+                min="0"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <FormLabel text="Maximální XP" />
+              <FormInput
+                type="number"
+                value={formData.max_xp || ''}
+                onChange={(e) => onChange({ ...formData, max_xp: e.target.value ? parseInt(e.target.value) : null })}
+                min="0"
+                placeholder="Bez limitu"
+              />
+              <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.25rem 0 0 0' }}>
+                Ponechte prázdné pro nejvyšší level (bez limitu)
+              </p>
+            </div>
+          </>
+        )}
 
         {/* Ikona */}
         <div>
@@ -166,8 +223,8 @@ function UniversalFormInline({
           />
         </div>
 
-        {/* POUZE PRO ACHIEVEMENTS - Zvuk oslavy */}
-        {type === 'achievement' && (
+        {/* Zvuk oslavy - SKRÝT PRO level */}
+        {type !== 'level' && (
           <div>
             <FormLabel text="Zvuk oslavy" />
             <FormSelect
@@ -178,8 +235,8 @@ function UniversalFormInline({
           </div>
         )}
 
-        {/* POUZE PRO ACHIEVEMENTS - Typ konfet */}
-        {type === 'achievement' && (
+        {/* Typ konfet - SKRÝT PRO level */}
+        {type !== 'level' && (
           <div>
             <FormLabel text="Typ konfet" />
             <FormSelect
@@ -230,22 +287,24 @@ function UniversalFormInline({
           </div>
         )}
 
-        {/* XP hodnota - pro achievement: "XP odměna", pro xp_rule: "XP hodnota" */}
-        <div>
-          <FormLabel text={type === 'achievement' ? 'XP odměna' : 'XP hodnota'} />
-          <FormInput
-            type="number"
-            value={type === 'achievement' ? formData.xp_reward : formData.xp_value}
-            onChange={(e) => onChange({
-              ...formData,
-              [type === 'achievement' ? 'xp_reward' : 'xp_value']: parseInt(e.target.value) || 0
-            })}
-            min="0"
-          />
-        </div>
+        {/* XP hodnota - pro achievement: "XP odměna", pro xp_rule: "XP hodnota" - SKRÝT PRO level */}
+        {type !== 'level' && (
+          <div>
+            <FormLabel text={type === 'achievement' ? 'XP odměna' : 'XP hodnota'} />
+            <FormInput
+              type="number"
+              value={type === 'achievement' ? formData.xp_reward : formData.xp_value}
+              onChange={(e) => onChange({
+                ...formData,
+                [type === 'achievement' ? 'xp_reward' : 'xp_value']: parseInt(e.target.value) || 0
+              })}
+              min="0"
+            />
+          </div>
+        )}
 
-        {/* POUZE PRO XP RULE - Pořadí zobrazení */}
-        {(type === 'xp_rule' || type === 'quiz_bonus') && (
+        {/* Pořadí zobrazení - PRO xp_rule, quiz_bonus A level */}
+        {(type === 'xp_rule' || type === 'quiz_bonus' || type === 'level') && (
           <div>
             <FormLabel text="Pořadí zobrazení" />
             <FormInput

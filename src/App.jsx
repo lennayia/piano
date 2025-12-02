@@ -16,15 +16,20 @@ import TextDemo from './pages/TextDemo';
 import CelebrationDemo from './pages/CelebrationDemo';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import useUserStore from './store/useUserStore';
+import useAchievementsStore from './store/useAchievementsStore';
 import './styles/index.css';
 
 function App() {
   const initAuth = useUserStore((state) => state.initAuth);
+  const loadAchievements = useAchievementsStore((state) => state.loadAchievements);
 
   useEffect(() => {
     // Initialize authentication state on app load
     initAuth();
-  }, [initAuth]);
+
+    // Preload achievements for performance (OPTIMALIZACE!)
+    loadAchievements();
+  }, [initAuth, loadAchievements]);
 
   return (
     <Router>

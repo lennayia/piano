@@ -31,7 +31,7 @@ const GamificationManager = () => {
   const rewardsLoading = useRewardsConfigStore((state) => state.loading);
   const rewardsError = useRewardsConfigStore((state) => state.error);
 
-  // State pro CRUD formuláře
+  // State pro CRUD formuláře - rewards
   const [editingRewardId, setEditingRewardId] = useState(null);
   const [isCreatingReward, setIsCreatingReward] = useState(false);
   const [rewardFormData, setRewardFormData] = useState({
@@ -42,6 +42,32 @@ const GamificationManager = () => {
     xp_value: 0,
     icon_type: 'Zap',
     icon_color: 'primary',
+    celebration_sound: 'success',
+    confetti_type: 'metallic',
+    display_order: 0,
+    is_active: true
+  });
+
+  // CRUD systém pro Levely
+  const levels = useLevelStore((state) => state.levels);
+  const loadLevels = useLevelStore((state) => state.loadLevels);
+  const createLevel = useLevelStore((state) => state.createLevel);
+  const updateLevel = useLevelStore((state) => state.updateLevel);
+  const deleteLevel = useLevelStore((state) => state.deleteLevel);
+  const duplicateLevel = useLevelStore((state) => state.duplicateLevel);
+  const levelsLoading = useLevelStore((state) => state.loading);
+  const levelsError = useLevelStore((state) => state.error);
+
+  // State pro CRUD formuláře - levels
+  const [editingLevelId, setEditingLevelId] = useState(null);
+  const [isCreatingLevel, setIsCreatingLevel] = useState(false);
+  const [levelFormData, setLevelFormData] = useState({
+    level: 1,
+    label: '',
+    min_xp: 0,
+    max_xp: null,
+    icon_type: 'Star',
+    icon_color: 'secondary',
     display_order: 0,
     is_active: true
   });
@@ -61,13 +87,6 @@ const GamificationManager = () => {
     setTempXPRules(xpRules);
   }, [xpRules]);
 
-  const [levelThresholds, setLevelThresholds] = useState([
-    { level: 1, min_xp: 0, max_xp: 99, label: 'Začátečník' },
-    { level: 2, min_xp: 100, max_xp: 249, label: 'Učedník' },
-    { level: 3, min_xp: 250, max_xp: 499, label: 'Pokročilý' },
-    { level: 4, min_xp: 500, max_xp: 999, label: 'Expert' },
-    { level: 5, min_xp: 1000, max_xp: null, label: 'Mistr' }
-  ]);
   const [showHelp, setShowHelp] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -110,10 +129,6 @@ const GamificationManager = () => {
     }
   };
 
-  const handleSaveLevels = () => {
-    showSuccess('Nastavení levelů bylo uloženo');
-  };
-
   const showSuccess = (message) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(''), 3000);
@@ -123,14 +138,16 @@ const GamificationManager = () => {
   // NOVÉ CRUD FUNKCE PRO XP PRAVIDLA
   // ============================================================================
 
-  // Načíst rewards podle aktivního tabu
+  // Načíst rewards/levels podle aktivního tabu
   useEffect(() => {
     if (activeTab === 'xp-rules') {
       loadRewards('xp_rule');
     } else if (activeTab === 'bonuses') {
       loadRewards('quiz_bonus');
+    } else if (activeTab === 'levels') {
+      loadLevels();
     }
-  }, [activeTab, loadRewards]);
+  }, [activeTab, loadRewards, loadLevels]);
 
   // Vytvořit nové XP pravidlo
   const handleCreateReward = () => {
@@ -144,6 +161,8 @@ const GamificationManager = () => {
       xp_value: 0,
       icon_type: 'Zap',
       icon_color: 'primary',
+      celebration_sound: 'success',
+      confetti_type: 'metallic',
       display_order: rewards.length + 1,
       is_active: true
     });
@@ -161,6 +180,8 @@ const GamificationManager = () => {
       xp_value: reward.xp_value,
       icon_type: reward.icon_type || 'Zap',
       icon_color: reward.icon_color || 'primary',
+      celebration_sound: reward.celebration_sound || 'success',
+      confetti_type: reward.confetti_type || 'metallic',
       display_order: reward.display_order || 0,
       is_active: reward.is_active !== false
     });
@@ -205,13 +226,96 @@ const GamificationManager = () => {
     }
   };
 
-  // Zrušit editaci
+  // Zrušit editaci reward
   const handleCancelReward = () => {
     setIsCreatingReward(false);
     setEditingRewardId(null);
   };
 
   const isEditingReward = isCreatingReward || editingRewardId !== null;
+
+  // ============================================================================
+  // CRUD FUNKCE PRO LEVELY
+  // ============================================================================
+
+  // Vytvořit nový level
+  const handleCreateLevel = () => {
+    setIsCreatingLevel(true);
+    setEditingLevelId(null);
+    setLevelFormData({
+      level: levels.length + 1,
+      label: '',
+      min_xp: 0,
+      max_xp: null,
+      icon_type: 'Star',
+      icon_color: 'secondary',
+      display_order: levels.length + 1,
+      is_active: true
+    });
+  };
+
+  // Editovat level
+  const handleEditLevel = (level) => {
+    setEditingLevelId(level.id);
+    setIsCreatingLevel(false);
+    setLevelFormData({
+      level: level.level,
+      label: level.label,
+      min_xp: level.min_xp,
+      max_xp: level.max_xp,
+      icon_type: level.icon_type || 'Star',
+      icon_color: level.icon_color || 'secondary',
+      display_order: level.display_order || 0,
+      is_active: level.is_active !== false
+    });
+  };
+
+  // Uložit level (create nebo update)
+  const handleSaveLevel = async () => {
+    try {
+      if (isCreatingLevel) {
+        await createLevel(levelFormData);
+        showSuccess('Level byl vytvořen');
+      } else {
+        await updateLevel(editingLevelId, levelFormData);
+        showSuccess('Level byl aktualizován');
+      }
+      handleCancelLevel();
+    } catch (error) {
+      console.error('Error saving level:', error);
+    }
+  };
+
+  // Smazat level
+  const handleDeleteLevel = async (id, label) => {
+    if (!window.confirm(`Opravdu chcete smazat level "${label}"?`)) {
+      return;
+    }
+    try {
+      await deleteLevel(id, false); // soft delete
+      showSuccess('Level byl smazán');
+    } catch (error) {
+      console.error('Error deleting level:', error);
+    }
+  };
+
+  // Duplikovat level
+  const handleDuplicateLevel = async (level) => {
+    try {
+      await duplicateLevel(level);
+      showSuccess('Level byl zkopírován');
+    } catch (error) {
+      console.error('Error duplicating level:', error);
+    }
+  };
+
+  // Zrušit editaci level
+  const handleCancelLevel = () => {
+    setIsCreatingLevel(false);
+    setEditingLevelId(null);
+  };
+
+  const isEditingLevel = isCreatingLevel || editingLevelId !== null;
 
   // Filtrované rewards podle kategorie
   const xpRuleRewards = rewards.filter(r => r.category === 'xp_rule');
@@ -519,97 +623,91 @@ const GamificationManager = () => {
           </div>
         )}
 
-        {/* Levels Tab */}
+        {/* Levels Tab - CRUD systém */}
         {activeTab === 'levels' && (
           <div>
-            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={20} color="var(--color-primary)" />
-              Nastavení levelů
-            </h3>
-
-            <div style={{ display: 'grid', gap: '1.5rem' }}>
-              {levelThresholds.map((level) => (
-                <div key={level.level} className="card" style={{ padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                    <div style={{
-                      background: 'linear-gradient(135deg, var(--color-secondary), var(--color-primary))',
-                      color: 'white',
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 'bold',
-                      fontSize: '1.25rem'
-                    }}>
-                      {level.level}
-                    </div>
-                    <h4 style={{ margin: 0 }}>Level {level.level}</h4>
-                  </div>
-
-                  <div style={{ display: 'grid', gap: '1rem' }}>
-                    <div>
-                      <FormLabel text="Název levelu" />
-                      <FormInput
-                        type="text"
-                        value={level.label}
-                        onChange={(e) => {
-                          const updated = levelThresholds.map(l =>
-                            l.level === level.level ? { ...l, label: e.target.value } : l
-                          );
-                          setLevelThresholds(updated);
-                        }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div>
-                        <FormLabel text="Minimální XP" />
-                        <FormInput
-                          type="number"
-                          value={level.min_xp}
-                          onChange={(e) => {
-                            const updated = levelThresholds.map(l =>
-                              l.level === level.level ? { ...l, min_xp: parseInt(e.target.value) || 0 } : l
-                            );
-                            setLevelThresholds(updated);
-                          }}
-                          min="0"
-                        />
-                      </div>
-
-                      <div>
-                        <FormLabel text="Maximální XP" />
-                        <FormInput
-                          type="number"
-                          value={level.max_xp || ''}
-                          onChange={(e) => {
-                            const updated = levelThresholds.map(l =>
-                              l.level === level.level ? { ...l, max_xp: e.target.value ? parseInt(e.target.value) : null } : l
-                            );
-                            setLevelThresholds(updated);
-                          }}
-                          min="0"
-                          placeholder={level.max_xp === null ? 'Bez limitu' : ''}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <TrendingUp size={20} color="var(--color-primary)" />
+                Správa levelů
+              </h3>
+              {!isEditingLevel && <AddButton onClick={handleCreateLevel} />}
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSaveLevels}
-              className="btn btn-primary"
-              style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <Save size={18} />
-              Uložit nastavení levelů
-            </motion.button>
+            {/* Inline formulář pro vytvoření nového levelu (nahoře) */}
+            {isCreatingLevel && (
+              <UniversalFormInline
+                type="level"
+                formData={levelFormData}
+                onChange={setLevelFormData}
+                onSave={handleSaveLevel}
+                onCancel={handleCancelLevel}
+                isCreating={true}
+                loading={levelsLoading}
+              />
+            )}
+
+            {/* Loading state */}
+            {levelsLoading && <p style={{ textAlign: 'center', padding: '2rem' }}>Načítání...</p>}
+
+            {/* Error state */}
+            {levelsError && <p style={{ color: 'var(--color-error)', textAlign: 'center', padding: '2rem' }}>{levelsError}</p>}
+
+            {/* Grid s kartami levelů */}
+            {!levelsLoading && levels.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))'
+              }}>
+                {levels.map(level => (
+                  <React.Fragment key={level.id}>
+                    <AchievementCard
+                      type="level"
+                      data={level}
+                      onEdit={handleEditLevel}
+                      onDuplicate={handleDuplicateLevel}
+                      onDelete={handleDeleteLevel}
+                    />
+
+                    {/* Inline editační formulář pod kartou */}
+                    {editingLevelId === level.id && !isCreatingLevel && (
+                      <UniversalFormInline
+                        type="level"
+                        formData={levelFormData}
+                        onChange={setLevelFormData}
+                        onSave={handleSaveLevel}
+                        onCancel={handleCancelLevel}
+                        isCreating={false}
+                        loading={levelsLoading}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!levelsLoading && levels.length === 0 && !isEditingLevel && (
+              <div style={{
+                textAlign: 'center',
+                padding: '3rem',
+                background: 'rgba(45, 91, 120, 0.05)',
+                borderRadius: 'var(--radius)',
+                border: '2px dashed rgba(45, 91, 120, 0.2)'
+              }}>
+                <TrendingUp size={48} color="var(--color-border)" style={{ margin: '0 auto 1rem' }} />
+                <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+                  Zatím nemáte žádné levely
+                </p>
+                <AddButton onClick={handleCreateLevel} />
+              </div>
+            )}
           </div>
         )}
 

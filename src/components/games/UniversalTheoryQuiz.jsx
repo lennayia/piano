@@ -10,6 +10,7 @@ import audioEngine from '../../utils/audio';
 import QuizResultsPanel from './QuizResultsPanel';
 import { calculateXP } from '../../utils/quizUtils';
 import { saveQuizResults } from '../../utils/saveQuizResults';
+import { triggerCelebration } from '../../services/celebrationService';
 
 /**
  * UniversalTheoryQuiz - Univerzální komponenta pro teoretické kvízy
@@ -208,8 +209,25 @@ function UniversalTheoryQuiz({
       );
 
       if (result.success) {
-        // Aktualizovat zobrazené XP
-        setTotalXpEarned(prev => prev + xpEarned);
+        // Aktualizovat zobrazené XP (použít skutečné XP z celebration service)
+        const actualXP = result.data?.xpEarned || xpEarned;
+        setTotalXpEarned(prev => prev + actualXP);
+
+        // Pokud došlo k level-upu, zobrazit speciální oslavu
+        if (result.data?.leveledUp && result.data?.levelUpConfig) {
+          setTimeout(() => {
+            triggerCelebration(
+              result.data.levelUpConfig.confettiType,
+              result.data.levelUpConfig.sound,
+              {
+                title: `⭐ Level ${result.data.level}!`,
+                message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
+                type: 'success',
+                duration: 5000
+              }
+            );
+          }, 1000);
+        }
       } else {
         console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
