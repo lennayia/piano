@@ -113,8 +113,8 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
                   animate={{ scale: 1 }}
                   className="badge badge-xs"
                   style={{
-                    backgroundColor: 'var(--color-secondary-transparent)',
-                    color: 'var(--color-secondary)',
+                    backgroundColor: 'var(--color-success-transparent)',
+                    color: 'var(--color-success)',
                     padding: '0.2rem 0.4rem'
                   }}
                   title="Dokončeno"
