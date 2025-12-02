@@ -238,11 +238,11 @@ function LessonList({ onLessonComplete }) {
             className="card"
             style={{
               marginBottom: '1.5rem',
-              background: 'rgba(255, 255, 255, 0.7)',
+              background: 'var(--glass-bg)',
               backdropFilter: 'blur(40px)',
               WebkitBackdropFilter: 'blur(40px)',
-              border: '2px solid rgba(181, 31, 101, 0.4)',
-              boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25)'
+              border: 'none',
+              boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25), var(--shadow-lg)'
             }}
           >
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

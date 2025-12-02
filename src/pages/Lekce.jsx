@@ -6,7 +6,7 @@ import useUserStore from '../store/useUserStore';
 import { PageSection } from '../components/ui/PageSection';
 import { useDailyGoal } from '../hooks/useDailyGoal';
 import CelebrationEffect from '../components/ui/CelebrationEffect';
-import { saveDailyGoalCompletion, DAILY_GOAL_XP_REWARD } from '../services/dailyGoalService';
+import { saveDailyGoalCompletion } from '../services/dailyGoalService';
 import { getCelebrationConfig, triggerCelebration } from '../services/celebrationService';
 
 // Lekce page with daily goal tracking

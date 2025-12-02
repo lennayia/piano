@@ -52,7 +52,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
           animate={{ scale: 1 }}
           className="badge badge-xs"
           style={{
-            backgroundColor: 'rgba(45, 91, 120, 0.1)',
+            backgroundColor: 'var(--color-secondary-transparent)',
             color: 'var(--color-secondary)',
             padding: '0.2rem 0.4rem'
           }}
@@ -65,7 +65,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
         <TrendingUp size={14} />
         {lesson.difficulty}
       </span>
-      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+      <span className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-secondary)' }}>
         <Clock size={14} />
         {lesson.duration}
       </span>
@@ -92,7 +92,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
             style={{ overflow: 'hidden' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ paddingTop: '1.5rem', marginTop: '1rem', borderTop: '2px solid rgba(45, 91, 120, 0.2)' }}>
+            <div style={{ paddingTop: '1.5rem', marginTop: '1rem', borderTop: 'none', boxShadow: '0 -1px 0 rgba(45, 91, 120, 0.1)' }}>
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Edit3 size={16} color="var(--color-secondary)" />
                 Upravit lekci

@@ -103,7 +103,7 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
     <Modal isOpen={isOpen} onClose={onClose} hideHeader={true}>
       <div>
         {/* Header */}
-        <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: 'none', boxShadow: '0 1px 0 rgba(0, 0, 0, 0.05)' }}>
           {/* První řádek: Chipy vlevo, očičko vpravo */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -113,7 +113,7 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
                   animate={{ scale: 1 }}
                   className="badge badge-xs"
                   style={{
-                    backgroundColor: 'rgba(45, 91, 120, 0.1)',
+                    backgroundColor: 'var(--color-secondary-transparent)',
                     color: 'var(--color-secondary)',
                     padding: '0.2rem 0.4rem'
                   }}
@@ -153,7 +153,7 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
             display: 'flex',
             gap: '1rem',
             padding: '1.5rem',
-            background: 'rgba(255, 255, 255, 0.6)',
+            background: 'var(--glass-bg)',
             backdropFilter: 'blur(15px)',
             WebkitBackdropFilter: 'blur(15px)',
             borderRadius: RADIUS.lg,
@@ -191,14 +191,14 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
 
         {/* Complete Button */}
         {currentUser && (
-          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.1)', paddingTop: '1.5rem', textAlign: 'center' }}>
+          <div style={{ borderTop: 'none', boxShadow: '0 -1px 0 rgba(0, 0, 0, 0.05)', paddingTop: '1.5rem', textAlign: 'center' }}>
             {isCompleted ? (
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 style={{
                   padding: '1rem',
-                  background: 'rgba(16, 185, 129, 0.1)',
+                  background: 'var(--color-success-transparent)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                   borderRadius: RADIUS.lg,
