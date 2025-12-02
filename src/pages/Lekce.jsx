@@ -7,7 +7,7 @@ import { PageSection } from '../components/ui/PageSection';
 import { useDailyGoal } from '../hooks/useDailyGoal';
 import CelebrationEffect from '../components/ui/CelebrationEffect';
 import { saveDailyGoalCompletion, DAILY_GOAL_XP_REWARD } from '../services/dailyGoalService';
-import { getCelebrationConfig } from '../services/celebrationService';
+import { getCelebrationConfig, triggerCelebration } from '../services/celebrationService';
 
 // Lekce page with daily goal tracking
 function Lekce() {
@@ -40,10 +40,26 @@ function Lekce() {
 
       setCelebrationData({
         config,
-        xpEarned: DAILY_GOAL_XP_REWARD,
+        xpEarned: result.xpEarned,
         achievements: unlockedAchievements
       });
       setShowCelebration(true);
+
+      // Pokud došlo k level-upu, přidat level-up celebration
+      if (result.leveledUp && result.levelUpConfig) {
+        setTimeout(() => {
+          triggerCelebration(
+            result.levelUpConfig.confettiType,
+            result.levelUpConfig.sound,
+            {
+              title: `⭐ Level ${result.level}!`,
+              message: `Gratulujeme! Dosáhli jste levelu ${result.level} s ${result.totalXP} XP!`,
+              type: 'success',
+              duration: 5000
+            }
+          );
+        }, 3500);
+      }
 
       // Refresh stats
       const updateUserStats = useUserStore.getState().updateUserStats;

@@ -69,7 +69,11 @@ export const celebrate = async ({ type, userId, itemId, itemTitle, metadata = {}
         unlockedAchievements,
         celebrationConfig,
         levelUpConfig,
-        isFirstTime: !isAlreadyCompleted
+        isFirstTime: !isAlreadyCompleted,
+        // Pro denní cíle vrátit streak informace
+        dailyStreak: metadata._dailyStreak,
+        bestDailyStreak: metadata._bestDailyStreak,
+        totalGoalsCompleted: updatedStats.daily_goals_completed
       }
     };
   } catch (error) {
@@ -88,11 +92,25 @@ async function checkIfCompleted(type, userId, itemId) {
   const tables = {
     lesson: 'piano_lesson_completions',
     song: 'piano_song_completions',
-    quiz: 'piano_quiz_scores'
+    quiz: 'piano_quiz_scores',
+    daily_goal: 'piano_daily_goal_completions'
   };
 
   const table = tables[type];
   if (!table) return false;
+
+  // Pro denní cíle kontrolujeme, jestli už byl dnes splněn
+  if (type === 'daily_goal') {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from(table)
+      .select('id')
+      .eq('user_id', userId)
+      .gte('completed_at', `${today}T00:00:00`)
+      .lte('completed_at', `${today}T23:59:59`)
+      .limit(1);
+    return data && data.length > 0;
+  }
 
   const idColumn = type === 'lesson' ? 'lesson_id' : type === 'song' ? 'song_id' : 'quiz_type';
   const { data } = await supabase
@@ -137,6 +155,12 @@ async function getXPForCompletion(type, metadata) {
     // XP za dokončení série akordů
     const { chordsCompleted = 0 } = metadata;
     return chordsCompleted * 10; // 10 XP za akord
+  }
+
+  if (type === 'daily_goal') {
+    // XP za splnění denního cíle
+    const xpRules = useXPRulesStore.getState().xpRules;
+    return xpRules.daily_goal || 50;
   }
 
   if (type === 'achievement') {
@@ -210,6 +234,22 @@ async function saveCompletion(type, userId, itemId, itemTitle, xpEarned, metadat
 
     if (error) throw error;
   }
+
+  if (type === 'daily_goal') {
+    const { goalType, goalCount, completedCount } = metadata;
+    const { error } = await supabase
+      .from('piano_daily_goal_completions')
+      .insert({
+        user_id: userId,
+        goal_type: goalType,
+        goal_count: goalCount,
+        completed_count: completedCount,
+        xp_earned: xpEarned,
+        completed_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+  }
 }
 
 /**
@@ -266,6 +306,31 @@ async function updateUserStats(userId, xpEarned, type) {
     } else if (type === 'chord_practice') {
       const { chordsCompleted = 0 } = metadata;
       updates.chords_completed = (existingStats.chords_completed || 0) + chordsCompleted;
+    } else if (type === 'daily_goal') {
+      // Denní cíl - počítat streak
+      const lastGoalDate = existingStats.last_goal_completed_date;
+      const yesterdayDate = getYesterdayDate();
+
+      let newDailyStreak = 1;
+      if (lastGoalDate === yesterdayDate) {
+        // Pokračování série
+        newDailyStreak = (existingStats.daily_goal_streak || 0) + 1;
+      } else if (lastGoalDate !== today) {
+        // Nová série (nebo přerušená)
+        newDailyStreak = 1;
+      } else {
+        // Už byl dnes splněn
+        newDailyStreak = existingStats.daily_goal_streak || 1;
+      }
+
+      updates.daily_goals_completed = (existingStats.daily_goals_completed || 0) + 1;
+      updates.daily_goal_streak = newDailyStreak;
+      updates.best_daily_goal_streak = Math.max(existingStats.best_daily_goal_streak || 0, newDailyStreak);
+      updates.last_goal_completed_date = today;
+
+      // Uložit streak do return hodnoty pro callback
+      metadata._dailyStreak = newDailyStreak;
+      metadata._bestDailyStreak = updates.best_daily_goal_streak;
     }
 
     const { error: updateError } = await supabase
@@ -294,9 +359,19 @@ async function updateUserStats(userId, xpEarned, type) {
       songs_completed: type === 'song' ? 1 : 0,
       songs_perfect_score: (type === 'song' && metadata?.mode === 'challenge') ? 1 : 0,
       chords_completed: type === 'chord_practice' ? (metadata?.chordsCompleted || 0) : 0,
+      daily_goals_completed: type === 'daily_goal' ? 1 : 0,
+      daily_goal_streak: type === 'daily_goal' ? 1 : 0,
+      best_daily_goal_streak: type === 'daily_goal' ? 1 : 0,
+      last_goal_completed_date: type === 'daily_goal' ? today : null,
       last_activity_date: today,
       created_at: new Date().toISOString()
     };
+
+    // Uložit streak do metadata pro callback
+    if (type === 'daily_goal') {
+      metadata._dailyStreak = 1;
+      metadata._bestDailyStreak = 1;
+    }
 
     const { error: insertError } = await supabase
       .from('piano_user_stats')
