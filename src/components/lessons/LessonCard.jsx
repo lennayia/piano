@@ -83,6 +83,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
       footer={footer}
       statusChips={statusChips}
       dragHandle={dragHandle}
+      layout="list"
       isExpanded={isEditing}
       onClick={handleClick}
     >

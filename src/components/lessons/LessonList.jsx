@@ -329,7 +329,11 @@ function LessonList({ onLessonComplete }) {
           strategy={rectSortingStrategy}
         >
           <motion.div
-            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '1.5rem'
+            }}
             variants={container}
             initial="hidden"
             animate="show"
