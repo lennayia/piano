@@ -144,7 +144,100 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 
 ---
 
-### 4. ⏳ Dokončit refaktoring TabButtons
+### 4. ⏳ Nápověda na každé stránce - HelpIcon + HelpPanel
+**Status:** Pending
+**Priorita:** 🟠 Vysoká
+
+**Popis:**
+- Rozšířit help systém na všechny stránky aplikace
+- Každá stránka má vlastní kontextovou nápovědu
+- Jednotný design (HelpIcon + HelpPanel komponenty)
+- Možnost mít zvlášť nápovědu pro uživatele a pro admina
+
+**Soubory k úpravě:**
+- Všechny hlavní stránky:
+  - `src/pages/UserDashboard.jsx` - nápověda k dashboard
+  - `src/pages/Lekce.jsx` - nápověda k lekcím
+  - `src/pages/Cviceni.jsx` - nápověda k cvičení
+  - `src/pages/TheoryQuizzes.jsx` - nápověda k kvízům
+  - `src/pages/History.jsx` - nápověda k historii
+  - Admin stránky - zvlášť admin nápověda
+
+**Soubory k vytvoření:**
+- `src/data/helpContent.js` - centralizovaný obsah všech nápověd
+- `src/data/adminHelpContent.js` - nápověda specifická pro adminy
+
+**Struktura help content:**
+```javascript
+export const helpContent = {
+  dashboard: {
+    title: "Dashboard",
+    sections: [...]
+  },
+  lessons: {
+    title: "Lekce",
+    sections: [...]
+  },
+  // ...
+};
+```
+
+**Features:**
+- Role-based help (user vs admin)
+- Searchable help content (vyhledávání v nápovědě)
+- Bookmarks pro často používané části
+- "Pomohl vám tento článek?" feedback
+
+---
+
+### 5. ⏳ Centrální nápověda v menu
+**Status:** Pending
+**Priorita:** 🟠 Vysoká
+
+**Popis:**
+- Kompletní nápověda na jednom místě
+- Přidat do hlavního menu (vedle Historie)
+- Kategorizovaná nápověda: Začátečník, Pokročilý, FAQ, Admin
+- Vyhledávání napříč všemi nápovědami
+
+**Soubory k vytvoření:**
+- `src/pages/Help.jsx` - stránka s kompletní nápovědou
+- `src/components/help/HelpSearch.jsx` - vyhledávání v nápovědě
+- `src/components/help/HelpCategory.jsx` - kategorie nápověd
+- `src/components/help/HelpArticle.jsx` - jednotlivý článek
+
+**Kategorie:**
+1. **Pro začátečníky**
+   - Jak začít
+   - První lekce
+   - Jak používat klaviaturu
+   - Co znamenají značky v notách
+
+2. **Pro pokročilé**
+   - Harmonizace
+   - Kvízy
+   - Cvičení stupnic
+   - Tracking pokroku
+
+3. **FAQ**
+   - Nejčastější dotazy
+   - Problémy a řešení
+
+4. **Admin návody** (pouze pro adminy)
+   - Jak přidat lekci
+   - Jak vytvořit kvíz
+   - Správa uživatelů
+
+**Design:**
+- Sidebar s kategoriemi
+- Main content s články
+- Breadcrumb navigace
+- Related articles
+- Contact support button
+
+---
+
+### 6. ⏳ Dokončit refaktoring TabButtons
 **Status:** Pending
 **Priorita:** 🟠 Vysoká
 
@@ -542,6 +635,281 @@ const confirmed = await showAlert('Opravdu smazat?', 'warning', {
 - Waveform s progress
 - Speed dropdown
 - Loop button
+
+---
+
+### 14. ⏳ PageComponent - Vyhledávání a řazení
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Přidat vyhledávání do PageComponent (hledat v položkách)
+- Přidat možnost řazení podle názvu, obtížnosti, data
+- Použitelné na všech stránkách kde je seznam (lekce, písně, kvízy)
+- Responsive design (desktop: dropdown, mobile: bottom sheet)
+
+**Soubory k úpravě:**
+- `src/components/ui/PageSection.jsx` - přidat search + sort komponenty
+- `src/components/ui/SearchBar.jsx` - nová komponenta pro vyhledávání
+- `src/components/ui/SortDropdown.jsx` - nová komponenta pro řazení
+
+**Features:**
+- **Vyhledávání:**
+  - Real-time search (filtruje během psaní)
+  - Search v názvu, popisu, kategoriích
+  - Clear button
+  - Highlight matched text
+
+- **Řazení:**
+  - Podle názvu (A-Z, Z-A)
+  - Podle obtížnosti (Easy → Hard, Hard → Easy)
+  - Podle data (Nejnovější, Nejstarší)
+  - Podle popularity (nejvíc hraných)
+
+**Props pro PageComponent:**
+```javascript
+<PageSection
+  searchable={true}
+  searchFields={['title', 'description']}
+  sortable={true}
+  sortOptions={[
+    { value: 'title-asc', label: 'Název (A-Z)' },
+    { value: 'difficulty-asc', label: 'Obtížnost' },
+    { value: 'date-desc', label: 'Nejnovější' }
+  ]}
+/>
+```
+
+**Design:**
+- Search bar: ikona Search z lucide-react
+- Sort dropdown: ikona ArrowUpDown
+- Compact layout: search + sort v jednom řádku
+- Mobile: search full-width, sort jako bottom drawer
+
+---
+
+### 15. ⏳ Notová osnova pod klaviaturou
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Zobrazit noty v notové osnově pod klaviaturou
+- Real-time: zobrazuje aktuální notu během hraní
+- Postupné zobrazování not podle postupu ve skladbě
+- Podporuje violinový i basový klíč
+
+**Soubory k vytvoření:**
+- `src/components/music/StaffNotation.jsx` - komponenta notové osnovy
+- `src/components/music/NoteRenderer.jsx` - vykreslení not na osnově
+- `src/utils/musicNotation.js` - helper funkce (note → staff position)
+
+**Integrace:**
+- `src/components/lessons/PianoKeyboard.jsx` - přidat StaffNotation component
+- `src/pages/Cviceni.jsx` - zobrazit noty během procvičování
+- `src/components/resources/SongLibrary.jsx` - zobrazit při hraní písní
+
+**Features:**
+- SVG notová osnova (5 linek)
+- Automatic clef selection (violinový pro vysoké noty, basový pro nízké)
+- Highlight aktuální nota (barevně odlišená)
+- Show next notes (předpověď dalších 2-3 not)
+- Animation při přechodu na další notu
+
+**Knihovny:**
+- `vexflow` - profesionální music notation rendering
+- Nebo vlastní SVG implementace (lightweight)
+
+**Design:**
+- Kompaktní: max 80px výška
+- Pod klaviaturou, nad notami/text
+- Smooth scroll při postupu
+- Barevné kódování (aktuální nota: modrá, příští: šedá)
+
+---
+
+### 16. ⏳ Lepší zvuk pro klavír
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Nahradit současné kovové tóny kvalitnějšími samply
+- Přidat možnost "legato" (svázat tóny při přehrávání)
+- Různé piano sounds (grand piano, upright, electric)
+- Volume envelope (attack, decay, sustain, release)
+
+**Soubory k úpravě:**
+- `src/utils/audio.js` - audioEngine rozšíření
+- Nový `src/utils/audioSamples.js` - správa audio samples
+
+**Audio samply:**
+- Zdroje kvalitních samples:
+  - Freesound.org - CC licensed piano samples
+  - Piano in 162 (open source piano samples)
+  - Salamander Grand Piano (open source)
+- Formát: MP3/OGG (komprese) nebo WAV (kvalita)
+- Uložení: Supabase Storage nebo CDN
+
+**Features:**
+- **Legato mode:**
+  - Overlap notes (plynulé přechody)
+  - Crossfade mezi tóny
+  - Toggle button v UI
+
+- **Piano sounds:**
+  - Grand Piano (výchozí)
+  - Upright Piano
+  - Electric Piano
+  - Selector v settings
+
+- **ADSR envelope:**
+  - Attack: jak rychle začne znít
+  - Decay: pokles po začátku
+  - Sustain: úroveň při držení
+  - Release: jak rychle zmizí po uvolnění
+
+**Implementace:**
+- Web Audio API (AudioContext, GainNode)
+- Preload samples při startu aplikace
+- Audio sprite pro optimalizaci (všechny tóny v jednom souboru)
+
+---
+
+### 17. ⏳ SEO pro Landing Page
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Optimalizace Home page pro vyhledávače
+- Meta tags, Open Graph, Twitter Cards
+- Schema.org markup
+- Sitemap.xml a robots.txt
+
+**Soubory k vytvoření:**
+- `public/sitemap.xml` - sitemap
+- `public/robots.txt` - robots
+- `src/components/seo/SEOHead.jsx` - meta tags komponenta
+
+**Meta tags:**
+```html
+<meta name="description" content="Naučte se hrát na klavír online...">
+<meta name="keywords" content="klavír, výuka, online, kurz">
+<meta property="og:title" content="Piano Learning App">
+<meta property="og:image" content="/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+```
+
+**Schema.org:**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Piano Learning App",
+  "description": "...",
+  "url": "https://..."
+}
+```
+
+**Optimalizace:**
+- Semantic HTML (h1, h2, nav, main, footer)
+- Image alt texts
+- Internal linking
+- Performance optimization (lazy loading, compression)
+
+---
+
+### 18. ⏳ Marketing - Sběr kontaktů
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Propojení s email marketing platformami
+- Formuláře pro sběr kontaktů (newsletter, early access)
+- Integrace s CRM systémy
+
+**Platformy:**
+- **SmartEmailing** - český email marketing
+- **MailerLite** - zahraniční alternativa
+- **EcoMail** - český CRM + email marketing
+
+**Soubory k vytvoření:**
+- `src/components/marketing/NewsletterForm.jsx` - formulář
+- `src/services/emailMarketing.js` - API integrace
+- `src/pages/Landing.jsx` - landing page s formulářem
+
+**Features:**
+- Newsletter signup (email + jméno)
+- Early access registration
+- Popup při opuštění stránky (exit intent)
+- Thank you page po registraci
+- Automatické emaily (welcome email)
+
+**API integrace:**
+```javascript
+// SmartEmailing API
+const addContact = async (email, name) => {
+  await fetch('https://app.smartemailing.cz/api/v3/import', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer API_KEY',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      emailaddress: email,
+      name: name
+    })
+  });
+};
+```
+
+**GDPR compliance:**
+- Checkbox pro souhlas
+- Odkaz na privacy policy
+- Možnost odhlásit se
+
+---
+
+### 19. ⏳ Kompletní dokumentace
+**Status:** Pending
+**Priorita:** 🟡 Střední
+
+**Popis:**
+- Kompletní developer dokumentace po dokončení projektu
+- User manual pro end-users
+- Admin manual pro správce
+
+**Dokumenty k vytvoření:**
+- `SYSTEM_ARCHITECTURE.md` - architektura aplikace
+- `DATABASE_SCHEMA.md` - databázové schéma
+- `API_DOCUMENTATION.md` - Supabase API calls
+- `COMPONENT_LIBRARY.md` - UI komponenty
+- `DEPLOYMENT_GUIDE.md` - nasazení do produkce
+- `USER_MANUAL.md` - návod pro uživatele
+- `ADMIN_MANUAL.md` - návod pro adminy
+
+**Obsah SYSTEM_ARCHITECTURE:**
+- Tech stack overview
+- Folder structure
+- State management (Zustand stores)
+- Routing structure
+- Authentication flow
+- Component hierarchy
+
+**Obsah USER_MANUAL:**
+- Jak začít
+- Registrace a přihlášení
+- Procházení lekcí
+- Hraní písní
+- Kvízy a cvičení
+- Tracking pokroku
+- FAQ
+
+**Obsah ADMIN_MANUAL:**
+- Přidání lekce
+- Vytvoření kvízu
+- Správa písní
+- Nastavení gamifikace
+- Export dat
+- Správa uživatelů
 
 ---
 
