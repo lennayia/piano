@@ -493,7 +493,8 @@ export function ItemCard({
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              minHeight: '2.8em'  // Zajistí minimální výšku pro 2 řádky textu
             }}>
               {typeof description === 'string' ? (
                 <p className="text-secondary" style={{ margin: 0 }}>
