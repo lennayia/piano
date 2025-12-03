@@ -22,6 +22,7 @@ import { RADIUS } from '../../utils/styleConstants';
  * @param {function} props.onSubTabChange - Callback při změně sub tabu
  * @param {function} props.onThirdLevelTabChange - Callback při změně 3. úrovně tabu
  * @param {string} props.mainTabsSize - Velikost main tabs: 'sm' | 'md' | 'lg' (default: 'lg')
+ * @param {React.Component} props.subTabsAction - Extra tlačítko/komponenta vedle sub-tabs
  * @param {string} props.sectionTitle - H2 nadpis content sekce
  * @param {string} props.sectionDescription - Popisný text pod section title
  * @param {React.Component} props.sectionAction - Action button vedle section title
@@ -57,6 +58,7 @@ export function PageSection({
   onSubTabChange,
   onThirdLevelTabChange,
   mainTabsSize = 'md',
+  subTabsAction,
   sectionTitle,
   sectionDescription,
   sectionAction,
@@ -136,14 +138,23 @@ export function PageSection({
             options={{ size: mainTabsSize, style: { marginBottom: hasSubMenu ? '0.75rem' : 0 } }}
           />
 
-          {/* Submenu pills (2. úroveň) */}
+          {/* Submenu pills (2. úroveň) + extra action button */}
           {hasSubMenu && (
-            <TabButtons
-              tabs={currentSubTabs}
-              activeTab={activeSubTab}
-              onTabChange={onSubTabChange}
-              options={{ layout: 'pill', size: 'sm', style: { marginBottom: hasThirdLevel ? '0.5rem' : 0 } }}
-            />
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
+              marginBottom: hasThirdLevel ? '0.5rem' : 0
+            }}>
+              <TabButtons
+                tabs={currentSubTabs}
+                activeTab={activeSubTab}
+                onTabChange={onSubTabChange}
+                options={{ layout: 'pill', size: 'sm', style: { marginBottom: 0 } }}
+              />
+              {subTabsAction && <div>{subTabsAction}</div>}
+            </div>
           )}
 
           {/* Third level pills (3. úroveň) */}
@@ -284,7 +295,7 @@ export function PageSection({
                   }}
                 />
                 <span style={{
-                  color: 'var(--color-text-secondary)',
+                  color: 'var(--color-secondary)',
                   fontWeight: 500,
                   fontSize: '0.8125rem'
                 }}>

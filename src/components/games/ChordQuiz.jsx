@@ -13,7 +13,7 @@ import { calculateXP } from '../../utils/quizUtils';
 import { saveQuizResults } from '../../utils/saveQuizResults';
 import { triggerCelebration } from '../../services/celebrationService';
 
-function ChordQuiz() {
+function ChordQuiz({ onDailyGoalComplete }) {
   const [score, setScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
@@ -193,6 +193,10 @@ function ChordQuiz() {
       setStreak(streak + 1);
       if (streak + 1 > bestStreak) {
         setBestStreak(streak + 1);
+      }
+      // Zvýšit denní cíl pro quiz
+      if (onDailyGoalComplete) {
+        onDailyGoalComplete();
       }
     } else {
       setStreak(0);

@@ -190,7 +190,7 @@ export function InfoPanel({ title, icon: Icon, variant = 'primary', children, st
  * @param {string} label - Štítek vpravo (např. "Základní", "Pokročilý")
  * @param {object} style - Dodatečné styly
  */
-export function ProgressBar({ current, total, title = 'Položka', label, style = {}, ...props }) {
+export function ProgressBar({ current, total, title = 'Položka', label, titleColor, style = {}, ...props }) {
   const percentage = total > 0 ? (current / total) * 100 : 0;
 
   return (
@@ -214,7 +214,7 @@ export function ProgressBar({ current, total, title = 'Položka', label, style =
       }}>
         <span style={{
           fontSize: '0.75rem',
-          color: 'var(--color-text-secondary)',
+          color: titleColor || 'var(--color-text-secondary)',
           fontWeight: 500
         }}>
           {title} {current} z {total}

@@ -7,12 +7,19 @@ import { calculateKeyWidth, getKeyboardPadding } from '../../utils/responsiveCon
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
   const [activeKeys, setActiveKeys] = useState(new Set());
   const [particles, setParticles] = useState([]);
-  const [volume, setVolume] = useState(0.8); // Defaultní hlasitost 80%
+
+  // Načíst volume z localStorage nebo použít defaultní hodnotu 0.8
+  const [volume, setVolume] = useState(() => {
+    const savedVolume = localStorage.getItem('pianoVolume');
+    return savedVolume !== null ? parseFloat(savedVolume) : 0.8;
+  });
 
   // Nastavit hlasitost při mount a při změně
   useEffect(() => {
     audioEngine.init();
     audioEngine.setVolume(volume);
+    // Uložit do localStorage při změně
+    localStorage.setItem('pianoVolume', volume.toString());
   }, [volume]);
 
   // Definice kláves s pozicí černé klávesy (afterWhiteIndex = za kterou bílou klávesou)

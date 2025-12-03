@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Music, BookOpen, Plus, GripVertical, Upload, Volume2, XCircle, ChevronUp, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -262,7 +262,7 @@ function SortableSongCard({ song, children }) {
   );
 }
 
-function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
+function SongLibrary({ activeCategory = 'lidovky', showHeader = true, searchTerm = '', sortBy = 'default', onDailyGoalComplete }) {
   const [audioFile, setAudioFile] = useState(null);
   const [showNoteFormatHelp, setShowNoteFormatHelp] = useState(false);
 
@@ -328,6 +328,74 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
   // Admin je uživatel s is_admin === true
   const isAdmin = currentUser?.is_admin === true;
+
+  // Filtrování a řazení písniček
+  const filteredAndSortedSongs = useMemo(() => {
+    let filtered = songs.filter(song => {
+      // Filtr podle kategorie
+      const categoryMatch = activeCategory === 'all' || song.category === activeCategory || !song.category;
+
+      // Filtr podle hledání (v názvu)
+      const searchMatch = !searchTerm || song.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+      return categoryMatch && searchMatch;
+    });
+
+    // Mapování obtížnosti na čísla (pro řazení)
+    const difficultyOrder = {
+      'začátečník': 1,
+      'mírně pokročilý začátečník': 2,
+      'pokročilý': 3
+    };
+
+    // Mapování tempa na čísla (od nejpomalejšího)
+    const tempoOrder = {
+      'Largo': 1,
+      'Adagio': 2,
+      'Andante': 3,
+      'Moderato': 4,
+      'Allegro': 5,
+      'Presto': 6
+    };
+
+    // Řazení
+    if (sortBy === 'name-asc') {
+      filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title, 'cs'));
+    } else if (sortBy === 'name-desc') {
+      filtered = [...filtered].sort((a, b) => b.title.localeCompare(a.title, 'cs'));
+    } else if (sortBy === 'difficulty-asc') {
+      filtered = [...filtered].sort((a, b) => {
+        const orderA = difficultyOrder[a.difficulty] || 0;
+        const orderB = difficultyOrder[b.difficulty] || 0;
+        return orderA - orderB;
+      });
+    } else if (sortBy === 'difficulty-desc') {
+      filtered = [...filtered].sort((a, b) => {
+        const orderA = difficultyOrder[a.difficulty] || 0;
+        const orderB = difficultyOrder[b.difficulty] || 0;
+        return orderB - orderA;
+      });
+    } else if (sortBy === 'tempo-asc') {
+      filtered = [...filtered].sort((a, b) => {
+        const orderA = tempoOrder[a.tempo] || 0;
+        const orderB = tempoOrder[b.tempo] || 0;
+        return orderA - orderB;
+      });
+    } else if (sortBy === 'tempo-desc') {
+      filtered = [...filtered].sort((a, b) => {
+        const orderA = tempoOrder[a.tempo] || 0;
+        const orderB = tempoOrder[b.tempo] || 0;
+        return orderB - orderA;
+      });
+    } else if (sortBy === 'key-asc') {
+      filtered = [...filtered].sort((a, b) => (a.key || '').localeCompare(b.key || '', 'cs'));
+    } else if (sortBy === 'key-desc') {
+      filtered = [...filtered].sort((a, b) => (b.key || '').localeCompare(a.key || '', 'cs'));
+    }
+    // 'default' - ponechá původní pořadí
+
+    return filtered;
+  }, [songs, activeCategory, searchTerm, sortBy]);
 
   // Sensors pro drag and drop
   const sensors = useSensors(
@@ -710,6 +778,11 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
 
       // Uložit název písně a zobrazit success modal
       setCompletedSongTitle(song.title);
+
+      // Zvýšit denní cíl pro písničky
+      if (onDailyGoalComplete) {
+        onDailyGoalComplete();
+      }
 
       setTimeout(() => {
         setShowCelebration(false);
@@ -1336,11 +1409,11 @@ function SongLibrary({ activeCategory = 'lidovky', showHeader = true }) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={songs.filter(s => activeCategory === 'all' || s.category === activeCategory || !s.category).map(s => s.id)}
+          items={filteredAndSortedSongs.map(s => s.id)}
           strategy={verticalListSortingStrategy}
         >
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {songs.filter(song => activeCategory === 'all' || song.category === activeCategory || !song.category).map((song, index) => (
+            {filteredAndSortedSongs.map((song, index) => (
               <SortableSongCard key={song.id} song={song}>
                 {(dragAttributes, dragListeners) => (
                   <ItemCard

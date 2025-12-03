@@ -1,10 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Play, RotateCcw, CheckCircle, XCircle, ChevronRight, ChevronLeft, Volume2, Headphones, Shuffle, Piano, Target } from 'lucide-react';
 import useUserStore from '../store/useUserStore';
 import PianoKeyboard from '../components/lessons/PianoKeyboard';
-import TabButtons from '../components/ui/TabButtons';
+import { PageSection } from '../components/ui/PageSection';
+import { useDailyGoal } from '../hooks/useDailyGoal';
+import { saveDailyGoalCompletion } from '../services/dailyGoalService';
+import { getCelebrationConfig } from '../services/celebrationService';
+import CelebrationEffect from '../components/ui/CelebrationEffect';
 import { IconButton, MelodyNote } from '../components/ui/ButtonComponents';
 import { ProgressBar, InfoPanel } from '../components/ui/CardComponents';
 import PracticeModeControls from '../components/ui/PracticeModeControls';
@@ -18,6 +22,42 @@ import { supabase } from '../lib/supabase';
 import useProgressTracking from '../hooks/useProgressTracking';
 import PracticeCelebration from '../components/practice/PracticeCelebration';
 import { celebrate, triggerCelebration } from '../services/celebrationService';
+
+// Konstanty pro navigaci - mimo komponentu pro lepší performance
+const MAIN_TABS = [
+  { id: 'chords', label: 'Akordy', icon: Piano },
+  { id: 'quiz', label: 'Poznáte akord?', icon: Target },
+  { id: 'songs', label: 'Písničky', icon: Music }
+];
+
+// Sub-taby podle aktivní hlavní sekce
+const SUB_TABS_CONFIG = {
+  'chords': [
+    { id: 'all', label: 'Všechny akordy' },
+    { id: 'easy', label: 'Základní' },
+    { id: 'medium', label: 'Pokročilé' }
+  ],
+  'quiz': [], // Žádné sub-taby pro quiz
+  'songs': [
+    { id: 'all', label: 'Všechny' },
+    { id: 'lidovky', label: 'Lidovky' },
+    { id: 'uzskorolidovky', label: 'Užskorolidovky' },
+    { id: 'detske', label: 'Dětské' }
+  ]
+};
+
+// Možnosti řazení - pouze pro sekci Písničky
+const SORT_OPTIONS = [
+  { value: 'default', label: 'Výchozí pořadí' },
+  { value: 'name-asc', label: 'Název (A-Z)' },
+  { value: 'name-desc', label: 'Název (Z-A)' },
+  { value: 'difficulty-asc', label: 'Obtížnost (od nejlehčí)' },
+  { value: 'difficulty-desc', label: 'Obtížnost (od nejtěžší)' },
+  { value: 'tempo-asc', label: 'Tempo (od nejpomalejšího)' },
+  { value: 'tempo-desc', label: 'Tempo (od nejrychlejšího)' },
+  { value: 'key-asc', label: 'Stupnice (A-Z)' },
+  { value: 'key-desc', label: 'Stupnice (Z-A)' }
+];
 
 function Cviceni() {
   const navigate = useNavigate();
@@ -39,13 +79,184 @@ function Cviceni() {
 
   // Hook pro sledování pokroku (dokončených akordů)
   const { completedCount, incrementCompleted, resetProgress } = useProgressTracking();
-  const [completedChordIds, setCompletedChordIds] = useState(new Set()); // Set ID akordů dokončených v této sérii
+  const [completedChordIds, setCompletedChordIds] = useState(new Set()); // Set ID akordů dokončených v této sérii (challenge mode)
+  const [practiceCompletedChordIds, setPracticeCompletedChordIds] = useState(new Set()); // Set ID akordů dokončených v practice sérii
   const [selectedDifficulty, setSelectedDifficulty] = useState('all'); // 'all', 'easy', 'medium'
   const [isShuffled, setIsShuffled] = useState(false);
   const [activeSection, setActiveSection] = useState('chords'); // 'chords', 'quiz', 'theory', 'songs'
-  const [activeSongCategory, setActiveSongCategory] = useState('lidovky');
+  const [activeSongCategory, setActiveSongCategory] = useState('all');
   const [playingNoteIndex, setPlayingNoteIndex] = useState(-1); // Index přehrávané noty při poslechu (-1 = nepřehrává se)
   const [isPlayingFullChord, setIsPlayingFullChord] = useState(false); // true = přehrává se celý akord najednou
+
+  // Search & Sort - pouze pro sekci Písničky
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('default');
+
+  // State pro daily goal celebration
+  const [dailyGoalCelebrationData, setDailyGoalCelebrationData] = useState(null);
+  const [showDailyGoalCelebration, setShowDailyGoalCelebration] = useState(false);
+
+  // Callback pro splnění denního cíle - AKORDY
+  const handleChordGoalCompleted = useCallback(
+    async (goalData) => {
+      if (!currentUser) return;
+
+      const result = await saveDailyGoalCompletion(currentUser.id, goalData);
+
+      if (result.success) {
+        const unlockedAchievements = result.unlockedAchievements || [];
+        const config = getCelebrationConfig('daily_goal', unlockedAchievements);
+
+        if (unlockedAchievements.length === 0) {
+          const streakText = result.newStreak > 1
+            ? `${result.newStreak} dní v řadě! 🔥`
+            : 'První den! 💪';
+          config.message = `🎯 Denní cíl splněn!\n${streakText}`;
+        }
+
+        setDailyGoalCelebrationData({
+          config,
+          xpEarned: result.xpEarned,
+          achievements: unlockedAchievements
+        });
+        setShowDailyGoalCelebration(true);
+
+        if (result.leveledUp && result.levelUpConfig) {
+          setTimeout(() => {
+            triggerCelebration(
+              result.levelUpConfig.confettiType,
+              result.levelUpConfig.sound,
+              {
+                title: `⭐ Level ${result.level}!`,
+                message: `Gratulujeme! Dosáhli jste levelu ${result.level} s ${result.totalXP} XP!`,
+                type: 'success',
+                duration: 5000
+              }
+            );
+          }, 3500);
+        }
+
+        const updateUserStats = useUserStore.getState().updateUserStats;
+        if (updateUserStats) updateUserStats();
+      }
+    },
+    [currentUser]
+  );
+
+  // Callback pro splnění denního cíle - QUIZ
+  const handleQuizGoalCompleted = useCallback(
+    async (goalData) => {
+      if (!currentUser) return;
+
+      const result = await saveDailyGoalCompletion(currentUser.id, goalData);
+
+      if (result.success) {
+        const unlockedAchievements = result.unlockedAchievements || [];
+        const config = getCelebrationConfig('daily_goal', unlockedAchievements);
+
+        if (unlockedAchievements.length === 0) {
+          const streakText = result.newStreak > 1
+            ? `${result.newStreak} dní v řadě! 🔥`
+            : 'První den! 💪';
+          config.message = `🎯 Denní cíl splněn!\n${streakText}`;
+        }
+
+        setDailyGoalCelebrationData({
+          config,
+          xpEarned: result.xpEarned,
+          achievements: unlockedAchievements
+        });
+        setShowDailyGoalCelebration(true);
+
+        if (result.leveledUp && result.levelUpConfig) {
+          setTimeout(() => {
+            triggerCelebration(
+              result.levelUpConfig.confettiType,
+              result.levelUpConfig.sound,
+              {
+                title: `⭐ Level ${result.level}!`,
+                message: `Gratulujeme! Dosáhli jste levelu ${result.level} s ${result.totalXP} XP!`,
+                type: 'success',
+                duration: 5000
+              }
+            );
+          }, 3500);
+        }
+
+        const updateUserStats = useUserStore.getState().updateUserStats;
+        if (updateUserStats) updateUserStats();
+      }
+    },
+    [currentUser]
+  );
+
+  // Callback pro splnění denního cíle - PÍSNIČKY
+  const handleSongGoalCompleted = useCallback(
+    async (goalData) => {
+      if (!currentUser) return;
+
+      const result = await saveDailyGoalCompletion(currentUser.id, goalData);
+
+      if (result.success) {
+        const unlockedAchievements = result.unlockedAchievements || [];
+        const config = getCelebrationConfig('daily_goal', unlockedAchievements);
+
+        if (unlockedAchievements.length === 0) {
+          const streakText = result.newStreak > 1
+            ? `${result.newStreak} dní v řadě! 🔥`
+            : 'První den! 💪';
+          config.message = `🎯 Denní cíl splněn!\n${streakText}`;
+        }
+
+        setDailyGoalCelebrationData({
+          config,
+          xpEarned: result.xpEarned,
+          achievements: unlockedAchievements
+        });
+        setShowDailyGoalCelebration(true);
+
+        if (result.leveledUp && result.levelUpConfig) {
+          setTimeout(() => {
+            triggerCelebration(
+              result.levelUpConfig.confettiType,
+              result.levelUpConfig.sound,
+              {
+                title: `⭐ Level ${result.level}!`,
+                message: `Gratulujeme! Dosáhli jste levelu ${result.level} s ${result.totalXP} XP!`,
+                type: 'success',
+                duration: 5000
+              }
+            );
+          }, 3500);
+        }
+
+        const updateUserStats = useUserStore.getState().updateUserStats;
+        if (updateUserStats) updateUserStats();
+      }
+    },
+    [currentUser]
+  );
+
+  // Daily goal hooks - 3 samostatné pro každou sekci
+  const chordsGoal = useDailyGoal('chords', handleChordGoalCompleted);
+  const quizGoal = useDailyGoal('quiz', handleQuizGoalCompleted);
+  const songsGoal = useDailyGoal('songs', handleSongGoalCompleted);
+
+  // Helper funkce - vrátí aktuální daily goal podle aktivní sekce
+  const getCurrentGoal = () => {
+    switch (activeSection) {
+      case 'chords':
+        return { goal: chordsGoal, label: 'série v režimu procvičování' };
+      case 'quiz':
+        return { goal: quizGoal, label: 'akordů v kvízu' };
+      case 'songs':
+        return { goal: songsGoal, label: 'písniček' };
+      default:
+        return { goal: chordsGoal, label: 'série v režimu procvičování' };
+    }
+  };
+
+  const currentGoalData = getCurrentGoal();
 
   useEffect(() => {
     if (!currentUser) {
@@ -87,15 +298,41 @@ function Cviceni() {
     setChords(filtered);
     setCurrentChordIndex(0);
     resetProgress(); // Reset počítadla dokončených akordů
-    setCompletedChordIds(new Set()); // Reset seznamu dokončených akordů v nové sérii
+    setCompletedChordIds(new Set()); // Reset seznamu dokončených akordů v nové sérii (challenge mode)
+    setPracticeCompletedChordIds(new Set()); // Reset practice série při změně obtížnosti
     celebrationTriggeredRef.current = false; // Reset celebration flagu pro novou sérii
     resetPractice();
   }, [selectedDifficulty, allChords, isShuffled]);
 
+  // Sledování dokončení série v režimu Procvičovat
+  useEffect(() => {
+    if (practicingMode && chords.length > 0 && practiceCompletedChordIds.size === chords.length) {
+      // Všechny akordy v obtížnosti dokončeny! Série hotova
+      setTimeout(() => {
+        // Odměny a statistiky JEN při dokončení "Všechny akordy"
+        if (selectedDifficulty === 'all') {
+          // Zvýšit denní cíl (uloží se do Supabase)
+          chordsGoal.markCompleted();
+
+          // Zobrazit info uživateli
+          audioEngine.playSuccess();
+          alert(`🎉 Série dokončena!\n\nZahráli jste všechny akordy (${chords.length} akordů).\n\nDenní cíl: +1 série procvičování\n✅ Uloženo do statistik`);
+        } else {
+          // Jen lokální feedback, bez odměn
+          audioEngine.playSuccess();
+          alert(`✅ Dokončili jste všechny akordy v obtížnosti (${chords.length} akordů).\n\nℹ️ Pro odměny a statistiky procvičujte "Všechny akordy".`);
+        }
+
+        // Reset pro novou sérii
+        setPracticeCompletedChordIds(new Set());
+      }, 500);
+    }
+  }, [practiceCompletedChordIds, chords.length, practicingMode, selectedDifficulty, chordsGoal]);
+
   // Sledování dokončení všech akordů - VELKÁ OSLAVA! 🎉 (JEN v režimu Výzvy)
   useEffect(() => {
     if (challengeMode && completedCount > 0 && chords.length > 0 && completedCount === chords.length && !celebrationTriggeredRef.current) {
-      // Všechny akordy dokončeny v režimu Výzvy! Spustit oslavný zvuk a uložit do DB
+      // Všechny akordy dokončeny v režimu Výzvy!
       setTimeout(async () => {
         // Zkontrolovat flag znovu (ochrana před race condition)
         if (celebrationTriggeredRef.current) return;
@@ -105,46 +342,54 @@ function Cviceni() {
         setShowCelebration(true);
         setShowSuccessModal(true);
 
-        // Použít centralizovaný celebration service
-        try {
-          const result = await celebrate({
-            type: 'chord_practice',
-            userId: currentUser.id,
-            itemId: 'chord_series',
-            itemTitle: `Série ${chords.length} akordů`,
-            metadata: {
-              chordsCompleted: chords.length,
-              difficulty: selectedDifficulty,
-              isShuffled: isShuffled,
-              mode: 'challenge' // Pouze v režimu výzvy se ukládá completion
-            }
-          });
+        // Odměny a uložení do DB JEN při dokončení "Všechny akordy"
+        if (selectedDifficulty === 'all') {
+          // Použít centralizovaný celebration service
+          try {
+            const result = await celebrate({
+              type: 'chord_practice',
+              userId: currentUser.id,
+              itemId: 'chord_series',
+              itemTitle: `Série ${chords.length} akordů`,
+              metadata: {
+                chordsCompleted: chords.length,
+                difficulty: selectedDifficulty,
+                isShuffled: isShuffled,
+                mode: 'challenge' // Pouze v režimu výzvy se ukládá completion
+              }
+            });
 
-          if (result.success) {
-            // Aktualizovat lokální store
-            const updateUserStats = useUserStore.getState().updateUserStats;
-            if (updateUserStats) {
-              updateUserStats();
-            }
+            if (result.success) {
+              // Aktualizovat lokální store
+              const updateUserStats = useUserStore.getState().updateUserStats;
+              if (updateUserStats) {
+                updateUserStats();
+              }
 
-            // Pokud došlo k level-upu, zobrazit speciální oslavu
-            if (result.data?.leveledUp && result.data?.levelUpConfig) {
-              setTimeout(() => {
-                triggerCelebration(
-                  result.data.levelUpConfig.confettiType,
-                  result.data.levelUpConfig.sound,
-                  {
-                    title: `⭐ Level ${result.data.level}!`,
-                    message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
-                    type: 'success',
-                    duration: 5000
-                  }
-                );
-              }, 3500);
+              // Pokud došlo k level-upu, zobrazit speciální oslavu
+              if (result.data?.leveledUp && result.data?.levelUpConfig) {
+                setTimeout(() => {
+                  triggerCelebration(
+                    result.data.levelUpConfig.confettiType,
+                    result.data.levelUpConfig.sound,
+                    {
+                      title: `⭐ Level ${result.data.level}!`,
+                      message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
+                      type: 'success',
+                      duration: 5000
+                    }
+                  );
+                }, 3500);
+              }
             }
+          } catch (error) {
+            console.error('Chyba při ukládání dokončení akordů:', error);
           }
-        } catch (error) {
-          console.error('Chyba při ukládání dokončení akordů:', error);
+        } else {
+          // Gratulace, ale bez odměn a uložení do DB
+          setTimeout(() => {
+            alert(`✅ Dokončili jste všechny akordy v obtížnosti!\n\nℹ️ Pro odměny, XP a statistiky dokončete "Všechny akordy" v režimu Výzva.`);
+          }, 1000);
         }
       }, 500);
     }
@@ -203,10 +448,23 @@ function Cviceni() {
 
     if (note !== expectedNote) {
       // Špatná nota! Přehrát chybový zvuk, zobrazit chybu
-      // NECHAT playedNotes - uživatel může pokračovat, ale bez úspěchu
       audioEngine.playError();
       setShowError(true);
       setPracticeErrors(prev => prev + 1);
+
+      // VÝZVA: Reset na ZAČÁTEK CELÉ SÉRIE při jakékoliv chybě (velmi přísný režim!)
+      if (challengeMode) {
+        setTimeout(() => {
+          setPlayedNotes([]);
+          setPracticeErrors(0);
+          setCurrentChordIndex(0); // Zpět na první akord
+          setCompletedChordIds(new Set()); // Reset všech dokončených akordů
+          resetProgress(); // Reset completion bar
+          celebrationTriggeredRef.current = false;
+        }, 1000); // Po zobrazení chyby
+      }
+      // PROCVIČOVÁNÍ: Nechat playedNotes - uživatel může pokračovat i po chybě
+
       // Skrýt ikonu chyby po animaci
       setTimeout(() => {
         setShowError(false);
@@ -231,9 +489,19 @@ function Cviceni() {
 
         // Zvýšit počítadlo JEN v režimu Výzvy (challengeMode) a jen pokud akord ještě nebyl dokončen
         if (challengeMode && !completedChordIds.has(currentChord.id)) {
-          incrementCompleted();
+          incrementCompleted(); // Lišta nad kvízem - completion bar
           setCompletedChordIds(prev => new Set(prev).add(currentChord.id));
         }
+
+        // V režimu Procvičovat - označit akord jako dokončený v sérii
+        if (practicingMode && !practiceCompletedChordIds.has(currentChord.id)) {
+          setPracticeCompletedChordIds(prev => new Set(prev).add(currentChord.id));
+        }
+
+        // Automatický přechod na další akord po 1.5 sekundě (v obou režimech)
+        setTimeout(() => {
+          nextChord();
+        }, 1500);
       }, 300);
     }
   };
@@ -361,104 +629,76 @@ function Cviceni() {
         </div>
       </FloatingHelpButton>
 
-      <div className="container">
-      {/* Hlavička */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: '2rem' }}
+      <PageSection
+        maxWidth="lg"
+        icon={Headphones}
+        title="Cvičení"
+        description="Procvičujte akordy nebo si zahrajte písničky podle not"
+        mainTabs={MAIN_TABS}
+        subTabs={SUB_TABS_CONFIG}
+        activeMainTab={activeSection}
+        activeSubTab={activeSection === 'chords' ? selectedDifficulty : activeSection === 'songs' ? activeSongCategory : 'all'}
+        onMainTabChange={setActiveSection}
+        onSubTabChange={(value) => {
+          if (activeSection === 'chords') {
+            setSelectedDifficulty(value);
+          } else if (activeSection === 'songs') {
+            setActiveSongCategory(value);
+          }
+        }}
+        subTabsAction={activeSection === 'chords' ? (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsShuffled(!isShuffled)}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: RADIUS.md,
+              border: BORDER.none,
+              boxShadow: SHADOW.subtle,
+              background: isShuffled
+                ? 'var(--color-secondary)'
+                : 'rgba(255, 255, 255, 0.7)',
+              color: isShuffled ? 'white' : '#64748b',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: isShuffled ? 600 : 400,
+              transition: 'all 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+            title={isShuffled ? 'Vypnout míchání' : 'Zamíchat akordy'}
+          >
+            <Shuffle size={16} />
+            Míchat
+          </motion.button>
+        ) : null}
+        showDailyGoal={true}
+        dailyGoal={currentGoalData.goal.dailyGoal}
+        onSetDailyGoal={currentGoalData.goal.setDailyGoal}
+        completedToday={currentGoalData.goal.completedToday}
+        progress={currentGoalData.goal.progress}
+        goalLabel={currentGoalData.label}
+        progressLabel="Dnešní pokrok"
+        showSearch={activeSection === 'songs'}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Najít písničku"
+        showSort={activeSection === 'songs'}
+        sortValue={sortBy}
+        sortOptions={SORT_OPTIONS}
+        onSortChange={setSortBy}
       >
-        <h1 style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          marginBottom: '0.5rem'
-        }}>
-          <Headphones size={32} color="var(--color-primary)" />
-          Cvičení
-        </h1>
-        <p style={{ color: '#64748b' }}>
-          Procvičujte akordy nebo si zahrajte písničky podle not.
-        </p>
-      </motion.div>
-
-      {/* Hlavní navigace - Akordy / Poznáte akord? / Písničky */}
-      <TabButtons
-        tabs={[
-          { id: 'chords', label: 'Akordy', icon: Piano },
-          { id: 'quiz', label: 'Poznáte akord?', icon: Target },
-          { id: 'songs', label: 'Písničky', icon: Music }
-        ]}
-        activeTab={activeSection}
-        onTabChange={setActiveSection}
-        options={{ size: 'md', style: { marginBottom: '1.5rem' } }}
-      />
-
       {/* Sekce Akordy */}
       {activeSection === 'chords' && (
         <>
-          {/* Výběr obtížnosti */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          marginBottom: '1.5rem',
-          flexWrap: 'wrap'
-        }}
-      >
-        <TabButtons
-          tabs={[
-            { id: 'all', label: 'Všechny akordy' },
-            { id: 'easy', label: 'Základní' },
-            { id: 'medium', label: 'Pokročilé' }
-          ]}
-          activeTab={selectedDifficulty}
-          onTabChange={setSelectedDifficulty}
-          options={{ layout: 'pill' }}
-        />
-
-        {/* Tlačítko pro míchání */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsShuffled(!isShuffled)}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: RADIUS.md,
-            border: BORDER.none,
-            boxShadow: SHADOW.subtle,
-            background: isShuffled
-              ? 'var(--color-secondary)'
-              : 'rgba(255, 255, 255, 0.7)',
-            color: isShuffled ? 'white' : '#64748b',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: isShuffled ? 600 : 400,
-            transition: 'all 0.2s ease',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
-          title={isShuffled ? 'Vypnout míchání' : 'Zamíchat akordy'}
-        >
-          <Shuffle size={16} />
-          Míchat
-        </motion.button>
-      </motion.div>
-
       {/* Progress bar */}
       <ProgressBar
         current={completedCount}
         total={chords.length}
-        title="Dokončeno"
-        label={
-          currentChord?.difficulty === 'easy' ? 'Základní' :
-          currentChord?.difficulty === 'medium' ? 'Pokročilý' : 'Těžký'
-        }
+        title="Režim výzva:"
+        titleColor="var(--color-primary)"
       />
 
       {/* Hlavní karta cvičení */}
@@ -725,28 +965,19 @@ function Cviceni() {
 
       {/* Sekce Poznáte akord? */}
       {activeSection === 'quiz' && (
-        <ChordQuiz />
+        <ChordQuiz onDailyGoalComplete={quizGoal.markCompleted} />
       )}
 
       {/* Sekce Písničky */}
       {activeSection === 'songs' && (
-        <>
-          <div style={{ marginBottom: '1rem' }}>
-            <TabButtons
-              tabs={[
-                { id: 'lidovky', label: 'Lidovky', icon: Music },
-                { id: 'uzskorolidovky', label: 'Užskorolidovky', icon: Music },
-                { id: 'detske', label: 'Dětské', icon: Music }
-              ]}
-              activeTab={activeSongCategory}
-              onTabChange={setActiveSongCategory}
-              options={{ layout: 'pill' }}
-            />
-          </div>
-          <SongLibrary activeCategory={activeSongCategory} />
-        </>
+        <SongLibrary
+          activeCategory={activeSongCategory}
+          searchTerm={searchTerm}
+          sortBy={sortBy}
+          onDailyGoalComplete={songsGoal.markCompleted}
+        />
       )}
-      </div>
+      </PageSection>
 
       {/* Oslava po dokončení všech akordů */}
       <PracticeCelebration
@@ -760,6 +991,17 @@ function Cviceni() {
           resetProgress();
         }}
       />
+
+      {/* Oslava pro denní cíle */}
+      {dailyGoalCelebrationData && (
+        <CelebrationEffect
+          isVisible={showDailyGoalCelebration}
+          config={dailyGoalCelebrationData.config}
+          xpEarned={dailyGoalCelebrationData.xpEarned}
+          achievements={dailyGoalCelebrationData.achievements}
+          onComplete={() => setShowDailyGoalCelebration(false)}
+        />
+      )}
     </>
   );
 }
