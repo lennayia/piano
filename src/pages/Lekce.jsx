@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, List, Clock, CheckCircle } from 'lucide-react';
 import LessonList from '../components/lessons/LessonList';
@@ -9,6 +9,34 @@ import CelebrationEffect from '../components/ui/CelebrationEffect';
 import { saveDailyGoalCompletion } from '../services/dailyGoalService';
 import { getCelebrationConfig, triggerCelebration } from '../services/celebrationService';
 
+// Konstanty pro tab navigaci - mimo komponentu pro lepší performance
+const MAIN_TABS = [
+  { id: 'all', label: 'Všechny', icon: List },
+  { id: 'in_progress', label: 'Probíhající', icon: Clock },
+  { id: 'completed', label: 'Dokončené', icon: CheckCircle }
+];
+
+const SUB_TABS_CONFIG = {
+  'all': [
+    { id: 'all', label: 'Vše' },
+    { id: 'beginner', label: 'Začátečník' },
+    { id: 'intermediate', label: 'Pokročilý' },
+    { id: 'expert', label: 'Expert' }
+  ],
+  'in_progress': [
+    { id: 'all', label: 'Vše' },
+    { id: 'beginner', label: 'Začátečník' },
+    { id: 'intermediate', label: 'Pokročilý' },
+    { id: 'expert', label: 'Expert' }
+  ],
+  'completed': [
+    { id: 'all', label: 'Vše' },
+    { id: 'beginner', label: 'Začátečník' },
+    { id: 'intermediate', label: 'Pokročilý' },
+    { id: 'expert', label: 'Expert' }
+  ]
+};
+
 // Lekce page with daily goal tracking
 function Lekce() {
   const navigate = useNavigate();
@@ -18,11 +46,12 @@ function Lekce() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState(null);
 
-  // Callback pro splnění denního cíle
-  const handleGoalCompleted = async (goalData) => {
-    if (!currentUser) return;
+  // Callback pro splnění denního cíle - memoizovaný pro lepší performance
+  const handleGoalCompleted = useCallback(
+    async (goalData) => {
+      if (!currentUser) return;
 
-    const result = await saveDailyGoalCompletion(currentUser.id, goalData);
+      const result = await saveDailyGoalCompletion(currentUser.id, goalData);
 
     if (result.success) {
       const unlockedAchievements = result.unlockedAchievements || [];
@@ -65,7 +94,9 @@ function Lekce() {
       const updateUserStats = useUserStore.getState().updateUserStats;
       if (updateUserStats) updateUserStats();
     }
-  };
+  },
+  [currentUser]
+);
 
   // Denní cíl hook s callbackem
   const { dailyGoal, setDailyGoal, completedToday, markCompleted, progress, isGoalCompleted } = useDailyGoal('lessons', handleGoalCompleted);
@@ -80,8 +111,8 @@ function Lekce() {
     return null;
   }
 
-  // Dynamický obsah podle aktivních tabů
-  const getSectionContent = () => {
+  // Dynamický obsah podle aktivních tabů - memoizovaný pro lepší performance
+  const sectionContent = useMemo(() => {
     const mainTabContent = {
       all: {
         title: 'Všechny lekce',
@@ -111,9 +142,7 @@ function Lekce() {
       title: main.title,
       description: main.description + difficulty
     };
-  };
-
-  const sectionContent = getSectionContent();
+  }, [mainTab, difficultyTab]);
 
   return (
     <>
@@ -122,31 +151,8 @@ function Lekce() {
         icon={BookOpen}
         title="Lekce"
         description="Procházejte své lekce a pokračujte v učení"
-        mainTabs={[
-          { id: 'all', label: 'Všechny', icon: List },
-          { id: 'in_progress', label: 'Probíhající', icon: Clock },
-          { id: 'completed', label: 'Dokončené', icon: CheckCircle }
-        ]}
-        subTabs={{
-          'all': [
-            { id: 'all', label: 'Vše' },
-            { id: 'beginner', label: 'Začátečník' },
-            { id: 'intermediate', label: 'Pokročilý' },
-            { id: 'expert', label: 'Expert' }
-          ],
-          'in_progress': [
-            { id: 'all', label: 'Vše' },
-            { id: 'beginner', label: 'Začátečník' },
-            { id: 'intermediate', label: 'Pokročilý' },
-            { id: 'expert', label: 'Expert' }
-          ],
-          'completed': [
-            { id: 'all', label: 'Vše' },
-            { id: 'beginner', label: 'Začátečník' },
-            { id: 'intermediate', label: 'Pokročilý' },
-            { id: 'expert', label: 'Expert' }
-          ]
-        }}
+        mainTabs={MAIN_TABS}
+        subTabs={SUB_TABS_CONFIG}
         activeMainTab={mainTab}
         activeSubTab={difficultyTab}
         onMainTabChange={setMainTab}

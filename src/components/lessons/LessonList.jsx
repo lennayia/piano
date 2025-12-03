@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import {
@@ -29,6 +29,34 @@ import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
 import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 import { supabase } from '../../lib/supabase';
 
+// Konstanty mimo komponentu pro lepší performance
+const DIFFICULTY_MAP = {
+  'beginner': 'začátečník',
+  'intermediate': 'pokročilý',
+  'expert': 'expert'
+};
+
+const DEFAULT_LESSON_FORM = {
+  title: '',
+  description: '',
+  difficulty: 'začátečník',
+  duration: '5 min',
+  content: {
+    notes: [],
+    instructions: []
+  }
+};
+
+const ANIMATION_VARIANTS = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15
+    }
+  }
+};
+
 function SortableLessonCard({ lesson, children }) {
   const {
     attributes,
@@ -52,7 +80,7 @@ function SortableLessonCard({ lesson, children }) {
   );
 }
 
-function LessonList({ onLessonComplete }) {
+function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
   const {
     editingItem: editingLesson,
     editForm,
@@ -77,6 +105,35 @@ function LessonList({ onLessonComplete }) {
   const [completedLessonIds, setCompletedLessonIds] = useState(new Set());
 
   const isAdmin = currentUser?.is_admin === true;
+
+  // Filtrovaná verze lekcí podle aktivních tabů - memoizovaná pro optimalizaci
+  const filteredLessons = useMemo(() => {
+    let result = [...lessons];
+
+    // Filtrování podle stavu (all, in_progress, completed)
+    if (filter === 'in_progress') {
+      result = result.filter(lesson => !completedLessonIds.has(lesson.id));
+    } else if (filter === 'completed') {
+      result = result.filter(lesson => completedLessonIds.has(lesson.id));
+    }
+
+    // Filtrování podle obtížnosti
+    if (difficulty !== 'all') {
+      result = result.filter(lesson => {
+        const lessonDiff = lesson.difficulty?.toLowerCase() || '';
+        const targetDiff = DIFFICULTY_MAP[difficulty]?.toLowerCase() || '';
+
+        // Pro intermediate zahrnout i "mírně pokročilý začátečník"
+        if (difficulty === 'intermediate') {
+          return lessonDiff.includes('pokročilý');
+        }
+
+        return lessonDiff === targetDiff;
+      });
+    }
+
+    return result;
+  }, [lessons, filter, difficulty, completedLessonIds]);
 
   useEffect(() => {
     fetchLessons();
@@ -111,7 +168,10 @@ function LessonList({ onLessonComplete }) {
     })
   );
 
-  const handleDragEnd = (event) => {
+  const [newLessonForm, setNewLessonForm] = useState(DEFAULT_LESSON_FORM);
+
+  // Handler funkce memoizované pomocí useCallback pro lepší performance
+  const handleDragEnd = useCallback((event) => {
     const { active, over } = event;
 
     if (active.id !== over.id) {
@@ -120,38 +180,18 @@ function LessonList({ onLessonComplete }) {
       const newOrder = arrayMove(lessons, oldIndex, newIndex);
       reorderLessons(newOrder);
     }
-  };
-  const [newLessonForm, setNewLessonForm] = useState({
-    title: '',
-    description: '',
-    difficulty: 'začátečník',
-    duration: '5 min',
-    content: {
-      notes: [],
-      instructions: []
-    }
-  });
+  }, [lessons, reorderLessons]);
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15
-      }
-    }
-  };
-
-  const handleLessonClick = (lesson) => {
+  const handleLessonClick = useCallback((lesson) => {
     setSelectedLesson(lesson);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSelectedLesson(null);
-  };
+  }, []);
 
-  // Admin funkce
-  const handleNewLessonChange = (field, value) => {
+  // Admin funkce - memoizované pomocí useCallback
+  const handleNewLessonChange = useCallback((field, value) => {
     if (field.startsWith('content.')) {
       const contentField = field.split('.')[1];
       setNewLessonForm(prev => ({
@@ -161,37 +201,28 @@ function LessonList({ onLessonComplete }) {
     } else {
       setNewLessonForm(prev => ({ ...prev, [field]: value }));
     }
-  };
+  }, []);
 
-  const startAddingNew = () => {
+  const startAddingNew = useCallback(() => {
     setIsAddingNew(true);
-    setNewLessonForm({
-      title: '',
-      description: '',
-      difficulty: 'začátečník',
-      duration: '5 min',
-      content: {
-        notes: [],
-        instructions: []
-      }
-    });
-  };
+    setNewLessonForm(DEFAULT_LESSON_FORM);
+  }, []);
 
-  const saveNewLesson = () => {
+  const saveNewLesson = useCallback(() => {
     if (!newLessonForm.title || !newLessonForm.description) {
       alert('Vyplňte aspoň něco 😊 Třeba název a popis lekce.');
       return;
     }
     addLesson(newLessonForm);
     setIsAddingNew(false);
-  };
+  }, [newLessonForm, addLesson]);
 
-  const cancelAddingNew = () => {
+  const cancelAddingNew = useCallback(() => {
     setIsAddingNew(false);
-  };
+  }, []);
 
   // Wrapper funkce pro startEditing s custom mapováním na editForm
-  const startEditingLesson = (lesson) => {
+  const startEditingLesson = useCallback((lesson) => {
     startEditing(lesson, (lesson) => ({
       title: lesson.title,
       description: lesson.description,
@@ -199,27 +230,25 @@ function LessonList({ onLessonComplete }) {
       duration: lesson.duration,
       content: { ...lesson.content }
     }));
-  };
+  }, [startEditing]);
 
   // handleEditFormChange používá updateEditForm z hooku
   const handleEditFormChange = updateEditForm;
 
-  const saveEditedLesson = () => {
+  const saveEditedLesson = useCallback(() => {
     if (!editForm.title || !editForm.description) {
       alert('Vyplňte aspoň něco 😊 Třeba název a popis lekce.');
       return;
     }
     updateLesson(editingLesson, editForm);
-    cancelEdit(); // Použít hook cancelEdit místo manuálního nastavování
-  };
+    cancelEdit();
+  }, [editForm, editingLesson, updateLesson, cancelEdit]);
 
-  // cancelEditingLesson je poskytnut hookem jako cancelEdit
-
-  const handleDeleteLesson = (lessonId) => {
+  const handleDeleteLesson = useCallback((lessonId) => {
     if (confirm('Když to teď smažete, už to nepůjde nikdy, ale vůbec nikdy vrátit. Vážně chcete tuhle lekci smazat?')) {
       deleteLesson(lessonId);
     }
-  };
+  }, [deleteLesson]);
 
   return (
     <div>
@@ -327,7 +356,7 @@ function LessonList({ onLessonComplete }) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={lessons.map(l => l.id)}
+          items={filteredLessons.map(l => l.id)}
           strategy={rectSortingStrategy}
         >
           <motion.div
@@ -336,11 +365,11 @@ function LessonList({ onLessonComplete }) {
               gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
               gap: '1.5rem'
             }}
-            variants={container}
+            variants={ANIMATION_VARIANTS}
             initial="hidden"
             animate="show"
           >
-            {lessons.map((lesson, index) => (
+            {filteredLessons.map((lesson, index) => (
               <div key={lesson.id}>
                 <SortableLessonCard lesson={lesson}>
                   {(dragAttributes, dragListeners) => (
