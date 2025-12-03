@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { CheckCircle, Music, Clock, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '../ui/Modal';
 import { CloseButton } from '../ui/ButtonComponents';
-import PianoKeyboard from './PianoKeyboard';
 import NoteCard from './NoteCard';
+
+// Lazy loading - PianoKeyboard je těžká komponenta, načte se až při otevření modalu
+const PianoKeyboard = lazy(() => import('./PianoKeyboard'));
 import { getDifficultyColor, LESSON_XP_REWARD, MODAL_AUTO_CLOSE_DELAY } from '../../utils/lessonUtils';
 import { RADIUS } from '../../utils/styleConstants';
 import useUserStore from '../../store/useUserStore';
@@ -171,7 +173,9 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
           {/* Interactive Piano */}
           <div style={{ marginBottom: '2rem' }}>
             <h3>Interaktivní klavír</h3>
-            <PianoKeyboard highlightedNotes={lesson.content.notes} />
+            <Suspense fallback={<div style={{ minHeight: '100px' }} />}>
+              <PianoKeyboard highlightedNotes={lesson.content.notes} />
+            </Suspense>
           </div>
 
           <h3>Instrukce</h3>

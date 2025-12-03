@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import {
@@ -18,7 +18,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import LessonCard from './LessonCard';
-import LessonModal from './LessonModal';
+
+// Lazy loading - LessonModal se načte až při kliknutí na lekci
+const LessonModal = lazy(() => import('./LessonModal'));
 import { useItemEdit } from '../../hooks/useItemEdit';
 import { DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
 import useLessonStore from '../../store/useLessonStore';
@@ -373,12 +375,14 @@ function LessonList({ onLessonComplete }) {
         </SortableContext>
       </DndContext>
 
-      <LessonModal
-        lesson={selectedLesson}
-        isOpen={!!selectedLesson}
-        onClose={handleCloseModal}
-        onComplete={onLessonComplete}
-      />
+      <Suspense fallback={<div />}>
+        <LessonModal
+          lesson={selectedLesson}
+          isOpen={!!selectedLesson}
+          onClose={handleCloseModal}
+          onComplete={onLessonComplete}
+        />
+      </Suspense>
     </div>
   );
 }
