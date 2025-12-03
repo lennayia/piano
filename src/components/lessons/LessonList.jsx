@@ -22,12 +22,13 @@ import LessonCard from './LessonCard';
 // Lazy loading - LessonModal se načte až při kliknutí na lekci
 const LessonModal = lazy(() => import('./LessonModal'));
 import { useItemEdit } from '../../hooks/useItemEdit';
-import { DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
 import useLessonStore from '../../store/useLessonStore';
 import useUserStore from '../../store/useUserStore';
-import { AddButton, SaveButton, CancelButton } from '../ui/ButtonComponents';
-import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
+import { AddButton } from '../ui/ButtonComponents';
 import { supabase } from '../../lib/supabase';
+import LessonForm from './LessonForm';
+import SectionHeader from '../ui/SectionHeader';
+import GlassCard from '../ui/GlassCard';
 
 // Konstanty mimo komponentu pro lepší performance
 const DIFFICULTY_MAP = {
@@ -262,91 +263,27 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
       {/* Formulář pro přidání nové lekce */}
       <AnimatePresence>
         {isAddingNew && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="card"
-            style={{
-              marginBottom: '1.5rem',
-              background: 'var(--glass-bg)',
-              backdropFilter: 'blur(40px)',
-              WebkitBackdropFilter: 'blur(40px)',
-              border: 'none',
-              boxShadow: '0 8px 32px rgba(181, 31, 101, 0.25), var(--shadow-lg)'
+          <GlassCard
+            animate
+            animationProps={{
+              initial: { opacity: 0, y: -20 },
+              animate: { opacity: 1, y: 0 },
+              exit: { opacity: 0, y: -20 }
             }}
+            style={{ marginBottom: '1.5rem' }}
           >
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Plus size={20} color="var(--color-primary)" />
-              Nová lekce
-            </h3>
+            <SectionHeader icon={Plus} title="Nová lekce" variant="h3" />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-              <div className="form-group">
-                <FormLabel text="Název lekce" />
-                <FormInput
-                  type="text"
-                  value={newLessonForm.title}
-                  onChange={(e) => handleNewLessonChange('title', e.target.value)}
-                  placeholder="Např. První tóny"
-                />
-              </div>
-
-              <div className="form-group">
-                <FormLabel text="Obtížnost" />
-                <FormSelect
-                  value={newLessonForm.difficulty}
-                  onChange={(e) => handleNewLessonChange('difficulty', e.target.value)}
-                  options={DIFFICULTY_OPTIONS}
-                />
-              </div>
-
-              <div className="form-group">
-                <FormLabel text="Délka" />
-                <FormInput
-                  type="text"
-                  value={newLessonForm.duration}
-                  onChange={(e) => handleNewLessonChange('duration', e.target.value)}
-                  placeholder="Např. 5 min"
-                />
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Popis" />
-              <FormTextarea
-                value={newLessonForm.description}
-                onChange={(e) => handleNewLessonChange('description', e.target.value)}
-                rows={2}
-                placeholder="Popis lekce"
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Tóny (oddělené mezerou)" />
-              <FormInput
-                type="text"
-                value={newLessonForm.content.notes.join(' ')}
-                onChange={(e) => handleNewLessonChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
-                placeholder="Např. C D E"
-              />
-            </div>
-
-            <div className="form-group" style={{ marginBottom: '1rem' }}>
-              <FormLabel text="Instrukce (jedna na řádek)" />
-              <FormTextarea
-                value={newLessonForm.content.instructions.join('\n')}
-                onChange={(e) => handleNewLessonChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
-                rows={3}
-                placeholder="Zadejte instrukce&#10;Každá na nový řádek"
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <SaveButton onClick={saveNewLesson} label="Přidat lekci" />
-              <CancelButton onClick={cancelAddingNew} />
-            </div>
-          </motion.div>
+            <LessonForm
+              formData={newLessonForm}
+              onChange={handleNewLessonChange}
+              onSave={saveNewLesson}
+              onCancel={cancelAddingNew}
+              saveLabel="Přidat lekci"
+              titlePlaceholder="Např. První tóny"
+              durationPlaceholder="Např. 5 min"
+            />
+          </GlassCard>
         )}
       </AnimatePresence>
 

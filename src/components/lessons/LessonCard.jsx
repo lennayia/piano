@@ -1,10 +1,11 @@
 import { Clock, TrendingUp, Edit3, GripVertical, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
-import { getDifficultyColor, DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
-import { ActionButtonGroup, SaveButton, CancelButton } from '../ui/ButtonComponents';
+import { getDifficultyColor } from '../../utils/lessonUtils';
+import { ActionButtonGroup } from '../ui/ButtonComponents';
 import { ItemCard } from '../ui/CardComponents';
-import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
+import LessonForm from './LessonForm';
+import SectionHeader from '../ui/SectionHeader';
 
 function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners, isEditing, editForm, onEditFormChange, onSaveEdit, onCancelEdit, isCompleted = false }) {
 
@@ -98,71 +99,15 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ paddingTop: '1.5rem', marginTop: '1rem', borderTop: 'none', boxShadow: '0 -1px 0 rgba(45, 91, 120, 0.1)' }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Edit3 size={16} color="var(--color-secondary)" />
-                Upravit lekci
-              </h4>
+              <SectionHeader icon={Edit3} title="Upravit lekci" variant="h4" iconSize={16} iconColor="var(--color-secondary)" />
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
-                  <FormLabel text="Název lekce" />
-                  <FormInput
-                    type="text"
-                    value={editForm.title}
-                    onChange={(e) => onEditFormChange('title', e.target.value)}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <FormLabel text="Obtížnost" />
-                  <FormSelect
-                    value={editForm.difficulty}
-                    onChange={(e) => onEditFormChange('difficulty', e.target.value)}
-                    options={DIFFICULTY_OPTIONS}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <FormLabel text="Délka" />
-                  <FormInput
-                    type="text"
-                    value={editForm.duration}
-                    onChange={(e) => onEditFormChange('duration', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <FormLabel text="Popis" />
-                <FormTextarea
-                  value={editForm.description}
-                  onChange={(e) => onEditFormChange('description', e.target.value)}
-                  rows={2}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <FormLabel text="Tóny (oddělené mezerou)" />
-                <FormInput
-                  type="text"
-                  value={editForm.content.notes.join(' ')}
-                  onChange={(e) => onEditFormChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
-                />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <FormLabel text="Instrukce (jedna na řádek)" />
-                <FormTextarea
-                  value={editForm.content.instructions.join('\n')}
-                  onChange={(e) => onEditFormChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
-                  rows={3}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <SaveButton onClick={onSaveEdit} label="Uložit změny" />
-                <CancelButton onClick={onCancelEdit} />
-              </div>
+              <LessonForm
+                formData={editForm}
+                onChange={onEditFormChange}
+                onSave={onSaveEdit}
+                onCancel={onCancelEdit}
+                saveLabel="Uložit změny"
+              />
             </div>
           </motion.div>
         )}
