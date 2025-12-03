@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, List, Clock, CheckCircle } from 'lucide-react';
 import LessonList from '../components/lessons/LessonList';
 import useUserStore from '../store/useUserStore';
+import useLessonStore from '../store/useLessonStore';
 import { PageSection } from '../components/ui/PageSection';
+import { ProgressBar } from '../components/ui/CardComponents';
 import { useDailyGoal } from '../hooks/useDailyGoal';
 import CelebrationEffect from '../components/ui/CelebrationEffect';
 import { saveDailyGoalCompletion } from '../services/dailyGoalService';
 import { getCelebrationConfig, triggerCelebration } from '../services/celebrationService';
+import { supabase } from '../lib/supabase';
 
 // Konstanty pro tab navigaci - mimo komponentu pro lepší performance
 const MAIN_TABS = [
@@ -50,12 +53,14 @@ const SORT_OPTIONS = [
 function Lekce() {
   const navigate = useNavigate();
   const currentUser = useUserStore((state) => state.currentUser);
+  const lessons = useLessonStore((state) => state.lessons);
   const [mainTab, setMainTab] = useState('all');
   const [difficultyTab, setDifficultyTab] = useState('all');
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
+  const [completedLessonIds, setCompletedLessonIds] = useState(new Set());
 
   // Callback pro splnění denního cíle - memoizovaný pro lepší performance
   const handleGoalCompleted = useCallback(
@@ -118,6 +123,28 @@ function Lekce() {
     }
   }, [currentUser, navigate]);
 
+  // Načíst dokončené lekce pro aktuálního uživatele
+  useEffect(() => {
+    const fetchCompletedLessons = async () => {
+      if (currentUser) {
+        try {
+          const { data, error } = await supabase
+            .from('piano_lesson_completions')
+            .select('lesson_id')
+            .eq('user_id', currentUser.id);
+
+          if (!error && data) {
+            setCompletedLessonIds(new Set(data.map(item => parseInt(item.lesson_id))));
+          }
+        } catch (error) {
+          console.error('Error fetching completed lessons:', error);
+        }
+      }
+    };
+
+    fetchCompletedLessons();
+  }, [currentUser]);
+
   if (!currentUser) {
     return null;
   }
@@ -174,9 +201,11 @@ function Lekce() {
         dailyGoal={dailyGoal}
         onSetDailyGoal={setDailyGoal}
         completedToday={completedToday}
-        goalLabel="lekcí"
+        goalLabel="dokončených lekcí"
         progressLabel="Dnešní pokrok"
-        progress={progress}
+        progressCurrent={completedToday}
+        progressTotal={dailyGoal}
+        progressTitle="Dnešní pokrok:"
         showSearch={true}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
@@ -186,6 +215,14 @@ function Lekce() {
         sortValue={sortBy}
         onSortChange={setSortBy}
       >
+        {/* Progress bar - celkový pokrok všech lekcí */}
+        <ProgressBar
+          current={completedLessonIds.size}
+          total={lessons.length}
+          title="Celkový pokrok:"
+          titleColor="var(--color-secondary)"
+        />
+
         <LessonList
           filter={mainTab}
           difficulty={difficultyTab}

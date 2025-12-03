@@ -133,14 +133,14 @@ function AchievementGrid({ achievements, activeFilter, onAchievementClick, getAc
                 <div style={{
                   width: '100%',
                   height: '6px',
-                  background: 'rgba(148, 163, 184, 0.2)',
+                  background: 'rgba(148, 163, 184, 0.1)',
                   borderRadius: '3px',
                   overflow: 'hidden'
                 }}>
                   <div style={{
                     width: `${achievement.progress}%`,
                     height: '100%',
-                    background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.6) 0%, rgba(181, 31, 101, 0.6) 75%, rgba(45, 91, 120, 0.6) 100%)',
+                    background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.5) 0%, rgba(181, 31, 101, 0.6) 75%, rgba(45, 91, 120, 0.6) 100%)',
                     transition: 'width 0.3s ease'
                   }} />
                 </div>

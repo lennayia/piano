@@ -235,7 +235,7 @@ export function ProgressBar({ current, total, title = 'Položka', label, titleCo
       <div style={{
         position: 'relative',
         height: '4px',
-        background: 'rgba(181, 31, 101, 0.06)',
+        background: 'rgba(181, 31, 101, 0.02)',
         borderRadius: '999px',
         overflow: 'hidden'
       }}>
@@ -249,7 +249,7 @@ export function ProgressBar({ current, total, title = 'Položka', label, titleCo
             top: 0,
             left: 0,
             height: '100%',
-            background: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary) 70%, var(--color-secondary) 100%)',
+            background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.5) 0%, rgba(181, 31, 101, 0.6) 70%, rgba(45, 91, 120, 0.6) 100%)',
             borderRadius: '999px'
           }}
         />

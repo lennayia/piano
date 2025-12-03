@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Search, ArrowUpDown } from 'lucide-react';
 import TabButtons from './TabButtons';
 import { FormInput, FormLabel, FormSelect } from './FormComponents';
+import { ProgressBar } from './CardComponents';
 import { RADIUS } from '../../utils/styleConstants';
 
 /**
@@ -32,7 +33,10 @@ import { RADIUS } from '../../utils/styleConstants';
  * @param {number} props.completedToday - Počet dokončených položek dnes
  * @param {string} props.goalLabel - Label pro denní cíl (např. "lekcí", "písniček")
  * @param {string} props.progressLabel - Label pro progress bar (např. "Váš pokrok")
- * @param {number} props.progress - Progress bar value (0-100)
+ * @param {number} props.progress - Progress bar value (0-100) - DEPRECATED, use progressCurrent/progressTotal
+ * @param {number} props.progressCurrent - Current value for ProgressBar modul
+ * @param {number} props.progressTotal - Total value for ProgressBar modul
+ * @param {string} props.progressTitle - Title for ProgressBar modul
  * @param {boolean} props.showSearch - Zobrazit vyhledávání
  * @param {string} props.searchValue - Hodnota vyhledávání
  * @param {function} props.onSearchChange - Callback při změně vyhledávání
@@ -68,7 +72,10 @@ export function PageSection({
   completedToday = 0,
   goalLabel = 'položek',
   progressLabel,
-  progress,
+  progress, // DEPRECATED
+  progressCurrent,
+  progressTotal,
+  progressTitle = 'Dnešní pokrok:',
   showSearch = false,
   searchValue = '',
   onSearchChange,
@@ -305,47 +312,61 @@ export function PageSection({
                   <span style={{
                     fontWeight: 600,
                     fontSize: '0.8125rem',
-                    color: completedToday >= dailyGoal ? 'var(--color-success)' : 'var(--color-primary)'
+                    color: 'var(--color-secondary)'
                   }}>
                     {completedToday}/{dailyGoal}
-                    {completedToday >= dailyGoal && ' 🎉'}
                   </span>
                 )}
                 {sectionAction && <div style={{ flexShrink: 0 }}>{sectionAction}</div>}
               </>
             )}
 
-            {/* Progress bar inline vedle denního cíle */}
-            {progress !== undefined && (
+            {/* Progress bar - podporuje starý i nový způsob */}
+            {(progress !== undefined || (progressCurrent !== undefined && progressTotal !== undefined)) && (
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                flex: '1 1 250px',
-                minWidth: '200px',
                 marginLeft: showDailyGoal ? '1.5rem' : '0',
-                paddingRight: '1rem'
+                flex: '1 1 250px',
+                minWidth: '250px'
               }}>
-                <div style={{
-                  flex: 1,
-                  height: '3px',
-                  background: 'rgba(0, 0, 0, 0.08)',
-                  borderRadius: RADIUS.sm,
-                  overflow: 'hidden'
-                }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                    style={{
-                      height: '100%',
-                      background: completedToday >= dailyGoal
-                        ? 'linear-gradient(90deg, var(--color-success), var(--color-secondary))'
-                        : 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
-                      borderRadius: RADIUS.sm
-                    }}
+                {/* Nový způsob - ProgressBar modul */}
+                {progressCurrent !== undefined && progressTotal !== undefined ? (
+                  <ProgressBar
+                    current={progressCurrent}
+                    total={progressTotal}
+                    title={progressTitle}
+                    titleColor="var(--color-secondary)"
+                    style={{ marginBottom: 0 }}
                   />
-                </div>
+                ) : (
+                  /* Starý způsob - inline progress bar (fallback) */
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    flex: '1 1 250px',
+                    minWidth: '200px',
+                    paddingRight: '1rem'
+                  }}>
+                    <div style={{
+                      flex: 1,
+                      height: '3px',
+                      background: 'rgba(0, 0, 0, 0.08)',
+                      borderRadius: RADIUS.sm,
+                      overflow: 'hidden'
+                    }}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        style={{
+                          height: '100%',
+                          background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
+                          borderRadius: RADIUS.sm
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

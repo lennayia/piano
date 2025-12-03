@@ -678,9 +678,10 @@ function Cviceni() {
         dailyGoal={currentGoalData.goal.dailyGoal}
         onSetDailyGoal={currentGoalData.goal.setDailyGoal}
         completedToday={currentGoalData.goal.completedToday}
-        progress={currentGoalData.goal.progress}
+        progressCurrent={currentGoalData.goal.completedToday}
+        progressTotal={currentGoalData.goal.dailyGoal}
+        progressTitle="Dnešní pokrok:"
         goalLabel={currentGoalData.label}
-        progressLabel="Dnešní pokrok"
         showSearch={activeSection === 'songs'}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}

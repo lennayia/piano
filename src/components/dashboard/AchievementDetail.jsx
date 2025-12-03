@@ -71,7 +71,7 @@ function AchievementDetail({
         <div style={{
           width: '100%',
           height: '4px',
-          background: 'rgba(181, 31, 101, 0.06)',
+          background: 'rgba(181, 31, 101, 0.02)',
           borderRadius: '999px',
           overflow: 'hidden',
           marginBottom: '0.5rem'
@@ -86,7 +86,7 @@ function AchievementDetail({
             transition={{ duration: 0.6, ease: 'easeOut' }}
             style={{
               height: '100%',
-              background: 'linear-gradient(90deg, rgba(181, 31, 101, 1) 0%, rgba(181, 31, 101, 1) 75%, rgba(45, 91, 120, 1) 100%)',
+              background: 'linear-gradient(90deg, rgba(181, 31, 101, 0.5) 0%, rgba(181, 31, 101, 0.6) 75%, rgba(45, 91, 120, 0.6) 100%)',
               borderRadius: '999px'
             }}
           />
