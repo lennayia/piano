@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from './ButtonComponents';
+import { useResponsive } from '../../hooks/useResponsive';
 
 function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
+  const { width: windowWidth } = useResponsive();
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -23,6 +26,10 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
+
+  // Responzivní padding: 320-700px = menší, 700px+ = plný
+  const backdropPadding = windowWidth < 700 ? '0.75rem' : '2rem';
+  const contentPadding = windowWidth < 700 ? '0.75rem' : '1.5rem';
 
   return (
     <AnimatePresence>
@@ -49,7 +56,7 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '2rem',
+              padding: backdropPadding,
               overflowY: 'auto'
             }}
           >
@@ -66,7 +73,7 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
                 WebkitBackdropFilter: 'blur(40px)',
                 border: '1px solid rgba(255, 255, 255, 0.4)',
                 boxShadow: '0 20px 60px rgba(31, 38, 135, 0.3)',
-                borderRadius: 'var(--radius-xxl)',
+                borderRadius: 'var(--radius-xl)',
                 maxWidth: '900px',
                 width: '100%',
                 maxHeight: '90vh',
@@ -83,12 +90,12 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
                   borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-                  padding: '1.5rem',
+                  padding: contentPadding,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   zIndex: 10,
-                  borderRadius: 'var(--radius-xxl) var(--radius-xxl) 0 0'
+                  borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0'
                 }}>
                   {title && <h2 style={{ margin: 0, color: '#1e293b' }}>{title}</h2>}
                   <CloseButton
@@ -99,7 +106,7 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
               )}
 
               {/* Body */}
-              <div className="modal-body" style={{ padding: '1.5rem' }}>
+              <div className="modal-body" style={{ padding: contentPadding }}>
                 {children}
               </div>
             </motion.div>

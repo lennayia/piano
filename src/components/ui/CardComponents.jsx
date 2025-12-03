@@ -293,6 +293,7 @@ export function StatCard({
         cursor: isClickable ? 'pointer' : 'default',
         padding: '0.5rem',
         borderRadius: 'var(--radius-md)',
+        backgroundColor: 'rgba(181, 31, 101, 0)',
         transition: 'background 0.2s',
         ...style
       }}

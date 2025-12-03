@@ -79,43 +79,27 @@ export function useDailyGoal(type = 'lessons', onGoalCompleted) {
 
   // Označit položku jako dokončenou (jen 1x za den)
   const markCompleted = (itemId) => {
-    console.log('📝 markCompleted called:', { itemId, dailyGoal, completedSize: completedToday.size, isGoalCompleted });
-
     if (!completedToday.has(itemId)) {
       const newCompleted = new Set(completedToday);
       newCompleted.add(itemId);
       setCompletedToday(newCompleted);
       saveToStorage(dailyGoal, newCompleted);
 
-      console.log('✅ Přidáno do completed:', { newSize: newCompleted.size, goal: dailyGoal });
-
       // Zkontrolovat, jestli jsme právě splnili cíl
       if (dailyGoal > 0 && newCompleted.size === dailyGoal && !isGoalCompleted) {
-        console.log('🎯 CÍL SPLNĚN! Volám callback...');
         setIsGoalCompleted(true);
         localStorage.setItem(GOAL_COMPLETED_KEY, new Date().toDateString());
 
         // Zavolat callback
         if (onGoalCompleted) {
-          console.log('📞 Callback existuje, volám...');
           onGoalCompleted({
             type,
             goalCount: dailyGoal,
             completedCount: newCompleted.size,
             completedItems: Array.from(newCompleted)
           });
-        } else {
-          console.warn('⚠️ Callback neexistuje!');
         }
-      } else {
-        console.log('❌ Cíl ještě nesplněn:', {
-          goalIsZero: dailyGoal === 0,
-          notEnough: newCompleted.size !== dailyGoal,
-          alreadyCompleted: isGoalCompleted
-        });
       }
-    } else {
-      console.log('⏭️ Item už byl dokončen dnes, přeskakuji');
     }
   };
 

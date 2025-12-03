@@ -1,6 +1,28 @@
 # LESSONS CHECKLIST - Modularizace & Optimalizace
 **Datum vytvoření:** 2. prosince 2025 (Session 4 - večer)
-**Status:** 📋 PŘIPRAVENO K REFAKTORINGU
+**Poslední aktualizace:** 3. prosince 2025 (Session 5)
+**Status:** 🚀 ČÁSTEČNĚ HOTOVO
+
+---
+
+## ✅ DOKONČENO (3.12.2025 - Session 5)
+
+### PianoKeyboard.jsx - Responzivní optimalizace
+- ✅ Proporcionální výška kláves (ratio 1:5.5)
+- ✅ Optimalizace modal padding výpočtů
+- ✅ Minimalizace horizontálního paddingu (< 700px)
+- ✅ Vertikální layout ovládacích prvků (< 540px)
+- ✅ Unified responsive breakpoints
+
+### NoteCard.jsx - Optimalizace velikosti
+- ✅ Proporcionální scale (0.7) pro zmenšení
+- ✅ Fixní šířka pro konzistenci
+- ✅ Snížené mezery (0.35rem)
+
+### LessonModal.jsx - Reward system
+- ✅ Integrace PracticeCelebration modalu
+- ✅ Propojení s celebrate() service
+- ✅ Gamifikační flow (completion → rewards → level-up)
 
 ---
 
@@ -10,9 +32,9 @@
 - [ ] **Lekce.jsx** - hlavní stránka lekcí
 - [ ] **LessonList.jsx** - seznam lekcí
 - [ ] **LessonCard.jsx** - karta jednotlivé lekce
-- [ ] **LessonModal.jsx** - modal pro přehrávání lekce
-- [ ] **PianoKeyboard.jsx** - klaviatura (už optimalizováno 25.11.2025)
-- [ ] **NoteCard.jsx** - zobrazení not
+- [x] **LessonModal.jsx** - ✅ modal + reward system (3.12.2025)
+- [x] **PianoKeyboard.jsx** - ✅ klaviatura optimalizována (25.11.2025 + 3.12.2025)
+- [x] **NoteCard.jsx** - ✅ zobrazení not (3.12.2025)
 
 ---
 

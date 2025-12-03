@@ -1,4 +1,5 @@
 import { celebrate } from './celebrationService';
+import { supabase } from '../lib/supabase';
 
 /**
  * Konstanta pro XP odměnu za splnění denního cíle

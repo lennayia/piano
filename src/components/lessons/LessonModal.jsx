@@ -2,8 +2,10 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { CheckCircle, Music, Clock, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Modal from '../ui/Modal';
-import { CloseButton } from '../ui/ButtonComponents';
+import { CloseButton, Chip } from '../ui/ButtonComponents';
+import { Card } from '../ui/CardComponents';
 import NoteCard from './NoteCard';
+import PracticeCelebration from '../practice/PracticeCelebration';
 
 // Lazy loading - PianoKeyboard je těžká komponenta, načte se až při otevření modalu
 const PianoKeyboard = lazy(() => import('./PianoKeyboard'));
@@ -16,6 +18,8 @@ import { celebrate, triggerCelebration } from '../../services/celebrationService
 
 function LessonModal({ lesson, isOpen, onClose, onComplete }) {
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [rewardData, setRewardData] = useState(null);
   const currentUser = useUserStore((state) => state.currentUser);
 
   useEffect(() => {
@@ -68,32 +72,27 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
             updateUserStats();
           }
 
-          // Pokud došlo k level-upu, zobrazit speciální oslavu
-          if (result.data.leveledUp && result.data.levelUpConfig) {
-            // Malé zpoždění, aby se nejdřív zavřel modal lekce
-            setTimeout(() => {
-              triggerCelebration(
-                result.data.levelUpConfig.confettiType,
-                result.data.levelUpConfig.sound,
-                {
-                  title: `⭐ Level ${result.data.level}!`,
-                  message: `Gratulujeme! Dosáhli jste levelu ${result.data.level} s ${result.data.totalXP} XP!`,
-                  type: 'success',
-                  duration: 5000
-                }
-              );
-            }, MODAL_AUTO_CLOSE_DELAY + 500);
-          }
+          // Uložit reward data a zobrazit reward modal
+          setRewardData({
+            xpAwarded: result.data.xpEarned,
+            icon: result.data.celebrationConfig.icon || 'BookOpen',
+            iconColor: result.data.celebrationConfig.iconColor || 'var(--color-primary)',
+            title: 'Výborně!',
+            completedItemTitle: lesson.title,
+            xpLabel: 'Odměna za dokončení lekce',
+            leveledUp: result.data.leveledUp,
+            newLevel: result.data.level
+          });
+
+          // Zobrazit reward modal (lesson modal zůstane otevřený na pozadí)
+          setTimeout(() => {
+            setShowRewardModal(true);
+          }, 500);
 
           // Zavolat callback pro denní cíl
           if (onComplete) {
             onComplete(lesson.id);
           }
-
-          // Zavřít modal po 2 sekundách
-          setTimeout(() => {
-            onClose();
-          }, MODAL_AUTO_CLOSE_DELAY);
         }
       } catch (error) {
         console.error('Chyba při ukládání lekce:', error);
@@ -102,6 +101,7 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
   };
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} hideHeader={true}>
       <div>
         {/* Header */}
@@ -151,24 +151,22 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
             <Music size={20} />
             Noty k procvičení
           </h3>
-          <div style={{
-            display: 'flex',
-            gap: '1rem',
-            padding: '1.5rem',
-            background: 'var(--glass-bg)',
-            backdropFilter: 'blur(15px)',
-            WebkitBackdropFilter: 'blur(15px)',
-            borderRadius: RADIUS.lg,
-            marginBottom: '2rem'
-          }}>
-            {lesson.content.notes.map((note, index) => (
-              <NoteCard
-                key={index}
-                note={note}
-                index={index}
-              />
-            ))}
-          </div>
+          <Card blur="15px" opacity={0.8} style={{ marginBottom: '2rem' }}>
+            <div style={{
+              display: 'flex',
+              gap: '0.35rem',
+              flexWrap: 'wrap',
+              justifyContent: 'center'
+            }}>
+              {lesson.content.notes.map((note, index) => (
+                <NoteCard
+                  key={index}
+                  note={note}
+                  index={index}
+                />
+              ))}
+            </div>
+          </Card>
 
           {/* Interactive Piano */}
           <div style={{ marginBottom: '2rem' }}>
@@ -197,31 +195,30 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
         {currentUser && (
           <div style={{ borderTop: 'none', boxShadow: '0 -1px 0 rgba(0, 0, 0, 0.05)', paddingTop: '1.5rem', textAlign: 'center' }}>
             {isCompleted ? (
-              <motion.div
+              <Card
+                as={motion.div}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
+                blur="10px"
+                opacity={0.9}
                 style={{
-                  padding: '1rem',
-                  background: 'var(--color-success-transparent)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  borderRadius: RADIUS.lg,
                   textAlign: 'center',
                   color: 'var(--color-success)',
                   fontWeight: 500,
-                  display: 'inline-block'
+                  display: 'inline-block',
+                  background: 'var(--color-success-transparent)'
                 }}
               >
                 <CheckCircle size={24} style={{ marginBottom: '0.5rem' }} />
                 <div>Gratulujeme! Tuto lekci jste již dokončili.</div>
-              </motion.div>
+              </Card>
             ) : (
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleComplete}
                 className="btn btn-primary"
-                style={{ padding: '1rem 2rem', fontSize: '1rem' }}
+                style={{ padding: '1rem 2rem' }}
               >
                 <CheckCircle size={20} />
                 Označit jako dokončenou
@@ -231,6 +228,43 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
         )}
       </div>
     </Modal>
+
+      {/* Reward Modal */}
+      {rewardData && (
+        <PracticeCelebration
+          showCelebration={showRewardModal}
+          showSuccessModal={showRewardModal}
+          icon={rewardData.icon}
+          iconColor={rewardData.iconColor}
+          title={rewardData.title}
+          completedItemTitle={rewardData.completedItemTitle}
+          xpAwarded={rewardData.xpAwarded}
+          xpLabel={rewardData.xpLabel}
+          onClose={() => {
+            setShowRewardModal(false);
+
+            // Zavřít i lesson modal
+            onClose();
+
+            // Po zavření reward modalu zobrazit level-up, pokud nastal
+            if (rewardData.leveledUp) {
+              setTimeout(() => {
+                triggerCelebration(
+                  'golden',
+                  'fanfare',
+                  {
+                    title: `⭐ Level ${rewardData.newLevel}!`,
+                    message: `Gratulujeme! Dosáhli jste levelu ${rewardData.newLevel}!`,
+                    type: 'success',
+                    duration: 5000
+                  }
+                );
+              }, 300);
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
 

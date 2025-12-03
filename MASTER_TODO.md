@@ -1,6 +1,43 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 2. prosince 2025 (večer - Session 4)
+Datum poslední aktualizace: 3. prosince 2025 (Session 5)
+
+## ✅ Dokončeno v této session (3.12.2025)
+
+### 1. ✅ PianoKeyboard - Responzivní optimalizace
+- Proporcionální výška kláves (1:5.5 ratio)
+- Zjednodušený výpočet šířky pro modal kontext
+- Minimalizace horizontálního paddingu (0.25rem na < 700px)
+- Vertikální layout ovládacích prvků na < 540px
+- **Soubor**: `src/components/lessons/PianoKeyboard.jsx`
+
+### 2. ✅ NoteCard - Zmenšení chipů
+- Proporcionální scale (0.7) místo změny rozměrů
+- Fixní šířka pro konzistentní zobrazení
+- Snížené mezery mezi chipy (0.35rem)
+- **Soubor**: `src/components/lessons/NoteCard.jsx`
+
+### 3. ✅ LessonModal - Integrace reward modalu
+- PracticeCelebration modal pro zobrazení XP odměn
+- Propojení s celebrate() service
+- Kompletní flow: completion → reward modal → level-up celebration
+- **Soubor**: `src/components/lessons/LessonModal.jsx`
+
+### 4. ✅ Modal - Design tweaks
+- Zmenšené border-radius (xxl → xl)
+- **Soubor**: `src/components/ui/Modal.jsx`
+
+### 5. ✅ CardComponents - Framer Motion fix
+- Oprava "transparent" animation warning
+- **Soubor**: `src/components/ui/CardComponents.jsx`
+
+### 6. ✅ useDailyGoal - Code cleanup
+- Odstranění verbose console.logs
+- **Soubor**: `src/hooks/useDailyGoal.js`
+
+**Dokumentace**: `DOKUMENTACE-20251203-responsive-and-rewards.md`
+
+---
 
 ## 🆕 Nově přidané úkoly (2.12.2025)
 1. **User Rating System** - Hodnocení aktivit (hvězdičky + náročnost)

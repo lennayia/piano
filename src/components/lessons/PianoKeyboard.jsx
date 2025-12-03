@@ -96,11 +96,12 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
 
   // Responsivní šířka klávesy - vypočítaná aby se vešly všechny klávesy
   const getKeyWidth = () => {
-    // Padding kontejneru + padding stránky
-    const containerPadding = windowWidth < 360 ? 8 : windowWidth < 768 ? 16 : 32;
-    const pagePadding = windowWidth < 768 ? 32 : 48; // .container padding
-    // Dostupná šířka pro klávesy
-    const availableWidth = windowWidth - containerPadding * 2 - pagePadding - 30;
+    // Modal padding (backdrop + content body) - pro malé obrazovky bez bezpečnostní rezervy
+    const modalPadding = windowWidth < 480 ? 48 : windowWidth < 540 ? 56 : windowWidth < 700 ? 60 : 132; // 48px = skutečný modal padding
+    // Padding karty klaviatury (horizontální)
+    const cardHorizontalPadding = windowWidth < 700 ? 0.25 * 16 : 1 * 16; // převod rem na px
+    // Dostupná šířka = celá šířka okna minus modal padding minus padding karty na obou stranách
+    const availableWidth = windowWidth - modalPadding - (cardHorizontalPadding * 2);
     // Šířka pro všechny klávesy včetně mezer
     const totalGaps = (whiteKeyCount - 1) * gap;
     const maxKeyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
@@ -111,21 +112,17 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     return Math.max(20, Math.min(45, maxKeyWidth));
   };
 
-  const getKeyHeight = () => {
-    if (windowWidth < 360) return 100;
-    if (windowWidth < 480) return 120;
-    if (windowWidth < 668) return 140;
-    if (windowWidth < 768) return 160;
-    return 200;
-  };
-
   const keyWidth = getKeyWidth();
-  const keyHeight = getKeyHeight();
+  // Výška proporcionální k šířce (poměr 1:5.5 jako u reálných kláves)
+  const keyHeight = Math.max(100, Math.min(200, Math.floor(keyWidth * 5.5)));
+
+  // Responzivní padding - minimální horizontální padding pro <700px (maximum místa pro klaviaturu)
+  const keyboardPadding = windowWidth < 360 ? '0.75rem 0.25rem' : windowWidth < 700 ? '0.75rem 0.25rem' : '1.5rem 1rem';
 
   return (
     <div style={{
       position: 'relative',
-      padding: windowWidth < 360 ? '0.75rem 0.25rem' : windowWidth < 768 ? '1rem 0.5rem' : '1.5rem 1rem',
+      padding: keyboardPadding,
       background: 'var(--glass-bg)',
       backdropFilter: 'blur(20px)',
       borderRadius: 'var(--radius-xl)',
@@ -135,15 +132,16 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
       {/* Instrukce a Volume Control v jednom řádku */}
       <div style={{
         display: 'flex',
+        flexDirection: windowWidth < 540 ? 'column' : 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '1.5rem',
-        marginBottom: '1rem',
-        padding: '0.5rem 1rem',
+        gap: windowWidth < 540 ? '0.5rem' : windowWidth < 700 ? '1rem' : '1.5rem',
+        marginBottom: windowWidth < 700 ? '0.75rem' : '1rem',
+        padding: windowWidth < 700 ? '0.5rem 0' : '0.5rem 1rem',  // Bez horizontálního paddingu na malých obrazovkách
         background: 'rgba(255, 255, 255, 0.5)',
         borderRadius: 'var(--radius-md)',
         width: 'fit-content',
-        margin: '0 auto 1rem auto',
+        margin: windowWidth < 700 ? '0 auto 0.75rem auto' : '0 auto 1rem auto',
         flexWrap: 'wrap'
       }}>
         {/* Instrukce */}
