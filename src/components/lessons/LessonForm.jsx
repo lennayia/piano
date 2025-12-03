@@ -1,10 +1,11 @@
 import { DIFFICULTY_OPTIONS } from '../../utils/lessonUtils';
 import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormComponents';
 import { SaveButton, CancelButton } from '../ui/ButtonComponents';
+import { FormField, FormFieldGrid } from '../ui/FormField';
 
 /**
  * Univerzální formulář pro vytvoření nebo editaci lekce
- * Používá se v LessonList (nová lekce) i LessonCard (editace)
+ * Používá optimalizované komponenty FormField a FormFieldGrid
  */
 function LessonForm({
   formData,
@@ -17,27 +18,29 @@ function LessonForm({
 }) {
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div className="form-group">
-          <FormLabel text="Název lekce" />
-          <FormInput
-            type="text"
-            value={formData.title}
-            onChange={(e) => onChange('title', e.target.value)}
-            placeholder={titlePlaceholder}
-          />
-        </div>
+      {/* Název lekce - celý řádek */}
+      <FormField spacing="compact">
+        <FormLabel text="Název lekce" />
+        <FormInput
+          type="text"
+          value={formData.title}
+          onChange={(e) => onChange('title', e.target.value)}
+          placeholder={titlePlaceholder}
+        />
+      </FormField>
 
-        <div className="form-group">
+      {/* Obtížnost a délka - responzivní grid */}
+      <FormFieldGrid gap="tight" marginBottom="tight">
+        <FormField spacing="none">
           <FormLabel text="Obtížnost" />
           <FormSelect
             value={formData.difficulty}
             onChange={(e) => onChange('difficulty', e.target.value)}
             options={DIFFICULTY_OPTIONS}
           />
-        </div>
+        </FormField>
 
-        <div className="form-group">
+        <FormField spacing="none" style={{ maxWidth: '50%', minWidth: '120px' }}>
           <FormLabel text="Délka" />
           <FormInput
             type="text"
@@ -45,10 +48,10 @@ function LessonForm({
             onChange={(e) => onChange('duration', e.target.value)}
             placeholder={durationPlaceholder}
           />
-        </div>
-      </div>
+        </FormField>
+      </FormFieldGrid>
 
-      <div className="form-group" style={{ marginBottom: '1rem' }}>
+      <FormField spacing="compact" style={{ marginTop: 0 }}>
         <FormLabel text="Popis" />
         <FormTextarea
           value={formData.description}
@@ -56,9 +59,9 @@ function LessonForm({
           rows={2}
           placeholder="Popis lekce"
         />
-      </div>
+      </FormField>
 
-      <div className="form-group" style={{ marginBottom: '1rem' }}>
+      <FormField spacing="compact">
         <FormLabel text="Tóny (oddělené mezerou)" />
         <FormInput
           type="text"
@@ -66,17 +69,17 @@ function LessonForm({
           onChange={(e) => onChange('content.notes', e.target.value.split(/\s+/).map(n => n.trim()).filter(n => n))}
           placeholder="Např. C D E"
         />
-      </div>
+      </FormField>
 
-      <div className="form-group" style={{ marginBottom: '1rem' }}>
+      <FormField spacing="compact">
         <FormLabel text="Instrukce (jedna na řádek)" />
         <FormTextarea
           value={formData.content.instructions.join('\n')}
           onChange={(e) => onChange('content.instructions', e.target.value.split('\n').filter(i => i.trim()))}
-          rows={3}
+          rows={5}
           placeholder="Zadejte instrukce&#10;Každá na nový řádek"
         />
-      </div>
+      </FormField>
 
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <SaveButton onClick={onSave} label={saveLabel} />

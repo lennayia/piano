@@ -363,3 +363,46 @@ grep -n "console.log" src/components/lessons/*.jsx src/pages/Lekce.jsx
 
 ### Výsledek
 **100% KOMPLETNÍ** - Všechny lesson komponenty jsou modulární a používají CSS variables
+
+---
+
+## 📋 CARD MODULARIZACE UPDATE (3.12.2025)
+
+### EditFormContainer.jsx
+- ✅ **Fix glass effect corner artifacts** - Opraveny viditelné rohy
+- ✅ **Refaktorováno na Card komponentu** - Místo inline stylů
+- ✅ **Modulární design** - Používá Card, SectionHeader
+- ✅ **Dokumentace aktualizována** - JSDoc komentáře
+
+### LessonList.jsx - GlassCard Removal
+- ✅ **GlassCard odstraněn** - Nahrazen Card komponentou
+- ✅ **Import změněn** - `import { Card } from '../ui/CardComponents'`
+- ✅ **Props aktualizovány:**
+  ```jsx
+  // Před:
+  <GlassCard animate animationProps={{...}}>
+
+  // Po:
+  <Card as={motion.div} opacity={0.8} blur="30px" initial={{...}} animate={{...}}>
+  ```
+
+### Card Component Enhancement
+- ✅ **Přidán `as` prop** - Polymorfní komponenta
+- ✅ **Motion.div support** - `<Card as={motion.div} />`
+- ✅ **Standardizace:** blur="30px", opacity={0.8}
+- ✅ **Single source of truth** pro glassmorphism
+
+### Soubory změněny
+- `src/components/ui/EditFormContainer.jsx` - refaktorováno
+- `src/components/lessons/LessonList.jsx` - GlassCard → Card
+- `src/components/ui/CardComponents.jsx` - přidán `as` prop
+- `src/components/ui/GlassCard.jsx` - **SMAZÁN** (duplicitní)
+
+### Benefity
+- ✅ Konzistentní glassmorphism napříč všemi lekcemi
+- ✅ Menší bundle size (odstranění GlassCard)
+- ✅ Modulární EditFormContainer používaný v lesson editaci
+- ✅ Fix corner artifacts pro lepší vizuální kvalitu
+
+### Dokumentace
+- `SESSION_CONTEXT-20251203-card-modularization.md` - Detailní dokumentace změn

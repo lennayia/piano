@@ -453,7 +453,7 @@ function UserDashboard() {
         )}
 
         {activeTab === 'leaderboard' && <Leaderboard />}
-        </motion.div>
+      </motion.div>
       </Card>
 
       {/* Recent Activity */}

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { Target } from 'lucide-react';
+import { Trophy, Search, ArrowUpDown } from 'lucide-react';
 import TabButtons from './TabButtons';
-import { FormInput, FormLabel } from './FormComponents';
+import { FormInput, FormLabel, FormSelect } from './FormComponents';
 import { RADIUS } from '../../utils/styleConstants';
 
 /**
@@ -32,6 +32,14 @@ import { RADIUS } from '../../utils/styleConstants';
  * @param {string} props.goalLabel - Label pro denní cíl (např. "lekcí", "písniček")
  * @param {string} props.progressLabel - Label pro progress bar (např. "Váš pokrok")
  * @param {number} props.progress - Progress bar value (0-100)
+ * @param {boolean} props.showSearch - Zobrazit vyhledávání
+ * @param {string} props.searchValue - Hodnota vyhledávání
+ * @param {function} props.onSearchChange - Callback při změně vyhledávání
+ * @param {string} props.searchPlaceholder - Placeholder pro vyhledávací pole
+ * @param {boolean} props.showSort - Zobrazit řazení
+ * @param {array} props.sortOptions - Možnosti řazení [{value, label}]
+ * @param {string} props.sortValue - Hodnota řazení
+ * @param {function} props.onSortChange - Callback při změně řazení
  * @param {React.Component} props.children - Obsah stránky
  */
 export function PageSection({
@@ -59,6 +67,14 @@ export function PageSection({
   goalLabel = 'položek',
   progressLabel,
   progress,
+  showSearch = false,
+  searchValue = '',
+  onSearchChange,
+  searchPlaceholder = 'Hledat...',
+  showSort = false,
+  sortOptions = [],
+  sortValue = '',
+  onSortChange,
   children
 }) {
   // Zjistit, jestli aktivní hlavní tab má submenu
@@ -82,22 +98,22 @@ export function PageSection({
 
   return (
     <div className="container">
-      {/* Header sekce */}
+      {/* Header sekce - kompaktnější */}
       {(Icon || title || description) && (
         <>
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{ marginBottom: '1rem' }}
+            style={{ marginBottom: '0.75rem' }}
           >
             {title && (
               <h1 style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: description ? '0.5rem' : '0'
+                gap: '0.5rem',
+                marginBottom: description ? '0.35rem' : '0'
               }}>
-                {Icon && <Icon size={32} color="var(--color-text-secondary)" />}
+                {Icon && <Icon size={24} color="var(--color-text-secondary)" />}
                 {title}
               </h1>
             )}
@@ -117,7 +133,7 @@ export function PageSection({
             tabs={mainTabs}
             activeTab={activeMainTab}
             onTabChange={onMainTabChange}
-            options={{ size: mainTabsSize, style: { marginBottom: hasSubMenu ? '1rem' : 0 } }}
+            options={{ size: mainTabsSize, style: { marginBottom: hasSubMenu ? '0.75rem' : 0 } }}
           />
 
           {/* Submenu pills (2. úroveň) */}
@@ -126,7 +142,7 @@ export function PageSection({
               tabs={currentSubTabs}
               activeTab={activeSubTab}
               onTabChange={onSubTabChange}
-              options={{ layout: 'pill', size: 'sm', style: { marginBottom: hasThirdLevel ? '0.75rem' : 0 } }}
+              options={{ layout: 'pill', size: 'sm', style: { marginBottom: hasThirdLevel ? '0.5rem' : 0 } }}
             />
           )}
 
@@ -144,112 +160,185 @@ export function PageSection({
         </>
       )}
 
-      {/* Content header sekce */}
-      {sectionTitle && (
-        <>
-          <h2 style={{ margin: 0, marginBottom: '0.5rem' }}>
-            {sectionTitle}
-          </h2>
-
-          {sectionDescription && (
-            <p style={{ color: 'var(--color-text-secondary)', margin: 0, marginBottom: '1.5rem' }}>
-              {sectionDescription}
-            </p>
-          )}
-        </>
-      )}
-
-      {/* Denní cíl sekce */}
-      {showDailyGoal && (
+      {/* Content header + Search/Sort v jednom řádku */}
+      {(sectionTitle || showSearch || showSort) && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-            marginBottom: '1rem',
-            padding: '1rem',
-            background: 'var(--glass-bg)',
-            borderRadius: RADIUS.lg,
-            border: '1px solid var(--glass-border)',
-            boxShadow: 'var(--glass-shadow)'
-          }}
+          style={{ marginBottom: '1rem' }}
         >
-          <Target size={20} color="var(--color-primary)" />
-          <FormLabel text="Dnešní cíl:" style={{ margin: 0, fontWeight: 600 }} />
-          <FormInput
-            type="number"
-            min="0"
-            max="100"
-            value={dailyGoal}
-            onChange={(e) => onSetDailyGoal?.(e.target.value)}
-            placeholder="0"
-            style={{ width: '80px', textAlign: 'center' }}
-          />
-          <span style={{
-            fontSize: '0.95rem',
-            color: 'var(--color-text-secondary)',
-            fontWeight: 500
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '1rem',
+            marginBottom: sectionDescription ? '0.35rem' : 0,
+            flexWrap: 'wrap'
           }}>
-            {goalLabel}
-          </span>
-          {dailyGoal > 0 && (
-            <span style={{
-              marginLeft: 'auto',
-              fontSize: '0.95rem',
-              fontWeight: 600,
-              color: completedToday >= dailyGoal ? 'var(--color-success)' : 'var(--color-primary)'
-            }}>
-              {completedToday}/{dailyGoal}
-              {completedToday >= dailyGoal && ' 🎉'}
-            </span>
+            {/* Title vlevo */}
+            {sectionTitle && (
+              <h2 style={{ margin: 0, flex: '0 0 auto' }}>
+                {sectionTitle}
+              </h2>
+            )}
+
+            {/* Search + Sort vpravo (na mobilu pod sebou) */}
+            {(showSearch || showSort) && (
+              <div style={{
+                display: 'flex',
+                gap: '0.5rem',
+                marginLeft: 'auto',
+                flex: '1 1 auto',
+                minWidth: '300px',
+                flexWrap: 'wrap'
+              }}>
+                {showSearch && (
+                  <div style={{ flex: '1 1 200px', position: 'relative', minWidth: '200px' }}>
+                    <div style={{
+                      position: 'absolute',
+                      left: '0.75rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      pointerEvents: 'none',
+                      color: 'var(--color-text-secondary)'
+                    }}>
+                      <Search size={14} />
+                    </div>
+                    <FormInput
+                      type="text"
+                      value={searchValue}
+                      onChange={(e) => onSearchChange?.(e.target.value)}
+                      placeholder={searchPlaceholder}
+                      style={{
+                        paddingLeft: '2.25rem',
+                        width: '100%',
+                        padding: '0.35rem 0.35rem 0.35rem 2.25rem',
+                        fontSize: '0.8125rem',
+                        borderRadius: RADIUS.sm
+                      }}
+                    />
+                  </div>
+                )}
+
+                {showSort && sortOptions.length > 0 && (
+                  <div style={{ flex: '0 1 160px', display: 'flex', alignItems: 'center', gap: '0.35rem', minWidth: '140px' }}>
+                    <ArrowUpDown size={14} color="var(--color-text-secondary)" />
+                    <FormSelect
+                      value={sortValue}
+                      onChange={(e) => onSortChange?.(e.target.value)}
+                      options={sortOptions}
+                      style={{ width: '100%', padding: '0.35rem', fontSize: '0.8125rem' }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Description pod vším */}
+          {sectionDescription && (
+            <p style={{ color: 'var(--color-text-secondary)', margin: 0 }}>
+              {sectionDescription}
+            </p>
           )}
         </motion.div>
       )}
 
-      {/* Progress bar sekce */}
-      {(progressLabel || progress !== undefined) && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1.5rem',
-          marginBottom: '2rem'
-        }}>
-          {progressLabel && (
-            <span style={{
-              fontSize: '0.95rem',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)',
-              flexShrink: 0
-            }}>
-              {progressLabel}
-            </span>
-          )}
+      {/* Denní cíl + Progress bar inline - jemnější, kompaktnější */}
+      {(showDailyGoal || progress !== undefined) && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            marginBottom: '1.5rem',
+            padding: '0.5rem 0.75rem',
+            background: 'rgba(45, 91, 120, 0.03)',
+            borderRadius: RADIUS.lg,
+            border: '1px solid rgba(45, 91, 120, 0.08)'
+          }}
+        >
+          {/* Denní cíl + Progress bar v jednom řádku */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            flexWrap: 'wrap'
+          }}>
+            {showDailyGoal && (
+              <>
+                <Trophy size={14} color="var(--color-secondary)" style={{ flexShrink: 0 }} />
+                <FormLabel text="Dnešní cíl:" style={{ margin: 0, fontWeight: 600, fontSize: '0.8125rem' }} />
+                <FormInput
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={dailyGoal}
+                  onChange={(e) => onSetDailyGoal?.(e.target.value)}
+                  placeholder="0"
+                  style={{
+                    width: '60px',
+                    textAlign: 'center',
+                    padding: '0.25rem 0.35rem',
+                    fontSize: '0.8125rem',
+                    border: '1px solid rgba(45, 91, 120, 0.15)',
+                    borderRadius: RADIUS.md
+                  }}
+                />
+                <span style={{
+                  color: 'var(--color-text-secondary)',
+                  fontWeight: 500,
+                  fontSize: '0.8125rem'
+                }}>
+                  {goalLabel}
+                </span>
+                {dailyGoal > 0 && (
+                  <span style={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    color: completedToday >= dailyGoal ? 'var(--color-success)' : 'var(--color-primary)'
+                  }}>
+                    {completedToday}/{dailyGoal}
+                    {completedToday >= dailyGoal && ' 🎉'}
+                  </span>
+                )}
+                {sectionAction && <div style={{ flexShrink: 0 }}>{sectionAction}</div>}
+              </>
+            )}
 
-          {progress !== undefined && (
-            <div style={{
-              flex: 1,
-              height: '4px',
-              background: 'rgba(0, 0, 0, 0.03)',
-              borderRadius: RADIUS.sm,
-              overflow: 'hidden'
-            }}>
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
-                style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, var(--color-primary-transparent), var(--color-secondary-transparent))',
-                  borderRadius: RADIUS.sm
-                }}
-              />
-            </div>
-          )}
-
-          {sectionAction && <div style={{ flexShrink: 0 }}>{sectionAction}</div>}
-        </div>
+            {/* Progress bar inline vedle denního cíle */}
+            {progress !== undefined && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                flex: '1 1 250px',
+                minWidth: '200px',
+                marginLeft: showDailyGoal ? '1.5rem' : '0',
+                paddingRight: '1rem'
+              }}>
+                <div style={{
+                  flex: 1,
+                  height: '3px',
+                  background: 'rgba(0, 0, 0, 0.08)',
+                  borderRadius: RADIUS.sm,
+                  overflow: 'hidden'
+                }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    style={{
+                      height: '100%',
+                      background: completedToday >= dailyGoal
+                        ? 'linear-gradient(90deg, var(--color-success), var(--color-secondary))'
+                        : 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
+                      borderRadius: RADIUS.sm
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
       )}
 
       {/* Obsah stránky */}

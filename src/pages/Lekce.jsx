@@ -20,22 +20,31 @@ const SUB_TABS_CONFIG = {
   'all': [
     { id: 'all', label: 'Vše' },
     { id: 'beginner', label: 'Začátečník' },
-    { id: 'intermediate', label: 'Pokročilý' },
-    { id: 'expert', label: 'Expert' }
+    { id: 'intermediate', label: 'Mírně pokročilý začátečník' },
+    { id: 'expert', label: 'Mírně pokročilý' }
   ],
   'in_progress': [
     { id: 'all', label: 'Vše' },
     { id: 'beginner', label: 'Začátečník' },
-    { id: 'intermediate', label: 'Pokročilý' },
-    { id: 'expert', label: 'Expert' }
+    { id: 'intermediate', label: 'Mírně pokročilý začátečník' },
+    { id: 'expert', label: 'Mírně pokročilý' }
   ],
   'completed': [
     { id: 'all', label: 'Vše' },
     { id: 'beginner', label: 'Začátečník' },
-    { id: 'intermediate', label: 'Pokročilý' },
-    { id: 'expert', label: 'Expert' }
+    { id: 'intermediate', label: 'Mírně pokročilý začátečník' },
+    { id: 'expert', label: 'Mírně pokročilý' }
   ]
 };
+
+// Možnosti řazení
+const SORT_OPTIONS = [
+  { value: 'default', label: 'Výchozí pořadí' },
+  { value: 'name-asc', label: 'Název (A-Z)' },
+  { value: 'name-desc', label: 'Název (Z-A)' },
+  { value: 'difficulty-asc', label: 'Obtížnost (↑)' },
+  { value: 'difficulty-desc', label: 'Obtížnost (↓)' }
+];
 
 // Lekce page with daily goal tracking
 function Lekce() {
@@ -45,6 +54,8 @@ function Lekce() {
   const [difficultyTab, setDifficultyTab] = useState('all');
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('default');
 
   // Callback pro splnění denního cíle - memoizovaný pro lepší performance
   const handleGoalCompleted = useCallback(
@@ -166,11 +177,21 @@ function Lekce() {
         goalLabel="lekcí"
         progressLabel="Dnešní pokrok"
         progress={progress}
+        showSearch={true}
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Co hledáte?"
+        showSort={true}
+        sortOptions={SORT_OPTIONS}
+        sortValue={sortBy}
+        onSortChange={setSortBy}
       >
         <LessonList
           filter={mainTab}
           difficulty={difficultyTab}
           onLessonComplete={markCompleted}
+          searchTerm={searchTerm}
+          sortBy={sortBy}
         />
       </PageSection>
 

@@ -1330,6 +1330,63 @@ const addContact = async (email, name) => {
 
 ## ✅ Nedávno dokončené úkoly
 
+### Card Component Modularizace + Glass Effect Fix (3.12.2025)
+**Dokončeno:** ✅
+**Popis:** Kompletní modularizace CardComponents, fix glass effect artifacts, standardizace glassmorphism hodnot
+
+**Změny:**
+- ✅ **EditFormContainer.jsx - Fix corner artifacts:**
+  - Opraveny viditelné rohy glass efektu
+  - Root cause: Dvojité `overflow: 'hidden'` způsobovalo artifacts
+  - Řešení: Odstranění overflow z motion.div wrapperu
+  - Refaktorováno na použití Card komponenty místo inline stylů
+
+- ✅ **Card Component - Přidán `as` prop:**
+  - Polymorfní komponenta podporující motion.div a další elementy
+  - Props: opacity, blur, radius, shadow, as
+  - Umožňuje: `<Card as={motion.div} initial={...} animate={...} />`
+
+- ✅ **CardComponents.jsx - Kompletní refaktoring:**
+  - PageCard refaktorován na Card wrapper (-2 řádky duplicitního kódu)
+  - QuestionCard refaktorován na Card wrapper
+  - ItemCard refaktorován na Card wrapper (s motion.div)
+  - StatCard icon container refaktorován na Card wrapper
+  - Eliminace všech duplikací glassmorphism kódu
+
+- ✅ **GlassCard.jsx - Odstranění:**
+  - Duplicitní komponenta, méně flexibilní než Card
+  - Používána pouze v LessonList.jsx (1 místo)
+  - Nahrazena Card komponentou a smazána
+  - LessonList.jsx: GlassCard → Card
+
+- ✅ **Standardizace glassmorphism hodnot:**
+  - **blur: 30px** (standard pro všechny card komponenty)
+  - **opacity: 0.8** (standard pro všechny card komponenty)
+  - Výjimky: StatCard icon (blur="10px", opacity={0.95}), EditFormContainer (opacity={0.4})
+
+**Soubory:**
+- `src/components/ui/EditFormContainer.jsx` (fix + refactored)
+- `src/components/ui/CardComponents.jsx` (přidán `as` prop, refactoring)
+- `src/components/lessons/LessonList.jsx` (nahrazeno GlassCard)
+- `src/components/ui/GlassCard.jsx` (SMAZÁN)
+- `SESSION_CONTEXT-20251203-card-modularization.md` (nová dokumentace)
+
+**Benefity:**
+- Single source of truth pro glassmorphism efekty
+- Eliminace duplicitního kódu
+- Konzistentní blur/opacity hodnoty napříč aplikací
+- Flexibilní Card komponenta s `as` prop pro motion.div
+- Menší bundle size (odstranění GlassCard)
+- Snadnější maintenance (změna v Card = změna všude)
+
+**Architektonická vylepšení:**
+- Modularita: Všechny komponenty používají Card jako wrapper
+- Flexibilita: Props lze přepisovat per usage
+- Konzistence: Standardizované hodnoty napříč aplikací
+- DRY principle: Žádné duplikáty glassmorphism kódu
+
+---
+
 ### Leaderboard Refactoring + Admin Table (2.12.2025 večer)
 **Dokončeno:** ✅
 **Popis:** Kompletní refaktoring Leaderboard komponenty a vytvoření admin table verze

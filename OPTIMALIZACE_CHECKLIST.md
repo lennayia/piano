@@ -412,9 +412,70 @@ Při optimalizaci každé stránky postupujeme systematicky:
   - ✅ User Rating System (hvězdičky + náročnost)
   - ✅ Admin Analytics Dashboard (kompletní statistiky)
 
+### 11. CardComponents.jsx - Kompletní refaktoring (3.12.2025)
+- [x] **Card Component - Přidán `as` prop pro polymorfní použití**
+  - ✅ Podpora motion.div a dalších custom elementů
+  - ✅ Props: opacity, blur, radius, shadow, as
+  - ✅ Umožňuje: `<Card as={motion.div} initial={...} animate={...} />`
+
+- [x] **PageCard refaktorováno na Card wrapper**
+  - ✅ Eliminace duplicitního glassmorphism kódu (16 → 14 řádků)
+  - ✅ Standardizace: blur="30px", opacity={0.8}
+  - ✅ Reusable Card komponenta jako základ
+
+- [x] **QuestionCard refaktorováno na Card wrapper**
+  - ✅ Odstranění inline glassmorphism stylů
+  - ✅ Použití Card s custom props
+  - ✅ Zachování isSelected logiky
+
+- [x] **ItemCard refaktorováno na Card wrapper s motion.div**
+  - ✅ Demonstrace `as={motion.div}` použití
+  - ✅ Odstranění duplicitního glassmorphism kódu
+  - ✅ Standardizace blur/opacity hodnot
+
+- [x] **StatCard icon container refaktorován na Card wrapper**
+  - ✅ Card s motion.div pro animace
+  - ✅ Výjimka: blur="10px", opacity={0.95} (menší element)
+  - ✅ Whileever animations zachovány
+
+- [x] **GlassCard.jsx - Odstranění duplicity**
+  - ✅ GlassCard byl duplicitní komponentou (méně flexibilní než Card)
+  - ✅ Používán pouze v LessonList.jsx (1 místo)
+  - ✅ Nahrazen Card komponentou
+  - ✅ Soubor GlassCard.jsx SMAZÁN
+  - ✅ LessonList.jsx: GlassCard → Card
+
+- [x] **EditFormContainer.jsx - Refaktoring na Card**
+  - ✅ Fix glass effect corner artifacts
+  - ✅ Odstranění inline glassmorphism stylů
+  - ✅ Použití Card komponenty místo custom div
+  - ✅ Root cause: Dvojité overflow způsobovalo artifacts
+
+- [x] **Standardizace glassmorphism hodnot**
+  - ✅ **blur: 30px** (standard pro všechny card komponenty)
+  - ✅ **opacity: 0.8** (standard pro všechny card komponenty)
+  - ✅ Výjimky zdokumentovány (StatCard icon, EditFormContainer)
+
+**Výsledky:**
+- ✅ **Single source of truth** pro všechny glassmorphism efekty
+- ✅ **Eliminace duplikátů** - všechny komponenty používají Card jako wrapper
+- ✅ **Menší bundle size** - odstranění GlassCard.jsx
+- ✅ **Flexibilita** - `as` prop umožňuje custom elementy
+- ✅ **Konzistence** - standardizované blur/opacity hodnoty napříč aplikací
+- ✅ **Snadnější maintenance** - změna v Card = změna všude
+
+**Soubory změněny:**
+- `src/components/ui/CardComponents.jsx` - přidán `as` prop, refactoring
+- `src/components/ui/EditFormContainer.jsx` - refaktorováno na Card
+- `src/components/lessons/LessonList.jsx` - GlassCard → Card
+- `src/components/ui/GlassCard.jsx` - **SMAZÁN** (duplicitní)
+
+**Dokumentace:**
+- `SESSION_CONTEXT-20251203-card-modularization.md` - kompletní dokumentace změn
+
 ---
 
-**Poslední update:** 2. prosince 2025 (Session 4 - večer)
+**Poslední update:** 3. prosince 2025
 **Status:**
 - ✅ Database view `user_activities` vytvořen a funkční
 - ✅ Admin Historie dokončena s vyhledáváním

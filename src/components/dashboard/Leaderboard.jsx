@@ -12,7 +12,14 @@ const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const currentUser = useUserStore((state) => state.currentUser);
-  const { isCompact } = useResponsive();
+  const { width } = useResponsive();
+
+  // Postupné schovávání sloupců podle šířky
+  const showGoals = width > 630;      // Cíle - schová se první
+  const showSongs = width > 580;      // Písně - schová se druhá
+  const showQuizzes = width > 530;    // Kvízy - schová se třetí
+  const showLessons = width > 500;    // Lekce - schová se čtvrtá
+  const isCompact = width <= 500;     // Pod 500px kompaktní režim (jen jméno a XP)
 
   const levelThresholds = [
     { level: 1, min_xp: 0, max_xp: 99, label: 'Začátečník' },
@@ -151,6 +158,20 @@ const Leaderboard = () => {
               return '0 2px 8px rgba(0, 0, 0, 0.1)'; // Všechny stejný defaultní stín
             };
 
+            // Dynamický grid podle viditelných sloupců
+            const getGridColumns = () => {
+              if (isCompact) return '50px 1fr auto';
+
+              let columns = ['60px', 'minmax(120px, 1fr)'];
+              if (showLessons) columns.push('minmax(50px, auto)');
+              if (showQuizzes) columns.push('minmax(50px, auto)');
+              if (showSongs) columns.push('minmax(50px, auto)');
+              if (showGoals) columns.push('minmax(50px, auto)');
+              columns.push('minmax(70px, auto)'); // XP vždy viditelné
+
+              return columns.join(' ');
+            };
+
             return (
               <motion.div
                 key={user.user_id}
@@ -164,8 +185,8 @@ const Leaderboard = () => {
                   borderRadius: RADIUS.lg,
                   padding: isCompact ? '0.75rem' : '1rem',
                   display: 'grid',
-                  gridTemplateColumns: isCompact ? '50px 1fr auto' : '60px 1fr auto auto auto auto auto',
-                  gap: isCompact ? '0.5rem' : '1rem',
+                  gridTemplateColumns: getGridColumns(),
+                  gap: '0.5rem',
                   alignItems: 'center',
                   position: 'relative',
                   overflow: 'visible',
@@ -240,97 +261,101 @@ const Leaderboard = () => {
                   </div>
                 </div>
 
-                {/* Stats - Lekce, Kvízy, Písně, Cíle (pouze desktop > 1024px) */}
-                {!isCompact && (
-                  <>
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      minWidth: '70px'
-                    }}>
-                      <div
-                        className="text-xs"
-                        style={{
-                          color: 'var(--color-text-secondary)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                        Lekce
-                      </div>
-                      <Chip
-                        text={user.lessons_completed || 0}
-                        variant="light"
-                      />
+                {/* Stats - postupně se skrývají podle šířky obrazovky */}
+                {showLessons && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '70px'
+                  }}>
+                    <div
+                      className="text-xs"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                      Lekce
                     </div>
+                    <Chip
+                      text={user.lessons_completed || 0}
+                      variant="light"
+                    />
+                  </div>
+                )}
 
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      minWidth: '70px'
-                    }}>
-                      <div
-                        className="text-xs"
-                        style={{
-                          color: 'var(--color-text-secondary)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                        Kvízy
-                      </div>
-                      <Chip
-                        text={user.quizzes_completed || 0}
-                        variant="light"
-                      />
+                {showQuizzes && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '70px'
+                  }}>
+                    <div
+                      className="text-xs"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                      Kvízy
                     </div>
+                    <Chip
+                      text={user.quizzes_completed || 0}
+                      variant="light"
+                    />
+                  </div>
+                )}
 
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      minWidth: '70px'
-                    }}>
-                      <div
-                        className="text-xs"
-                        style={{
-                          color: 'var(--color-text-secondary)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                        Písně
-                      </div>
-                      <Chip
-                        text={user.songs_completed || 0}
-                        variant="light"
-                      />
+                {showSongs && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '70px'
+                  }}>
+                    <div
+                      className="text-xs"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                      Písně
                     </div>
+                    <Chip
+                      text={user.songs_completed || 0}
+                      variant="light"
+                    />
+                  </div>
+                )}
 
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      minWidth: '70px'
-                    }}>
-                      <div
-                        className="text-xs"
-                        style={{
-                          color: 'var(--color-text-secondary)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                        Cíle
-                      </div>
-                      <Chip
-                        text={user.daily_goals_completed || 0}
-                        variant="light"
-                      />
+                {showGoals && (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    minWidth: '70px'
+                  }}>
+                    <div
+                      className="text-xs"
+                      style={{
+                        color: 'var(--color-text-secondary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                      Cíle
                     </div>
-                  </>
+                    <Chip
+                      text={user.daily_goals_completed || 0}
+                      variant="light"
+                    />
+                  </div>
                 )}
 
                 {/* XP Badge */}

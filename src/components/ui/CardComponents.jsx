@@ -8,6 +8,7 @@ import { RADIUS, SHADOW } from '../../utils/styleConstants';
  * Základní building block pro všechny karty v aplikaci
  *
  * @param {React.ReactNode} children - Obsah karty
+ * @param {React.ElementType} as - Vlastní element/komponenta (default: 'div')
  * @param {'none'|'default'|'primary'|'secondary'|'gold'} shadow - Typ stínu (default: 'default')
  * @param {'sm'|'md'|'lg'|'xl'} radius - Border radius (default: 'lg')
  * @param {string|number} blur - Backdrop filter blur hodnota (default: '30px')
@@ -17,6 +18,7 @@ import { RADIUS, SHADOW } from '../../utils/styleConstants';
  */
 export function Card({
   children,
+  as: Component = 'div',
   shadow = 'default',
   radius = 'lg',
   blur = '30px',
@@ -46,7 +48,7 @@ export function Card({
   const blurValue = typeof blur === 'number' ? `${blur}px` : blur;
 
   return (
-    <div
+    <Component
       className={className}
       style={{
         background: `rgba(255, 255, 255, ${opacity})`,
@@ -60,25 +62,25 @@ export function Card({
       {...props}
     >
       {children}
-    </div>
+    </Component>
   );
 }
 
 /**
- * PageCard - hlavní card kontejner pro stránky s animovaným gradientem
+ * PageCard - hlavní card kontejner pro stránky
+ * Používá Card komponentu pro konzistentní vzhled
  *
  * @param {React.ReactNode} children - Obsah karty
  * @param {object} style - Dodatečné styly
  */
 export function PageCard({ children, style = {}, ...props }) {
   return (
-    <div
+    <Card
+      opacity={0.8}
+      blur="30px"
+      radius="xl"
+      shadow="default"
       style={{
-        background: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(10px)',
-        border: 'none',
-        boxShadow: SHADOW.default,
-        borderRadius: RADIUS.xl,
         padding: '1.25rem',
         marginBottom: '1.5rem',
         ...style
@@ -86,12 +88,13 @@ export function PageCard({ children, style = {}, ...props }) {
       {...props}
     >
       {children}
-    </div>
+    </Card>
   );
 }
 
 /**
  * QuestionCard - karta pro zobrazení otázky v quiz manageru
+ * Používá Card komponentu pro konzistentní vzhled
  *
  * @param {React.ReactNode} children - Obsah karty
  * @param {boolean} isActive - Je otázka aktivní?
@@ -100,25 +103,24 @@ export function PageCard({ children, style = {}, ...props }) {
  */
 export function QuestionCard({ children, isActive = true, as: Component = 'div', style = {}, ...props }) {
   return (
-    <Component
+    <Card
+      as={Component}
+      opacity={isActive ? 0.8 : 0.5}
+      blur="30px"
+      radius="xl"
+      shadow="default"
       style={{
-        background: isActive
-          ? 'rgba(255, 255, 255, 0.8)'
-          : 'rgba(200, 200, 200, 0.5)',
-        backdropFilter: 'blur(20px)',
-        border: 'none',
-        borderRadius: RADIUS.xl,
         padding: '1.25rem',
         display: 'flex',
         alignItems: 'center',
         gap: '1.25rem',
-        boxShadow: SHADOW.default,
+        ...(isActive ? {} : { background: 'rgba(200, 200, 200, 0.5)' }),
         ...style
       }}
       {...props}
     >
       {children}
-    </Component>
+    </Card>
   );
 }
 
@@ -297,24 +299,24 @@ export function StatCard({
       whileHover={isClickable ? { backgroundColor: 'rgba(181, 31, 101, 0.05)' } : {}}
       {...props}
     >
-      <motion.div
+      <Card
+        as={motion.div}
+        opacity={0.95}
+        blur="10px"
+        radius="lg"
+        shadow="default"
         whileHover={isClickable ? { rotate: 360, scale: 1.1 } : {}}
         transition={{ duration: 0.5 }}
         style={{
           width: '48px',
           height: '48px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: 'var(--radius-lg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          border: 'none',
-          boxShadow: SHADOW.default
         }}
       >
         {Icon && <Icon size={24} color="var(--color-primary)" />}
-      </motion.div>
+      </Card>
       <div>
         <motion.div
           initial={{ scale: 0 }}
@@ -383,7 +385,12 @@ export function ItemCard({
   const isList = layout === 'list';
 
   return (
-    <motion.div
+    <Card
+      as={motion.div}
+      opacity={0.8}
+      blur="30px"
+      radius="xl"
+      shadow="secondary"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{
@@ -395,12 +402,6 @@ export function ItemCard({
       className={isList ? 'item-card-responsive' : ''}
       style={{
         cursor: 'default',
-        background: 'rgba(255, 255, 255, 0.75)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: 'none',
-        boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
-        borderRadius: RADIUS.xl,
         padding: '1.25rem',
         overflow: 'hidden',
         position: 'relative',
@@ -602,6 +603,6 @@ export function ItemCard({
           {children}
         </>
       )}
-    </motion.div>
+    </Card>
   );
 }

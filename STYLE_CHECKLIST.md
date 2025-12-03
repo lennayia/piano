@@ -502,11 +502,195 @@ export const getAllUsersActivities = async (limit = 100) => {
 
 ---
 
+## ✅ CARD COMPONENT - Single Source of Truth pro Glassmorphism
+
+### ❌ ŠPATNĚ (duplicitní glassmorphism kód):
+```jsx
+// V každé komponentě jinak:
+<div style={{
+  background: 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: 'none',
+  borderRadius: 'var(--radius-xl)',
+  boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)'
+}}>
+  {children}
+</div>
+
+// Jiná komponenta - jiné hodnoty:
+<motion.div style={{
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(30px)',
+  borderRadius: '16px',
+  boxShadow: '0 8px 32px rgba(45, 91, 120, 0.15)'
+}}>
+  {children}
+</motion.div>
+```
+
+### ✅ SPRÁVNĚ (Card komponenta):
+```jsx
+import { Card } from '../ui/CardComponents';
+
+// Základní použití:
+<Card opacity={0.8} blur="30px" radius="xl" shadow="default">
+  {children}
+</Card>
+
+// S motion.div pro animace:
+<Card
+  as={motion.div}
+  opacity={0.8}
+  blur="30px"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+>
+  {children}
+</Card>
+```
+
+### Card Component API:
+```jsx
+<Card
+  as={Component}        // Custom element (div, motion.div)
+  opacity={0.8}         // 0-1 (standard: 0.8)
+  blur="30px"           // Blur radius (standard: "30px")
+  radius="xl"           // sm/md/lg/xl (z RADIUS konstant)
+  shadow="default"      // none/default/primary/secondary/gold
+  style={{}}            // Custom styles (override)
+>
+  {children}
+</Card>
+```
+
+### Standardizované hodnoty (3.12.2025):
+```jsx
+// STANDARD pro všechny card komponenty:
+blur="30px"           // Jednotný blur
+opacity={0.8}         // Jednotná průhlednost
+
+// VÝJIMKY (záměrné):
+// StatCard icon container:
+<Card opacity={0.95} blur="10px" />  // Menší element, vyšší opacity
+
+// EditFormContainer:
+<Card opacity={0.4} blur="30px" />   // Subtilnější background
+```
+
+### Modularizované komponenty používající Card:
+
+#### 1. PageCard
+```jsx
+// PŘED:
+<div style={{
+  background: 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: 'var(--radius-xl)',
+  padding: '1.25rem'
+}}>
+  {children}
+</div>
+
+// PO:
+<PageCard>{children}</PageCard>
+
+// Interní implementace:
+export function PageCard({ children, style = {}, ...props }) {
+  return (
+    <Card
+      opacity={0.8}
+      blur="30px"
+      radius="xl"
+      shadow="default"
+      style={{ padding: '1.25rem', marginBottom: '1.5rem', ...style }}
+      {...props}
+    >
+      {children}
+    </Card>
+  );
+}
+```
+
+#### 2. ItemCard (s motion.div)
+```jsx
+// PŘED:
+<motion.div
+  style={{
+    background: 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(20px)',
+    borderRadius: 'var(--radius-xl)',
+    boxShadow: '0 8px 32px rgba(45, 91, 120, 0.15)'
+  }}
+  whileHover={{ scale: 1.02 }}
+>
+  {children}
+</motion.div>
+
+// PO:
+<ItemCard whileHover={{ scale: 1.02 }}>
+  {children}
+</ItemCard>
+
+// Interní implementace používá: as={motion.div}
+```
+
+#### 3. EditFormContainer
+```jsx
+// PŘED (inline glassmorphism):
+<div style={{
+  background: 'rgba(255, 255, 255, 0.4)',
+  backdropFilter: 'blur(30px)',
+  overflow: 'hidden'  // Způsobovalo corner artifacts!
+}}>
+  {children}
+</div>
+
+// PO (Card komponenta):
+<Card
+  shadow="primary"
+  radius="xl"
+  opacity={0.4}
+  blur="30px"
+  style={{ padding: '1rem 0.75rem', overflow: 'hidden' }}
+>
+  {children}
+</Card>
+```
+
+### GlassCard.jsx - ODSTRANĚN ❌
+```jsx
+// GlassCard byl duplicitní komponenta:
+// - Méně flexibilní než Card
+// - Žádné props pro opacity/blur/radius
+// - Používán pouze v LessonList.jsx (1 místo)
+// - Nahrazen Card komponentou a SMAZÁN
+```
+
+### Výhody modularizace:
+- ✅ **Single source of truth** - Všechny glassmorphism efekty z Card
+- ✅ **Eliminace duplikátů** - 0 inline glassmorphism kódu
+- ✅ **Konzistence** - Standardizované blur/opacity hodnoty
+- ✅ **Flexibilita** - `as` prop pro motion.div support
+- ✅ **Snadná údržba** - Změna v Card = změna všude
+- ✅ **Menší bundle** - Odstranění GlassCard.jsx
+
+### Soubory změněny (3.12.2025):
+- `src/components/ui/CardComponents.jsx` - Card s `as` prop, refactoring
+- `src/components/ui/EditFormContainer.jsx` - refaktorováno na Card
+- `src/components/lessons/LessonList.jsx` - GlassCard → Card
+- `src/components/ui/GlassCard.jsx` - **SMAZÁN** (duplicitní)
+
+### Dokumentace:
+- `SESSION_CONTEXT-20251203-card-modularization.md` - kompletní dokumentace
+
+---
+
 **Použití:** Kontrolovat podle tohoto checklistu při každé extrakci komponenty!
 
 ---
 
-**Poslední update:** 2. prosince 2025 (Session 4 - večer)
+**Poslední update:** 3. prosince 2025
 **Aktualizováno:**
 - FONTY sekce - detailní návod na utility classes z utilities.css
 - Kontrolní postup - rozšířen o konkrétní font style checks

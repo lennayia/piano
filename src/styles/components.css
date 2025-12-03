@@ -184,18 +184,18 @@
 }
 
 .badge-primary {
-  background-color: rgba(181, 31, 101, 0.1);
-  color: var(--color-primary);
+  background-color: rgba(45, 91, 120, 0.1);
+  color: var(--color-secondary);
 }
 
 .badge-success {
-  background-color: rgba(181, 31, 101, 0.1);
-  color: var(--color-primary);
+  background-color: rgba(45, 91, 120, 0.1);
+  color: var(--color-secondary);
 }
 
 .badge-warning {
-  background-color: rgba(181, 31, 101, 0.15);
-  color: var(--color-primary-dark);
+  background-color: rgba(45, 91, 120, 0.1);
+  color: var(--color-secondary);
 }
 
 /* ============================================

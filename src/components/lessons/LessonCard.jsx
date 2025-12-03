@@ -1,11 +1,10 @@
-import { Clock, TrendingUp, Edit3, GripVertical, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, GripVertical, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import { getDifficultyColor } from '../../utils/lessonUtils';
 import { ActionButtonGroup } from '../ui/ButtonComponents';
 import { ItemCard } from '../ui/CardComponents';
-import LessonForm from './LessonForm';
-import SectionHeader from '../ui/SectionHeader';
+import { RADIUS } from '../../utils/styleConstants';
 
 function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, dragAttributes, dragListeners, isEditing, editForm, onEditFormChange, onSaveEdit, onCancelEdit, isCompleted = false }) {
 
@@ -50,11 +49,10 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
     <motion.span
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
-      className="badge badge-xs"
       style={{
-        backgroundColor: 'var(--color-success-transparent)',
         color: 'var(--color-success)',
-        padding: '0.2rem 0.4rem'
+        display: 'flex',
+        alignItems: 'flex-end'
       }}
       title="Dokončeno"
     >
@@ -65,8 +63,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
   // Footer - obtížnost a délka (zobrazí se nahoře)
   const footer = (
     <>
-      <span className={`badge ${getDifficultyColor(lesson.difficulty)}`}>
-        <TrendingUp size={14} />
+      <span className={`badge ${getDifficultyColor(lesson.difficulty)}`} style={{ borderRadius: RADIUS.md }}>
         {lesson.difficulty}
       </span>
       <span className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-secondary)' }}>
@@ -87,32 +84,7 @@ function LessonCard({ lesson, onClick, isAdmin, onEdit, onDelete, onDuplicate, d
       layout="list"
       isExpanded={isEditing}
       onClick={handleClick}
-    >
-      <AnimatePresence>
-        {isEditing && editForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ overflow: 'hidden' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ paddingTop: '1.5rem', marginTop: '1rem', borderTop: 'none', boxShadow: '0 -1px 0 rgba(45, 91, 120, 0.1)' }}>
-              <SectionHeader icon={Edit3} title="Upravit lekci" variant="h4" iconSize={16} iconColor="var(--color-secondary)" />
-
-              <LessonForm
-                formData={editForm}
-                onChange={onEditFormChange}
-                onSave={onSaveEdit}
-                onCancel={onCancelEdit}
-                saveLabel="Uložit změny"
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </ItemCard>
+    />
   );
 }
 

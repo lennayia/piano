@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { Plus, Edit3 } from 'lucide-react';
+import EditFormContainer from '../ui/EditFormContainer';
 import {
   DndContext,
   closestCenter,
@@ -18,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import LessonCard from './LessonCard';
+import { Card } from '../ui/CardComponents';
 
 // Lazy loading - LessonModal se načte až při kliknutí na lekci
 const LessonModal = lazy(() => import('./LessonModal'));
@@ -28,13 +30,12 @@ import { AddButton } from '../ui/ButtonComponents';
 import { supabase } from '../../lib/supabase';
 import LessonForm from './LessonForm';
 import SectionHeader from '../ui/SectionHeader';
-import GlassCard from '../ui/GlassCard';
 
 // Konstanty mimo komponentu pro lepší performance
 const DIFFICULTY_MAP = {
   'beginner': 'začátečník',
-  'intermediate': 'pokročilý',
-  'expert': 'expert'
+  'intermediate': 'mírně pokročilý začátečník',
+  'expert': 'mírně pokročilý'
 };
 
 const DEFAULT_LESSON_FORM = {
@@ -81,7 +82,7 @@ function SortableLessonCard({ lesson, children }) {
   );
 }
 
-function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
+function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete, searchTerm = '', sortBy = 'default' }) {
   const {
     editingItem: editingLesson,
     editForm,
@@ -123,18 +124,43 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
       result = result.filter(lesson => {
         const lessonDiff = lesson.difficulty?.toLowerCase() || '';
         const targetDiff = DIFFICULTY_MAP[difficulty]?.toLowerCase() || '';
-
-        // Pro intermediate zahrnout i "mírně pokročilý začátečník"
-        if (difficulty === 'intermediate') {
-          return lessonDiff.includes('pokročilý');
-        }
-
         return lessonDiff === targetDiff;
       });
     }
 
+    // Vyhledávání
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase().trim();
+      result = result.filter(lesson =>
+        lesson.title?.toLowerCase().includes(search) ||
+        lesson.description?.toLowerCase().includes(search)
+      );
+    }
+
+    // Řazení
+    if (sortBy !== 'default') {
+      result.sort((a, b) => {
+        switch (sortBy) {
+          case 'name-asc':
+            return (a.title || '').localeCompare(b.title || '', 'cs');
+          case 'name-desc':
+            return (b.title || '').localeCompare(a.title || '', 'cs');
+          case 'difficulty-asc': {
+            const diffOrder = { 'začátečník': 1, 'mírně pokročilý začátečník': 2, 'mírně pokročilý': 3 };
+            return (diffOrder[a.difficulty] || 0) - (diffOrder[b.difficulty] || 0);
+          }
+          case 'difficulty-desc': {
+            const diffOrder = { 'začátečník': 1, 'mírně pokročilý začátečník': 2, 'mírně pokročilý': 3 };
+            return (diffOrder[b.difficulty] || 0) - (diffOrder[a.difficulty] || 0);
+          }
+          default:
+            return 0;
+        }
+      });
+    }
+
     return result;
-  }, [lessons, filter, difficulty, completedLessonIds]);
+  }, [lessons, filter, difficulty, completedLessonIds, searchTerm, sortBy]);
 
   useEffect(() => {
     fetchLessons();
@@ -263,14 +289,16 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
       {/* Formulář pro přidání nové lekce */}
       <AnimatePresence>
         {isAddingNew && (
-          <GlassCard
-            animate
-            animationProps={{
-              initial: { opacity: 0, y: -20 },
-              animate: { opacity: 1, y: 0 },
-              exit: { opacity: 0, y: -20 }
-            }}
-            style={{ marginBottom: '1.5rem' }}
+          <Card
+            as={motion.div}
+            opacity={0.8}
+            blur="30px"
+            radius="lg"
+            shadow="primary"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            style={{ marginBottom: '1.5rem', padding: '1.5rem' }}
           >
             <SectionHeader icon={Plus} title="Nová lekce" variant="h3" />
 
@@ -283,7 +311,7 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
               titlePlaceholder="Např. První tóny"
               durationPlaceholder="Např. 5 min"
             />
-          </GlassCard>
+          </Card>
         )}
       </AnimatePresence>
 
@@ -299,7 +327,7 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
           <motion.div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
               gap: '1.5rem'
             }}
             variants={ANIMATION_VARIANTS}
@@ -307,34 +335,59 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete }) {
             animate="show"
           >
             {filteredLessons.map((lesson, index) => (
-              <div key={lesson.id}>
-                <SortableLessonCard lesson={lesson}>
-                  {(dragAttributes, dragListeners) => (
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, y: 20 },
-                        show: { opacity: 1, y: 0 }
-                      }}
-                    >
-                      <LessonCard
-                        lesson={lesson}
-                        onClick={handleLessonClick}
-                        isAdmin={isAdmin}
-                        onEdit={startEditingLesson}
-                        onDelete={handleDeleteLesson}
-                        onDuplicate={duplicateLesson}
-                        dragAttributes={dragAttributes}
-                        dragListeners={dragListeners}
-                        isEditing={editingLesson === lesson.id}
-                        editForm={editingLesson === lesson.id ? editForm : null}
-                        onEditFormChange={handleEditFormChange}
-                        onSaveEdit={saveEditedLesson}
-                        onCancelEdit={cancelEdit}
-                        isCompleted={completedLessonIds.has(lesson.id)}
-                      />
-                    </motion.div>
-                  )}
-                </SortableLessonCard>
+              <div
+                key={lesson.id}
+                style={{
+                  gridColumn: editingLesson === lesson.id ? '1 / -1' : 'auto'
+                }}
+              >
+                {/* Karta - zachová svou šířku */}
+                <div style={{
+                  maxWidth: editingLesson === lesson.id ? '400px' : 'none'
+                }}>
+                  <SortableLessonCard lesson={lesson}>
+                    {(dragAttributes, dragListeners) => (
+                      <motion.div
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          show: { opacity: 1, y: 0 }
+                        }}
+                      >
+                        <LessonCard
+                          lesson={lesson}
+                          onClick={handleLessonClick}
+                          isAdmin={isAdmin}
+                          onEdit={startEditingLesson}
+                          onDelete={handleDeleteLesson}
+                          onDuplicate={duplicateLesson}
+                          dragAttributes={dragAttributes}
+                          dragListeners={dragListeners}
+                          isEditing={editingLesson === lesson.id}
+                          editForm={editingLesson === lesson.id ? editForm : null}
+                          onEditFormChange={handleEditFormChange}
+                          onSaveEdit={saveEditedLesson}
+                          onCancelEdit={cancelEdit}
+                          isCompleted={completedLessonIds.has(lesson.id)}
+                        />
+                      </motion.div>
+                    )}
+                  </SortableLessonCard>
+                </div>
+
+                {/* Editační formulář - plná šířka */}
+                <EditFormContainer
+                  isOpen={editingLesson === lesson.id && !!editForm}
+                  icon={Edit3}
+                  title="Upravit lekci"
+                >
+                  <LessonForm
+                    formData={editForm}
+                    onChange={handleEditFormChange}
+                    onSave={saveEditedLesson}
+                    onCancel={cancelEdit}
+                    saveLabel="Uložit změny"
+                  />
+                </EditFormContainer>
               </div>
             ))}
           </motion.div>

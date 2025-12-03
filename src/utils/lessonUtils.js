@@ -13,7 +13,7 @@ export function getDifficultyColor(difficulty) {
       return 'badge-success';
     case 'mírně pokročilý začátečník':
       return 'badge-warning';
-    case 'pokročilý':
+    case 'mírně pokročilý':
       return 'badge-primary';
     default:
       return '';
@@ -26,7 +26,7 @@ export function getDifficultyColor(difficulty) {
 export const DIFFICULTY_OPTIONS = [
   { value: 'začátečník', label: 'začátečník' },
   { value: 'mírně pokročilý začátečník', label: 'mírně pokročilý začátečník' },
-  { value: 'pokročilý', label: 'pokročilý' }
+  { value: 'mírně pokročilý', label: 'mírně pokročilý' }
 ];
 
 /**
