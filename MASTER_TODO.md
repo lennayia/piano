@@ -1,8 +1,47 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 3. prosince 2025 (Session 5)
+Datum poslední aktualizace: 3. prosince 2025 (Session 6 - Večerní)
 
-## ✅ Dokončeno v této session (3.12.2025)
+## ✅ Dokončeno v Session 6 - Večerní optimalizace (3.12.2025)
+
+### 🧹 Kompletní optimalizace a čištění kódu stránky Lekce
+
+**Priorita 1 - Console.logy:**
+- ✅ Odstranění 3x console.error z produkčního kódu
+  - LessonList.jsx:183
+  - LessonModal.jsx:46, 98
+  - Nahrazeno tichým selháním
+
+**Priorita 2-3 - Centralizace a DRY:**
+- ✅ Vytvořen `src/utils/responsiveConstants.js` (72 řádků)
+  - BREAKPOINTS konstanty
+  - getModalPadding(), getCardHorizontalPadding()
+  - getKeyboardPadding(), getNoteCardValues()
+  - calculateKeyWidth() - unified responsive logic
+- ✅ Vytvořen `src/hooks/useResponsiveValue.js`
+  - Custom hook pro responzivní hodnoty s memoizací
+- ✅ Sjednocen DIFFICULTY_MAP do lessonUtils.js
+  - Eliminace duplicity v LessonList
+
+**Priorita 4 - Refaktoring komponent:**
+- ✅ NoteCard.jsx - použití getNoteCardValues() (3 řádky → 1 řádek)
+- ✅ PianoKeyboard.jsx - použití calculateKeyWidth() (20+ řádků → 2 řádky)
+- ✅ LessonList.jsx - import DIFFICULTY_MAP místo lokální konstanty
+
+**Priorita 5 - Code cleanup:**
+- ✅ Odstranění zbytečných JSDoc komentářů (NoteCard, LessonForm)
+
+**Výsledky:**
+- ✅ Eliminováno ~30+ řádků duplicitního kódu
+- ✅ Žádné console.logy v production ✓
+- ✅ Centralizované responzivní konstanty
+- ✅ DRY princip napříč všemi Lekce komponenty
+
+**Dokumentace**: `DOKUMENTACE-20251203-optimization-cleanup.md`
+
+---
+
+## ✅ Dokončeno v Session 5 - Odpolední (3.12.2025)
 
 ### 1. ✅ PianoKeyboard - Responzivní optimalizace
 - Proporcionální výška kláves (1:5.5 ratio)

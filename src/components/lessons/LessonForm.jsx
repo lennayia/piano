@@ -3,10 +3,6 @@ import { FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/FormCompon
 import { SaveButton, CancelButton } from '../ui/ButtonComponents';
 import { FormField, FormFieldGrid } from '../ui/FormField';
 
-/**
- * Univerzální formulář pro vytvoření nebo editaci lekce
- * Používá optimalizované komponenty FormField a FormFieldGrid
- */
 function LessonForm({
   formData,
   onChange,

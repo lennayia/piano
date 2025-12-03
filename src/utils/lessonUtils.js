@@ -1,6 +1,20 @@
 /**
- * Utility funkce pro lekce
+ * Utility funkce a konstanty pro lekce
  */
+
+// Mapování anglických klíčů na české názvy obtížnosti
+export const DIFFICULTY_MAP = {
+  'beginner': 'začátečník',
+  'intermediate': 'mírně pokročilý začátečník',
+  'expert': 'mírně pokročilý'
+};
+
+// Mapování českých názvů na anglické klíče (inverzní)
+export const DIFFICULTY_KEY_MAP = {
+  'začátečník': 'beginner',
+  'mírně pokročilý začátečník': 'intermediate',
+  'mírně pokročilý': 'expert'
+};
 
 /**
  * Vrací CSS třídu pro badge podle obtížnosti lekce
@@ -21,7 +35,7 @@ export function getDifficultyColor(difficulty) {
 }
 
 /**
- * Konstanty pro obtížnost lekcí
+ * Konstanty pro obtížnost lekcí - pro formuláře
  */
 export const DIFFICULTY_OPTIONS = [
   { value: 'začátečník', label: 'začátečník' },

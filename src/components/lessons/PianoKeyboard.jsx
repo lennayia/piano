@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, MousePointerClick } from 'lucide-react';
 import audioEngine from '../../utils/audio';
+import { calculateKeyWidth, getKeyboardPadding } from '../../utils/responsiveConstants';
 
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
   const [activeKeys, setActiveKeys] = useState(new Set());
@@ -94,30 +95,13 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
   const whiteKeyCount = 12;
   const gap = 2;
 
-  // Responsivní šířka klávesy - vypočítaná aby se vešly všechny klávesy
-  const getKeyWidth = () => {
-    // Modal padding (backdrop + content body) - pro malé obrazovky bez bezpečnostní rezervy
-    const modalPadding = windowWidth < 480 ? 48 : windowWidth < 540 ? 56 : windowWidth < 700 ? 60 : 132; // 48px = skutečný modal padding
-    // Padding karty klaviatury (horizontální)
-    const cardHorizontalPadding = windowWidth < 700 ? 0.25 * 16 : 1 * 16; // převod rem na px
-    // Dostupná šířka = celá šířka okna minus modal padding minus padding karty na obou stranách
-    const availableWidth = windowWidth - modalPadding - (cardHorizontalPadding * 2);
-    // Šířka pro všechny klávesy včetně mezer
-    const totalGaps = (whiteKeyCount - 1) * gap;
-    const maxKeyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
-
-    // Omezíme na rozumné minimum a maximum
-    if (windowWidth >= 1024) return Math.min(60, maxKeyWidth);
-    if (windowWidth >= 768) return Math.min(50, maxKeyWidth);
-    return Math.max(20, Math.min(45, maxKeyWidth));
-  };
-
-  const keyWidth = getKeyWidth();
+  // Responsivní šířka a výška klávesy - použití centralizovaných funkcí
+  const keyWidth = calculateKeyWidth(windowWidth, whiteKeyCount, gap);
   // Výška proporcionální k šířce (poměr 1:5.5 jako u reálných kláves)
   const keyHeight = Math.max(100, Math.min(200, Math.floor(keyWidth * 5.5)));
 
-  // Responzivní padding - minimální horizontální padding pro <700px (maximum místa pro klaviaturu)
-  const keyboardPadding = windowWidth < 360 ? '0.75rem 0.25rem' : windowWidth < 700 ? '0.75rem 0.25rem' : '1.5rem 1rem';
+  // Responzivní padding - z centralizovaných konstant
+  const keyboardPadding = getKeyboardPadding(windowWidth);
 
   return (
     <div style={{

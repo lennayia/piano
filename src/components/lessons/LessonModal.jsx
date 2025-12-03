@@ -43,7 +43,6 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
         setIsCompleted(false);
       }
     } catch (error) {
-      console.error('Chyba při kontrole dokončení lekce:', error);
       setIsCompleted(false);
     }
   };
@@ -95,7 +94,7 @@ function LessonModal({ lesson, isOpen, onClose, onComplete }) {
           }
         }
       } catch (error) {
-        console.error('Chyba při ukládání lekce:', error);
+        // Tiché selhání - uživatel se nedozví o chybě
       }
     }
   };

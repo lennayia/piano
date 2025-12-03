@@ -30,13 +30,9 @@ import { AddButton } from '../ui/ButtonComponents';
 import { supabase } from '../../lib/supabase';
 import LessonForm from './LessonForm';
 import SectionHeader from '../ui/SectionHeader';
+import { DIFFICULTY_MAP } from '../../utils/lessonUtils';
 
 // Konstanty mimo komponentu pro lepší performance
-const DIFFICULTY_MAP = {
-  'beginner': 'začátečník',
-  'intermediate': 'mírně pokročilý začátečník',
-  'expert': 'mírně pokročilý'
-};
 
 const DEFAULT_LESSON_FORM = {
   title: '',
@@ -180,7 +176,7 @@ function LessonList({ filter = 'all', difficulty = 'all', onLessonComplete, sear
             setCompletedLessonIds(new Set(data.map(item => parseInt(item.lesson_id))));
           }
         } catch (error) {
-          console.error('Chyba při načítání dokončených lekcí:', error);
+          // Tiché selhání - uživatel uvidí všechny lekce jako nedokončené
         }
       }
     };

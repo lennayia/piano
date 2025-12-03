@@ -2,13 +2,8 @@ import { motion } from 'framer-motion';
 import { RADIUS } from '../../utils/styleConstants';
 import audioEngine from '../../utils/audio';
 import { useResponsive } from '../../hooks/useResponsive';
+import { getNoteCardValues } from '../../utils/responsiveConstants';
 
-/**
- * Komponenta pro zobrazení hudební noty s animacemi
- * @param {string} note - Nota k zobrazení (např. "C", "D#", "Eb")
- * @param {number} index - Index pro animační delay
- * @param {function} onClick - Volitelná funkce pro kliknutí (výchozí: přehrát notu)
- */
 function NoteCard({ note, index = 0, onClick }) {
   const { width: windowWidth } = useResponsive();
 
@@ -20,10 +15,8 @@ function NoteCard({ note, index = 0, onClick }) {
     }
   };
 
-  // Responzivní hodnoty podle stejných breakpointů jako PianoKeyboard
-  const padding = windowWidth < 360 ? '0.65rem' : windowWidth < 480 ? '0.75rem' : '1rem';
-  const fontSize = windowWidth < 360 ? '1.15rem' : windowWidth < 480 ? '1.35rem' : '1.5rem';
-  const minWidth = windowWidth < 360 ? '50px' : windowWidth < 480 ? '55px' : '60px';
+  // Responzivní hodnoty z centralizovaných konstant
+  const { padding, fontSize, minWidth } = getNoteCardValues(windowWidth);
 
   return (
     <motion.div
