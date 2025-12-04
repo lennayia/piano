@@ -5,6 +5,7 @@ import audioEngine from '../../utils/audio';
 import { calculateKeyWidth, getKeyboardPadding } from '../../utils/responsiveConstants';
 import { usePiano } from '../../contexts/PianoContext';
 import { PrimaryButton } from '../ui/ButtonComponents';
+import { Card } from '../ui/CardComponents';
 
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
   const { pianoReady, isLoading, initPiano } = usePiano();
@@ -115,17 +116,15 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
   // Pokud piano není ready, zobrazit inicializační UI
   if (!pianoReady) {
     return (
-      <div style={{
-        position: 'relative',
-        padding: '2.5rem 2rem 1.5rem',
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: 'var(--shadow-lg)',
-        textAlign: 'center',
-        maxWidth: '500px',
-        margin: '2rem auto'
-      }}>
+      <Card
+        opacity={0.4}
+        style={{
+          textAlign: 'center',
+          maxWidth: '500px',
+          margin: '2rem auto',
+          padding: '2.5rem 2rem 1.5rem'
+        }}
+      >
         <Piano size={36} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
         <h3 style={{
           fontSize: '1.25rem',
@@ -157,7 +156,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
           <Play size={18} />
           {isLoading ? 'Načítání...' : 'Spustit piano'}
         </PrimaryButton>
-      </div>
+      </Card>
     );
   }
 

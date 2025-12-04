@@ -285,7 +285,7 @@ function ChordPracticeSection({
   if (!pianoReady) {
     return (
       <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
-        <PageCard style={{ textAlign: 'center', padding: '2.5rem 2rem 1.5rem' }}>
+        <Card opacity={0.4} style={{ textAlign: 'center', padding: '2.5rem 2rem 1.5rem' }}>
           <Piano size={36} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
           <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem', fontSize: '1.25rem' }}>
             Připravit piano
@@ -307,7 +307,7 @@ function ChordPracticeSection({
             <Play size={18} />
             {isLoading ? 'Načítání...' : 'Spustit piano'}
           </PrimaryButton>
-        </PageCard>
+        </Card>
       </div>
     );
   }
