@@ -16,9 +16,9 @@ export const BREAKPOINTS = {
 
 // Modal padding podle šířky okna
 export const getModalPadding = (width) => {
-  if (width < BREAKPOINTS.sm) return 16;    // < 480px: minimum
-  if (width < BREAKPOINTS.md) return 24;    // 480-540px: minimum
-  if (width < BREAKPOINTS.lg) return 32;    // 540-700px: minimum
+  if (width < BREAKPOINTS.sm) return 32;    // < 480px: minimum ale bezpečné
+  if (width < BREAKPOINTS.md) return 40;    // 480-540px: minimum ale bezpečné
+  if (width < BREAKPOINTS.lg) return 48;    // 540-700px: minimum ale bezpečné
   if (width < BREAKPOINTS.xxl) return 80;   // 700-1024px: menší padding
   if (width < BREAKPOINTS.xxxl) return 100; // 1024-1200px: střední padding
   return 132; // 1200px+: plný padding
