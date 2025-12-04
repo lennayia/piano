@@ -336,7 +336,7 @@ function ChordPracticeSection({
           style={{ marginBottom: '2rem' }}
         >
           {/* Název akordu s navigací */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
             <IconButton
               icon={ChevronLeft}
               onClick={prevChord}
