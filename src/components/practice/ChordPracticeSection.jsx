@@ -4,7 +4,7 @@ import { Play, ChevronRight, ChevronLeft, Volume2, CheckCircle } from 'lucide-re
 import useUserStore from '../../store/useUserStore';
 import PianoKeyboard from '../lessons/PianoKeyboard';
 import { IconButton, MelodyNote } from '../ui/ButtonComponents';
-import { ProgressBar, InfoPanel, Card } from '../ui/CardComponents';
+import { ProgressBar, InfoPanel, Card, PageCard } from '../ui/CardComponents';
 import PracticeModeControls from '../ui/PracticeModeControls';
 import { RADIUS, SHADOW } from '../../utils/styleConstants';
 import audioEngine from '../../utils/audio';
@@ -292,13 +292,13 @@ function ChordPracticeSection({
       )}
 
       {/* Hlavní karta cvičení */}
-      <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', padding: '0 1rem' }}>
-        <Card
+      <div className="container" style={{ maxWidth: '1024px', margin: '0 auto' }}>
+        <PageCard
           as={motion.div}
           key={currentChordIndex}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          style={{ marginBottom: '2rem', paddingBottom: '1rem' }}
+          style={{ marginBottom: '2rem' }}
         >
           {/* Název akordu s navigací */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
@@ -471,12 +471,12 @@ function ChordPracticeSection({
               Přehrát akord
             </motion.button>
           </PracticeModeControls>
-        </Card>
+        </PageCard>
       </div>
 
       {/* Klaviatura - plná šířka obrazovky */}
       {(practicingMode || challengeMode) && (
-        <div style={{ margin: '2rem 0', padding: '0 1rem' }}>
+        <div className="container" style={{ margin: '2rem 0' }}>
           <PianoKeyboard
             highlightedNotes={
               challengeMode
