@@ -1,6 +1,143 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 3. prosince 2025 (Session 6 - Večerní)
+Datum poslední aktualizace: 4. prosince 2025 (Session 8 - Chord Refactoring)
+
+## ✅ Dokončeno v Session 8 - ChordPracticeSection refactoring + modularizace (4.12.2025)
+
+### 🧩 Extrakce ChordPracticeSection + Card/PageCard modularizace
+
+**ChordPracticeSection.jsx - Nová komponenta:**
+- ✅ Vytvoření samostatné komponenty pro procvičování akordů (577 řádků)
+  - Kompletní logika pro režim "Procvičovat" (s nápovědou)
+  - Kompletní logika pro režim "Výzva" (bez nápovědy, pro odměny)
+  - Audio playback (full chord + arpeggio)
+  - Progress tracking + celebrations
+  - Daily goal integrace
+  - State management (20+ useState hooks)
+  - Props: chords, selectedDifficulty, isShuffled, currentUser, onDailyGoalComplete, onResetProgress
+
+**Cviceni.jsx - Redukce 52%:**
+- ✅ Redukce z 1010 → 486 řádků (-524 řádků, -52%)
+  - Nyní pouze page controller
+  - PageSection pro controls (tabs, search, daily goals)
+  - Routing mezi sekcemi (chords, quiz, songs)
+  - Daily goal management pro 3 sekce
+  - Conditional rendering obsahu
+  - Odstraněno: 20+ useState, useEffects, audio funkce, handleNoteClick logika
+
+**Modularizace Card komponent:**
+- ✅ Card → PageCard conversion
+  - Card: čistý glassmorphism (bez paddingu)
+  - PageCard: Card + padding 1.25rem (pro obsah stránek)
+  - Fix chybějícího paddingu v ChordPracticeSection
+
+- ✅ InfoPanel enhancement
+  - Přidán `as` prop pro polymorfismus
+  - Podpora motion.div integrace
+  - Pattern: `<InfoPanel as={motion.div} variant="primary" />`
+
+**Responzivní padding fixes:**
+- ✅ Odstranění fixního inline `padding: '0 1rem'`
+  - Použití CSS `.container` třídy s responzivním paddingem
+  - Mobil: menší padding, Desktop: větší padding
+  - Aplikováno na chord card i keyboard card containers
+
+**PageSection.jsx - MaxWidth fix:**
+- ✅ Implementace maxWidth prop functionality
+  - maxWidthMap: sm (640px), md (768px), lg (1024px), xl (1280px), full (100%)
+  - Aplikace na container element
+
+**Architektonické poznatky:**
+- ✅ PageSection POUZE pro controls (title, tabs, search, daily goals)
+- ✅ Content (ChordPracticeSection, ChordQuiz, SongLibrary) MIMO PageSection
+- ✅ Umožňuje full-width layouts pro komponenty jako klaviatura
+
+**Verifikace gamifikačního systému:**
+- ✅ Denní cíle: localStorage → Supabase flow funguje správně
+- ✅ Celebrate service: centralizovaný, ukládá do všech tabulek
+- ✅ Supabase persistence: piano_daily_goal_completions, piano_user_stats, piano_level_history, piano_achievements
+- ✅ User stats tracking: XP, level, streaks, completion counts
+
+**Dokumentace:**
+- ✅ `SESSION_CONTEXT-20251204-chord-refactoring-done.md` (437 řádků)
+  - Kompletní popis dnešní práce
+  - Architektonické vzory
+  - Priority pro další refactoring
+  - Git workflow preferences
+  - Quick start guide pro další session
+
+**Soubory změněny:**
+- `src/components/practice/ChordPracticeSection.jsx` (+577 řádků, nový soubor)
+- `src/pages/Cviceni.jsx` (1010 → 486 řádků, -524 řádků)
+- `src/components/ui/CardComponents.jsx` (InfoPanel as prop)
+- `src/components/ui/PageSection.jsx` (maxWidth implementation)
+
+**Commits:**
+- `02c3213` - refactor: Extract ChordPracticeSection + modularize cards
+- `694a016` - fix: Card → PageCard + responzivní padding pro mobily
+
+**Netto změna:** +61 řádků (ale lepší modularita!)
+
+---
+
+## ✅ Dokončeno v Session 7 - ProgressBar integrace a zjemnění barev (4.12.2025)
+
+### 🎨 Kompletní integrace ProgressBar modulu + zjemnění barev
+
+**ProgressBar modul v PageSection:**
+- ✅ Integrace ProgressBar modulu přímo do PageSection
+  - Přidány nové props: `progressCurrent`, `progressTotal`, `progressTitle`
+  - Backward compatibility s původním `progress` prop (inline fallback)
+  - Flex properties pro správnou velikost: `flex: '1 1 250px'`, `minWidth: '250px'`
+  - Modulární approach místo inline progress bar kódu
+
+**Lekce - Celkový pokrok:**
+- ✅ Přidán ProgressBar pro celkový pokrok všech lekcí
+  - Import useLessonStore, ProgressBar, supabase
+  - Načítání dokončených lekcí z `piano_lesson_completions`
+  - State: `completedLessonIds` (Set) + `lessons` (array)
+  - Zobrazení "Celkový pokrok: X z Y" pod PageSection
+  - Barva: `var(--color-secondary)` (modrá) pro konzistenci
+
+**Cvičení - Přechod na nový modul:**
+- ✅ Aktualizace props z `progress` na modulární variantu
+  - `progressCurrent={currentGoalData.goal.completedToday}`
+  - `progressTotal={currentGoalData.goal.dailyGoal}`
+  - `progressTitle="Dnešní pokrok:"`
+  - Odstranění deprecated `progressLabel` prop
+
+**Zjemnění barev progress barů:**
+- ✅ **ProgressBar modul** (CardComponents.jsx):
+  - Track: `rgba(181, 31, 101, 0.06)` → `0.02` (-67% opacity)
+  - Fill: gradient s opacity `1.0` → `0.5-0.6` (-40-50% opacity)
+
+- ✅ **AchievementGrid** (achievement karty):
+  - Track: `rgba(148, 163, 184, 0.2)` → `0.1` (-50% opacity)
+  - Fill: `rgba(..., 0.6)` → `0.5-0.6` (zjemnění)
+
+- ✅ **AchievementDetail** (detail panel):
+  - Track: `rgba(181, 31, 101, 0.06)` → `0.02` (-67% opacity)
+  - Fill: **PLNÁ barva `1.0`** → `0.5-0.6` (-40-50% opacity!)
+  - Největší vizuální změna - z výrazné na jemnou
+
+**Výsledky:**
+- ✅ Jednotný ProgressBar modul napříč Lekcemi a Cvičením
+- ✅ Lekce mají celkový pokrok všech dokončených lekcí
+- ✅ Konzistentní jemné barvy napříč celou aplikací (3 místa)
+- ✅ Modulární architektura - změna v CardComponents = změna všude
+- ✅ Flex properties zajišťují správnou velikost na všech obrazovkách
+
+**Dokumentace**: Bude vytvořena `DOKUMENTACE-20251204-progressbar-integration.md`
+
+**Soubory změněny:**
+- `src/components/ui/PageSection.jsx` - ProgressBar modul integrace
+- `src/components/ui/CardComponents.jsx` - zjemnění barev
+- `src/pages/Lekce.jsx` - celkový pokrok + nové props
+- `src/pages/Cviceni.jsx` - nové props
+- `src/components/dashboard/AchievementGrid.jsx` - zjemnění barev
+- `src/components/dashboard/AchievementDetail.jsx` - zjemnění barev
+
+---
 
 ## ✅ Dokončeno v Session 6 - Večerní optimalizace (3.12.2025)
 

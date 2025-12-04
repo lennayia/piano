@@ -200,10 +200,11 @@
 - [x] **Výsledek:** 1065 → 480 řádků (-585 řádků, -55%)
 - [x] **Překonán cíl:** 650 řádků → dosaženo 480 řádků 🎉
 
-#### Cviceni.jsx (767 řádků)
-- [ ] Vyextrahovat chord practice logiku
-- [ ] Přidat memoization
-- [ ] Cíl: Zredukovat na ~400 řádků
+#### Cviceni.jsx ✅ **DOKONČENO**
+- [x] Vyextrahovat chord practice logiku → ChordPracticeSection.jsx
+- [x] Zredukovat na page controller (routing, controls, daily goals)
+- [x] **Výsledek:** 1010 → 486 řádků (-524 řádků, -52%)
+- [x] **Překonán cíl:** 400 řádků → dosaženo 486 řádků 🎉
 
 #### UniversalTheoryQuiz.jsx (727 řádků)
 - [ ] Vyextrahovat quiz logiku do hooks
@@ -259,7 +260,7 @@
 ### Velikost souborů (před optimalizací)
 - SongLibrary.jsx: 1817 řádků 🔴 (další priorita)
 - ~~UserDashboard.jsx: 1558 řádků~~ → 480 řádků ✅ **DOKONČENO**
-- Cviceni.jsx: 767 řádků 🟡
+- ~~Cviceni.jsx: 1010 řádků~~ → 486 řádků ✅ **DOKONČENO (4.12.2025)**
 - UniversalTheoryQuiz.jsx: 727 řádků 🟡
 - GamificationManager.jsx: 719 řádků 🟡
 - ChordQuiz.jsx: 676 řádků 🟡
@@ -288,6 +289,10 @@
 - UserDashboard.jsx: 1065 → 480 řádků ✅ **DOKONČENO**
   - Všechny extrakce dokončeny (UserStatsGrid, AchievementGrid, RecentActivityList, AchievementDetail)
   - Cíl byl ~650 řádků → dosaženo 480 řádků (-55% redukce) 🎉
+- ChordPracticeSection.jsx: nový soubor 577 řádků ✅ **DOKONČENO (4.12.2025)**
+- Cviceni.jsx: 1010 → 486 řádků ✅ **DOKONČENO (4.12.2025)**
+  - ChordPracticeSection extrakce dokončena
+  - Cíl byl ~400 řádků → dosaženo 486 řádků (-52% redukce) 🎉
 - SongLibrary.jsx: 1817 → 500 řádků (⏳ další priorita)
 - Ostatní komponenty: <500 řádků každá
 
@@ -475,7 +480,7 @@ Při optimalizaci každé stránky postupujeme systematicky:
 
 ---
 
-**Poslední update:** 3. prosince 2025
+**Poslední update:** 4. prosince 2025 (Session 8)
 **Status:**
 - ✅ Database view `user_activities` vytvořen a funkční
 - ✅ Admin Historie dokončena s vyhledáváním
@@ -483,4 +488,10 @@ Při optimalizaci každé stránky postupujeme systematicky:
 - ✅ UserDashboard.jsx KOMPLETNĚ optimalizováno (1065 → 480 řádků, -55%)
 - ✅ Všechny extrakce dokončeny (UserStatsGrid, AchievementGrid, RecentActivityList, AchievementDetail)
 - ✅ Cíl 650 řádků překonán → dosaženo 480 řádků 🎉
-**Další krok:** SongLibrary.jsx optimalizace (1817 řádků) nebo nové features podle MASTER_TODO
+- ✅ Cviceni.jsx KOMPLETNĚ optimalizováno (1010 → 486 řádků, -52%)
+- ✅ ChordPracticeSection.jsx extrahován (577 řádků, nový soubor)
+- ✅ Card → PageCard modularizace
+- ✅ InfoPanel as={motion.div} podpora
+- ✅ PageSection maxWidth implementation
+- ✅ Responzivní padding fixes
+**Další krok:** SongLibrary.jsx optimalizace (1817 řádků) - PRIORITA #1

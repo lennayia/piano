@@ -10,7 +10,8 @@ export const BREAKPOINTS = {
   md: 540,
   lg: 700,
   xl: 768,
-  xxl: 1024
+  xxl: 1024,
+  xxxl: 1200
 };
 
 // Modal padding podle šířky okna
@@ -63,7 +64,7 @@ export const calculateKeyWidth = (windowWidth, whiteKeyCount = 12, gap = 2) => {
   const maxKeyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
 
   // Omezíme na rozumné minimum a maximum
-  if (windowWidth >= BREAKPOINTS.xxl) return Math.min(60, maxKeyWidth);
-  if (windowWidth >= BREAKPOINTS.xl) return Math.min(50, maxKeyWidth);
+  // Od 768px nahoru držíme max šířku 60px - klaviatura má prostor až do ~1200px
+  if (windowWidth >= BREAKPOINTS.xl) return Math.min(60, maxKeyWidth);    // 768px+
   return Math.max(20, Math.min(45, maxKeyWidth));
 };

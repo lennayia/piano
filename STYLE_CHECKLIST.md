@@ -106,9 +106,10 @@ import { PageCard, InfoPanel, ItemCard } from '../ui/CardComponents';
 ### Dostupné komponenty:
 
 **Cards:**
-- `PageCard` - základní card
+- `Card` - čistý glassmorphism (BEZ paddingu) - base komponenta
+- `PageCard` - Card + padding 1.25rem - pro obsah stránek
 - `QuestionCard` - quiz card
-- `InfoPanel` - info panel s ikonou
+- `InfoPanel` - info panel s ikonou (podporuje as={motion.div})
 - `ItemCard` - univerzální card (list/grid)
 - `ProgressBar` - progress bar
 
@@ -681,8 +682,105 @@ export function PageCard({ children, style = {}, ...props }) {
 - `src/components/lessons/LessonList.jsx` - GlassCard → Card
 - `src/components/ui/GlassCard.jsx` - **SMAZÁN** (duplicitní)
 
+### Soubory změněny (4.12.2025 - Session 8):
+- `src/components/practice/ChordPracticeSection.jsx` - Card → PageCard fix
+- `src/components/ui/CardComponents.jsx` - InfoPanel as={motion.div} podpora
+- `src/components/ui/PageSection.jsx` - maxWidth implementation
+- `src/pages/Cviceni.jsx` - responzivní padding fixes
+
 ### Dokumentace:
 - `SESSION_CONTEXT-20251203-card-modularization.md` - kompletní dokumentace
+- `SESSION_CONTEXT-20251204-chord-refactoring-done.md` - Card vs PageCard pattern
+
+---
+
+## ✅ RESPONZIVNÍ PADDING - Používat CSS .container
+
+### ❌ ŠPATNĚ (fixní inline padding):
+```jsx
+<div style={{ padding: '0 1rem' }}>
+  {content}
+</div>
+
+// Problém: Fixní padding je příliš velký na mobilech!
+```
+
+### ✅ SPRÁVNĚ (CSS .container třída):
+```jsx
+<div className="container">
+  {content}
+</div>
+
+// CSS .container má responzivní padding:
+// - Mobil: menší padding
+// - Desktop: větší padding
+```
+
+### Kdy používat .container:
+- Pro vnější padding kolem karet a komponent
+- Když chcete responzivní spacing
+- Místo inline `padding: '0 1rem'`
+
+### Příklad z ChordPracticeSection:
+```jsx
+// PŘED:
+<div style={{ padding: '0 1rem' }}>
+  <PageCard>{content}</PageCard>
+</div>
+
+// PO:
+<div className="container">
+  <PageCard>{content}</PageCard>
+</div>
+```
+
+---
+
+## ✅ CARD vs PAGECARD - Kdy co použít
+
+### Card - Čistý glassmorphism (BEZ paddingu)
+```jsx
+<Card opacity={0.8} blur="30px">
+  <div style={{ padding: '1rem' }}>
+    Custom padding uvnitř
+  </div>
+</Card>
+```
+
+**Použití:**
+- Když potřebujete custom padding
+- Když chcete kontrolu nad vnitřním spacingem
+- Base komponenta pro ostatní karty
+
+### PageCard - Card + padding 1.25rem
+```jsx
+<PageCard>
+  {content}
+</PageCard>
+
+// Interní implementace:
+<Card style={{ padding: '1.25rem' }}>
+  {content}
+</Card>
+```
+
+**Použití:**
+- Pro standardní obsah stránek
+- Když chcete jednotný padding
+- Většina use-cases
+
+### Příklad - ChordPracticeSection.jsx:
+```jsx
+// ❌ ŠPATNĚ (Card bez paddingu):
+<Card style={{ marginBottom: '2rem', paddingBottom: '1rem' }}>
+  {content}
+</Card>
+
+// ✅ SPRÁVNĚ (PageCard s defaultním paddingem):
+<PageCard style={{ marginBottom: '2rem' }}>
+  {content}
+</PageCard>
+```
 
 ---
 
@@ -690,9 +788,14 @@ export function PageCard({ children, style = {}, ...props }) {
 
 ---
 
-**Poslední update:** 3. prosince 2025
+**Poslední update:** 4. prosince 2025 (Session 8)
 **Aktualizováno:**
+- ✅ RESPONZIVNÍ PADDING sekce - CSS .container pattern
+- ✅ CARD vs PAGECARD sekce - kdy co použít
+- ✅ Dostupné komponenty - aktualizace Card/PageCard rozdílů
+- ✅ InfoPanel as={motion.div} podpora
+**Dříve aktualizováno:**
 - FONTY sekce - detailní návod na utility classes z utilities.css
 - Kontrolní postup - rozšířen o konkrétní font style checks
 - Příklady z Leaderboard.jsx refaktoringu (text-xs, text-sm, text-base, font-medium, font-semibold)
-**Dříve přidáno:** Database Views - Modularizace na databázové úrovni
+- Database Views - Modularizace na databázové úrovni
