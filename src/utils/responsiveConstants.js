@@ -10,18 +10,15 @@ export const BREAKPOINTS = {
   md: 540,
   lg: 700,
   xl: 768,
-  xxl: 1024,
-  xxxl: 1200
+  xxl: 1024
 };
 
 // Modal padding podle šířky okna
 export const getModalPadding = (width) => {
-  if (width < BREAKPOINTS.sm) return 32;    // < 480px: minimum ale bezpečné
-  if (width < BREAKPOINTS.md) return 40;    // 480-540px: minimum ale bezpečné
-  if (width < BREAKPOINTS.lg) return 48;    // 540-700px: minimum ale bezpečné
-  if (width < BREAKPOINTS.xxl) return 80;   // 700-1024px: menší padding
-  if (width < BREAKPOINTS.xxxl) return 100; // 1024-1200px: střední padding
-  return 132; // 1200px+: plný padding
+  if (width < BREAKPOINTS.sm) return 48;
+  if (width < BREAKPOINTS.md) return 56;
+  if (width < BREAKPOINTS.lg) return 60;
+  return 132;
 };
 
 // Card horizontal padding v px (konvertováno z rem)
@@ -66,7 +63,7 @@ export const calculateKeyWidth = (windowWidth, whiteKeyCount = 12, gap = 2) => {
   const maxKeyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
 
   // Omezíme na rozumné minimum a maximum
-  // Od 700px nahoru držíme max šířku 60px - klaviatura využívá dostupný prostor
-  if (windowWidth >= BREAKPOINTS.lg) return Math.min(60, maxKeyWidth);    // 700px+
+  if (windowWidth >= BREAKPOINTS.xxl) return Math.min(60, maxKeyWidth);
+  if (windowWidth >= BREAKPOINTS.xl) return Math.min(50, maxKeyWidth);
   return Math.max(20, Math.min(45, maxKeyWidth));
 };
