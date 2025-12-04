@@ -2,10 +2,28 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Volume2, MousePointerClick, Piano, Play } from 'lucide-react';
 import audioEngine from '../../utils/audio';
-import { calculateKeyWidth, getKeyboardPadding } from '../../utils/responsiveConstants';
+import { getKeyboardPadding } from '../../utils/responsiveConstants';
 import { usePiano } from '../../contexts/PianoContext';
 import { PrimaryButton } from '../ui/ButtonComponents';
 import { Card } from '../ui/CardComponents';
+
+// Lokální výpočet šířky kláves pro PianoKeyboard - bere v úvahu keyboard padding
+const calculatePianoKeyWidth = (windowWidth, whiteKeyCount = 12, gap = 2) => {
+  // Horizontální padding klaviatury
+  const horizontalPaddingPx = windowWidth < 700 ? 4 : 16; // 0.25rem nebo 1rem
+
+  // Dostupná šířka = šířka okna - padding (levý + pravý) - bezpečnostní rezerva
+  const safetyMargin = 40; // Extra prostor pro bezpečnost
+  const availableWidth = windowWidth - (horizontalPaddingPx * 2) - safetyMargin;
+
+  const totalGaps = (whiteKeyCount - 1) * gap;
+  const maxKeyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
+
+  // Breakpointy optimalizované pro klaviaturu
+  // Od 768px držíme max šířku 60px
+  if (windowWidth >= 768) return Math.min(60, maxKeyWidth);
+  return Math.max(20, Math.min(45, maxKeyWidth));
+};
 
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
   const { pianoReady, isLoading, initPiano } = usePiano();
@@ -105,8 +123,8 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
   const whiteKeyCount = 12;
   const gap = 2;
 
-  // Responsivní šířka a výška klávesy - použití centralizovaných funkcí
-  const keyWidth = calculateKeyWidth(windowWidth, whiteKeyCount, gap);
+  // Responsivní šířka a výška klávesy - lokální výpočet pro PianoKeyboard
+  const keyWidth = calculatePianoKeyWidth(windowWidth, whiteKeyCount, gap);
   // Výška proporcionální k šířce (poměr 1:5.5 jako u reálných kláves)
   const keyHeight = Math.max(100, Math.min(200, Math.floor(keyWidth * 5.5)));
 
