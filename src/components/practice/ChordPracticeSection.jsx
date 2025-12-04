@@ -285,16 +285,26 @@ function ChordPracticeSection({
   if (!pianoReady) {
     return (
       <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
-        <PageCard style={{ textAlign: 'center', padding: '1.5rem 2rem' }}>
-          <Piano size={48} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
+        <PageCard style={{ textAlign: 'center', padding: '2.5rem 2rem 1.5rem' }}>
+          <Piano size={36} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
           <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem', fontSize: '1.25rem' }}>
             Připravit piano
           </h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
-            Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano 🎹
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1.25rem', maxWidth: '400px', margin: '0 auto 1.25rem', lineHeight: '1.5' }}>
+            Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano
           </p>
-          <PrimaryButton onClick={initPiano} disabled={isLoading}>
-            <Play size={20} />
+          <PrimaryButton
+            onClick={initPiano}
+            disabled={isLoading}
+            style={{
+              background: 'var(--color-primary)',
+              padding: '0.75rem 1.5rem',
+              fontSize: '0.9rem',
+              boxShadow: '0 2px 8px rgba(45, 91, 120, 0.3)',
+              margin: '0 auto'
+            }}
+          >
+            <Play size={18} />
             {isLoading ? 'Načítání...' : 'Spustit piano'}
           </PrimaryButton>
         </PageCard>

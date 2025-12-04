@@ -117,7 +117,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     return (
       <div style={{
         position: 'relative',
-        padding: '1.5rem 2rem',
+        padding: '2.5rem 2rem 1.5rem',
         background: 'var(--glass-bg)',
         backdropFilter: 'blur(20px)',
         borderRadius: 'var(--radius-xl)',
@@ -126,7 +126,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
         maxWidth: '500px',
         margin: '2rem auto'
       }}>
-        <Piano size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+        <Piano size={36} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
         <h3 style={{
           fontSize: '1.25rem',
           fontWeight: 600,
@@ -137,13 +137,24 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
         </h3>
         <p style={{
           color: 'var(--color-text-muted)',
-          marginBottom: '1rem',
-          fontSize: '0.875rem'
+          marginBottom: '1.25rem',
+          fontSize: '0.875rem',
+          lineHeight: '1.5'
         }}>
-          Klikněte pro načtení kvalitních piano samplů...
+          Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano
         </p>
-        <PrimaryButton onClick={initPiano} disabled={isLoading}>
-          <Play size={20} />
+        <PrimaryButton
+          onClick={initPiano}
+          disabled={isLoading}
+          style={{
+            background: 'var(--color-primary)',
+            padding: '0.75rem 1.5rem',
+            fontSize: '0.9rem',
+            boxShadow: '0 2px 8px rgba(45, 91, 120, 0.3)',
+            margin: '0 auto'
+          }}
+        >
+          <Play size={18} />
           {isLoading ? 'Načítání...' : 'Spustit piano'}
         </PrimaryButton>
       </div>
