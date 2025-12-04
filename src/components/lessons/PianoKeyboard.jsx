@@ -121,12 +121,12 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
         style={{
           textAlign: 'center',
           margin: '2rem auto',
-          padding: '2.5rem 2rem 1.5rem'
+          padding: '1.5rem 2rem'
         }}
       >
-        <Piano size={36} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
+        <Piano size={32} color="var(--color-primary)" style={{ margin: '0 auto 0.75rem' }} />
         <h3 style={{
-          fontSize: '1.25rem',
+          fontSize: '1.125rem',
           fontWeight: 600,
           color: 'var(--color-text-primary)',
           marginBottom: '0.5rem'
@@ -135,9 +135,9 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
         </h3>
         <p style={{
           color: 'var(--color-text-muted)',
-          marginBottom: '1.25rem',
+          marginBottom: '1rem',
           fontSize: '0.875rem',
-          lineHeight: '1.5'
+          lineHeight: '1.4'
         }}>
           Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano
         </p>
