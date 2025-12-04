@@ -285,12 +285,12 @@ function ChordPracticeSection({
   if (!pianoReady) {
     return (
       <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
-        <PageCard style={{ textAlign: 'center', padding: '3rem' }}>
-          <Piano size={64} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
-          <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.75rem', fontSize: '1.5rem' }}>
+        <PageCard style={{ textAlign: 'center', padding: '1.5rem 2rem' }}>
+          <Piano size={48} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
+          <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem', fontSize: '1.25rem' }}>
             Připravit piano
           </h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1rem', maxWidth: '400px', margin: '0 auto 1rem' }}>
             Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano 🎹
           </p>
           <PrimaryButton onClick={initPiano} disabled={isLoading}>

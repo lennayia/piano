@@ -117,7 +117,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     return (
       <div style={{
         position: 'relative',
-        padding: '3rem',
+        padding: '1.5rem 2rem',
         background: 'var(--glass-bg)',
         backdropFilter: 'blur(20px)',
         borderRadius: 'var(--radius-xl)',
@@ -126,19 +126,19 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
         maxWidth: '500px',
         margin: '2rem auto'
       }}>
-        <Piano size={64} color="var(--color-primary)" style={{ margin: '0 auto 1.5rem' }} />
+        <Piano size={48} color="var(--color-primary)" style={{ margin: '0 auto 1rem' }} />
         <h3 style={{
-          fontSize: '1.5rem',
+          fontSize: '1.25rem',
           fontWeight: 600,
           color: 'var(--color-text-primary)',
-          marginBottom: '1rem'
+          marginBottom: '0.5rem'
         }}>
           Připravit piano
         </h3>
         <p style={{
           color: 'var(--color-text-muted)',
-          marginBottom: '1.5rem',
-          fontSize: '0.95rem'
+          marginBottom: '1rem',
+          fontSize: '0.875rem'
         }}>
           Klikněte pro načtení kvalitních piano samplů...
         </p>
