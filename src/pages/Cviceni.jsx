@@ -15,6 +15,8 @@ import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import { shuffleArray } from '../utils/noteUtils';
 import { supabase } from '../lib/supabase';
 import ChordPracticeSection from '../components/practice/ChordPracticeSection';
+import { Card } from '../components/ui/CardComponents';
+import { ToggleButton } from '../components/ui/ButtonComponents';
 
 // Konstanty pro navigaci - mimo komponentu pro lepší performance
 const MAIN_TABS = [
@@ -287,14 +289,16 @@ function Cviceni() {
 
   if (loading) {
     return (
-      <div className="container" style={{ textAlign: 'center', padding: '4rem 0' }}>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        >
-          <Music size={48} color="var(--color-primary)" />
-        </motion.div>
-        <p style={{ marginTop: '1rem', color: 'var(--color-text-muted)' }}>Načítám cvičení...</p>
+      <div className="container">
+        <Card style={{ textAlign: 'center', padding: '3rem' }}>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          >
+            <Music size={48} color="var(--color-primary)" />
+          </motion.div>
+          <p style={{ marginTop: '1rem', color: 'var(--color-text-muted)' }}>Načítám cvičení...</p>
+        </Card>
       </div>
     );
   }
@@ -302,11 +306,11 @@ function Cviceni() {
   if (chords.length === 0) {
     return (
       <div className="container">
-        <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+        <Card style={{ textAlign: 'center', padding: '3rem' }}>
           <Music size={64} color="var(--color-primary)" style={{ marginBottom: '1rem' }} />
           <h2>Zatím nejsou k dispozici žádná cvičení</h2>
           <p style={{ color: 'var(--color-text-muted)' }}>Administrátor musí nejprve přidat akordy do databáze.</p>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -396,32 +400,14 @@ function Cviceni() {
           }
         }}
         subTabsAction={activeSection === 'chords' ? (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <ToggleButton
+            isActive={isShuffled}
             onClick={() => setIsShuffled(!isShuffled)}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: RADIUS.md,
-              border: BORDER.none,
-              boxShadow: SHADOW.subtle,
-              background: isShuffled
-                ? 'var(--color-secondary)'
-                : 'rgba(255, 255, 255, 0.7)',
-              color: isShuffled ? 'white' : 'var(--color-text-muted)',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: isShuffled ? 600 : 400,
-              transition: 'all 0.2s ease',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-            title={isShuffled ? 'Vypnout míchání' : 'Zamíchat akordy'}
-          >
-            <Shuffle size={16} />
-            Míchat
-          </motion.button>
+            icon={Shuffle}
+            label="Míchat"
+            activeTitle="Vypnout míchání"
+            inactiveTitle="Zamíchat akordy"
+          />
         ) : null}
         showDailyGoal={true}
         dailyGoal={currentGoalData.goal.dailyGoal}

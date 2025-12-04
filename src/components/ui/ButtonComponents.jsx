@@ -856,6 +856,58 @@ export function PrimaryButton({ onClick, children, fullWidth = false, style = {}
 }
 
 /**
+ * ToggleButton - Modulární toggle tlačítko pro zapínání/vypínání funkcí
+ * @param {boolean} isActive - Je tlačítko aktivní (zapnuté)?
+ * @param {function} onClick - Funkce volaná při kliknutí
+ * @param {React.Component} icon - Lucide ikona komponenta
+ * @param {string} label - Text tlačítka
+ * @param {string} activeTitle - Tooltip text pro aktivní stav
+ * @param {string} inactiveTitle - Tooltip text pro neaktivní stav
+ * @param {object} style - Dodatečné inline styly
+ */
+export function ToggleButton({
+  isActive = false,
+  onClick,
+  icon: Icon,
+  label,
+  activeTitle = '',
+  inactiveTitle = '',
+  style = {},
+  ...props
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      style={{
+        padding: '0.5rem 1rem',
+        borderRadius: RADIUS.md,
+        border: BORDER.none,
+        boxShadow: SHADOW.subtle,
+        background: isActive
+          ? 'var(--color-secondary)'
+          : 'rgba(255, 255, 255, 0.7)',
+        color: isActive ? 'white' : 'var(--color-text-muted)',
+        cursor: 'pointer',
+        fontSize: '0.875rem',
+        fontWeight: isActive ? 600 : 400,
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        ...style
+      }}
+      title={isActive ? activeTitle : inactiveTitle}
+      {...props}
+    >
+      {Icon && <Icon size={16} />}
+      {label}
+    </motion.button>
+  );
+}
+
+/**
  * CloseButton - Modulární zavírací tlačítko s animací oka
  * @param {function} onClick - Funkce volaná při kliknutí
  * @param {number} size - Velikost ikony (default: 20)
