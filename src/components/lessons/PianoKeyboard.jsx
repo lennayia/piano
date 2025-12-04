@@ -7,20 +7,34 @@ import { usePiano } from '../../contexts/PianoContext';
 import { PrimaryButton } from '../ui/ButtonComponents';
 import { Card } from '../ui/CardComponents';
 
-// Lokální výpočet šířky kláves pro PianoKeyboard - proporcionální podle dostupného prostoru
+// Lokální výpočet šířky kláves pro PianoKeyboard - čistě proporcionální s breakpointy
 const calculatePianoKeyWidth = (windowWidth, whiteKeyCount = 12, gap = 2) => {
-  // Horizontální padding klaviatury
-  const horizontalPaddingPx = windowWidth < 700 ? 4 : 16; // 0.25rem nebo 1rem
+  // MaxWidth kontejneru - klaviatura nepřekročí tuto šířku
+  const containerMaxWidth = 1024;
+  const effectiveWidth = Math.min(windowWidth, containerMaxWidth);
 
-  // Dostupná šířka = šířka okna - padding (levý + pravý) - bezpečnostní rezerva
-  const safetyMargin = 40; // Extra prostor pro bezpečnost
-  const availableWidth = windowWidth - (horizontalPaddingPx * 2) - safetyMargin;
+  const horizontalPadding = 8; // Padding na každé straně
+
+  // Bezpečnostní rezerva podle breakpointů
+  let safetyMargin;
+  if (effectiveWidth < 378) {
+    safetyMargin = 28; // Pro 320-377px
+  } else if (effectiveWidth < 464) {
+    safetyMargin = 40; // Pro 378-463px
+  } else if (effectiveWidth < 720) {
+    safetyMargin = 48; // Pro 464-719px
+  } else {
+    safetyMargin = 64; // Pro 720-1024px
+  }
+
+  // Dostupná šířka = efektivní šířka kontejneru - padding - rezerva
+  const availableWidth = effectiveWidth - (horizontalPadding * 2) - safetyMargin;
 
   const totalGaps = (whiteKeyCount - 1) * gap;
   const keyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
 
-  // Proporcionální šířka s minimem 20px
-  return Math.max(20, keyWidth);
+  // Minimum 15px pro čitelnost
+  return Math.max(15, keyWidth);
 };
 
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
@@ -123,11 +137,11 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
 
   // Responsivní šířka a výška klávesy - lokální výpočet pro PianoKeyboard
   const keyWidth = calculatePianoKeyWidth(windowWidth, whiteKeyCount, gap);
-  // Výška čistě proporcionální k šířce (poměr 1:5.5 jako u reálných kláves)
-  const keyHeight = Math.floor(keyWidth * 5.5);
+  // Výška čistě proporcionální k šířce (poměr 1:4.5)
+  const keyHeight = Math.floor(keyWidth * 4.5);
 
-  // Responzivní padding - z centralizovaných konstant
-  const keyboardPadding = getKeyboardPadding(windowWidth);
+  // Responzivní padding pro klaviaturu: vertikální (horní/spodní) + horizontální (levý/pravý)
+  const keyboardPadding = windowWidth < 464 ? '1rem 0.5rem' : windowWidth < 720 ? '1.5rem 0.5rem' : '2rem 0.5rem'; // 16px/24px/32px vertikální, 8px horizontální
 
   // Pokud piano není ready, zobrazit inicializační UI
   if (!pianoReady) {
@@ -272,7 +286,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'center',
-              paddingBottom: keyWidth < 30 ? '32px' : keyWidth < 40 ? '41px' : '45px',
+              paddingBottom: keyWidth < 30 ? '26px' : keyWidth < 40 ? '35px' : '39px',
               fontSize: windowWidth < 360 ? '0.5rem' : windowWidth < 480 ? '0.625rem' : windowWidth < 768 ? '0.75rem' : '0.875rem',
               fontWeight: 500,
               position: 'relative',
@@ -330,7 +344,7 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
                 display: 'flex',
                 alignItems: 'flex-end',
                 justifyContent: 'center',
-                paddingBottom: keyWidth < 30 ? '29px' : keyWidth < 40 ? '37px' : '41px',
+                paddingBottom: keyWidth < 30 ? '23px' : keyWidth < 40 ? '31px' : '35px',
                 fontSize: windowWidth < 360 ? '0.375rem' : windowWidth < 480 ? '0.5rem' : windowWidth < 768 ? '0.625rem' : '0.75rem',
                 fontWeight: 500,
                 color: 'white',

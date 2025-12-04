@@ -27,9 +27,9 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Responzivní padding: 320-700px = menší, 700px+ = plný
-  const backdropPadding = windowWidth < 700 ? '0.75rem' : '2rem';
-  const contentPadding = windowWidth < 700 ? '0.75rem' : '1.5rem';
+  // Responzivní padding: 320-400px = minimální, 400-700px = menší, 700px+ = plný
+  const backdropPadding = windowWidth < 400 ? '0.1rem' : '0.5rem';
+  const contentPadding = windowWidth < 400 ? '0.25rem' : windowWidth < 700 ? '0.5rem' : '1rem';
 
   return (
     <AnimatePresence>
@@ -74,7 +74,7 @@ function Modal({ isOpen, onClose, children, title, hideHeader = false }) {
                 border: '1px solid rgba(255, 255, 255, 0.4)',
                 boxShadow: '0 20px 60px rgba(31, 38, 135, 0.3)',
                 borderRadius: 'var(--radius-xl)',
-                maxWidth: '900px',
+                maxWidth: '1024px',
                 width: '100%',
                 maxHeight: '90vh',
                 overflowY: 'auto',
