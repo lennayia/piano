@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, ChevronRight, ChevronLeft, Volume2, CheckCircle } from 'lucide-react';
+import { Play, ChevronRight, ChevronLeft, Volume2, CheckCircle, Piano } from 'lucide-react';
 import useUserStore from '../../store/useUserStore';
 import PianoKeyboard from '../lessons/PianoKeyboard';
-import { IconButton, MelodyNote } from '../ui/ButtonComponents';
+import { IconButton, MelodyNote, PrimaryButton } from '../ui/ButtonComponents';
 import { ProgressBar, InfoPanel, Card, PageCard } from '../ui/CardComponents';
 import PracticeModeControls from '../ui/PracticeModeControls';
 import { RADIUS, SHADOW } from '../../utils/styleConstants';
@@ -43,6 +43,9 @@ function ChordPracticeSection({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const celebrationTriggeredRef = useRef(false);
 
+  // Piano sampler loading state
+  const [pianoReady, setPianoReady] = useState(false);
+
   // Hook pro sledování pokroku (dokončených akordů)
   const { completedCount, incrementCompleted, resetProgress } = useProgressTracking();
   const [completedChordIds, setCompletedChordIds] = useState(new Set()); // Challenge mode
@@ -50,6 +53,22 @@ function ChordPracticeSection({
 
   const [playingNoteIndex, setPlayingNoteIndex] = useState(-1);
   const [isPlayingFullChord, setIsPlayingFullChord] = useState(false);
+
+  // Piano initialization handler (requires user click)
+  const handleInitPiano = async () => {
+    try {
+      console.log('🎹 Starting piano initialization with user gesture...');
+      await audioEngine.initWithUserGesture();
+      console.log('🎹 Audio engine initialized, waiting for sampler...');
+      await audioEngine.waitForSampler();
+      console.log('🎹 Sampler ready! Setting pianoReady to true');
+      setPianoReady(true);
+    } catch (err) {
+      console.error('❌ Piano initialization failed:', err);
+      // Fallback: allow playing with synth
+      setPianoReady(true);
+    }
+  };
 
   // Reset při změně obtížnosti nebo míchání
   useEffect(() => {
@@ -275,6 +294,27 @@ function ChordPracticeSection({
 
   if (!chords || chords.length === 0) {
     return null;
+  }
+
+  // Show "Start Piano" button before initialization
+  if (!pianoReady) {
+    return (
+      <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
+        <PageCard style={{ textAlign: 'center', padding: '3rem' }}>
+          <Piano size={64} color="var(--color-primary)" style={{ marginBottom: '1.5rem' }} />
+          <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.75rem', fontSize: '1.5rem' }}>
+            Připravit piano
+          </h3>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
+            Klikněte pro načtení kvalitních piano samplu ze Salamander Grand Piano 🎹
+          </p>
+          <PrimaryButton onClick={handleInitPiano}>
+            <Play size={20} />
+            Spustit piano
+          </PrimaryButton>
+        </PageCard>
+      </div>
+    );
   }
 
   return (
