@@ -383,7 +383,7 @@ function Cviceni() {
       </FloatingHelpButton>
 
       <PageSection
-        maxWidth="xl"
+        maxWidth="lg"
         icon={Headphones}
         title="Cvičení"
         description="Procvičujte akordy nebo si zahrajte písničky podle not"
