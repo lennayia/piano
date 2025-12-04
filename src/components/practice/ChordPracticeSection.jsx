@@ -333,7 +333,7 @@ function ChordPracticeSection({
           key={currentChordIndex}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          style={{ marginBottom: '2rem' }}
+          style={{ marginBottom: '2rem', padding: '1.25rem 1.25rem 1rem' }}
         >
           {/* Název akordu s navigací */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
@@ -350,7 +350,7 @@ function ChordPracticeSection({
               animate={{ scale: 1 }}
               transition={{ type: 'spring', delay: 0.1 }}
               style={{
-                fontSize: '2.5rem',
+                fontSize: '2rem',
                 fontWeight: 700,
                 color: 'var(--color-primary)',
                 margin: 0
