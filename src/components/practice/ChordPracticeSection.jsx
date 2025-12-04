@@ -499,9 +499,9 @@ function ChordPracticeSection({
         </PageCard>
       </div>
 
-      {/* Klaviatura - plná šířka obrazovky */}
+      {/* Klaviatura - stejná šířka jako hlavní karta */}
       {(practicingMode || challengeMode) && (
-        <div className="container" style={{ margin: '2rem 0' }}>
+        <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
           <PianoKeyboard
             highlightedNotes={
               challengeMode
