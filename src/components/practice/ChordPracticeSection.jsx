@@ -290,7 +290,7 @@ function ChordPracticeSection({
           <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem', fontSize: '1.25rem' }}>
             Připravit piano
           </h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1.25rem', maxWidth: '400px', margin: '0 auto 1.25rem', lineHeight: '1.5' }}>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
             Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano
           </p>
           <PrimaryButton
