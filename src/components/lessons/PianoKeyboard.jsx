@@ -120,7 +120,6 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
         opacity={0.4}
         style={{
           textAlign: 'center',
-          maxWidth: '500px',
           margin: '2rem auto',
           padding: '2.5rem 2rem 1.5rem'
         }}
