@@ -66,7 +66,7 @@ export const calculateKeyWidth = (windowWidth, whiteKeyCount = 12, gap = 2) => {
   const maxKeyWidth = Math.floor((availableWidth - totalGaps) / whiteKeyCount);
 
   // Omezíme na rozumné minimum a maximum
-  // Od 768px nahoru držíme max šířku 60px - klaviatura má prostor až do ~1200px
-  if (windowWidth >= BREAKPOINTS.xl) return Math.min(60, maxKeyWidth);    // 768px+
+  // Od 700px nahoru držíme max šířku 60px - klaviatura využívá dostupný prostor
+  if (windowWidth >= BREAKPOINTS.lg) return Math.min(60, maxKeyWidth);    // 700px+
   return Math.max(20, Math.min(45, maxKeyWidth));
 };
