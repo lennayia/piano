@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Volume2, MousePointerClick } from 'lucide-react';
+import { Volume2, MousePointerClick, Piano, Play } from 'lucide-react';
 import audioEngine from '../../utils/audio';
 import { calculateKeyWidth, getKeyboardPadding } from '../../utils/responsiveConstants';
+import { usePiano } from '../../contexts/PianoContext';
+import { PrimaryButton } from '../ui/ButtonComponents';
 
 function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick }) {
+  const { pianoReady, isLoading, initPiano } = usePiano();
   const [activeKeys, setActiveKeys] = useState(new Set());
   const [particles, setParticles] = useState([]);
 
@@ -14,9 +17,8 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
     return savedVolume !== null ? parseFloat(savedVolume) : 0.8;
   });
 
-  // Nastavit hlasitost při mount a při změně
+  // Nastavit hlasitost při změně (audioEngine.init() už volá PianoContext)
   useEffect(() => {
-    audioEngine.init();
     audioEngine.setVolume(volume);
     // Uložit do localStorage při změně
     localStorage.setItem('pianoVolume', volume.toString());
@@ -109,6 +111,44 @@ function PianoKeyboard({ highlightedNotes = [], autoPlay = false, onNoteClick })
 
   // Responzivní padding - z centralizovaných konstant
   const keyboardPadding = getKeyboardPadding(windowWidth);
+
+  // Pokud piano není ready, zobrazit inicializační UI
+  if (!pianoReady) {
+    return (
+      <div style={{
+        position: 'relative',
+        padding: '3rem',
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(20px)',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: 'var(--shadow-lg)',
+        textAlign: 'center',
+        maxWidth: '500px',
+        margin: '2rem auto'
+      }}>
+        <Piano size={64} color="var(--color-primary)" style={{ margin: '0 auto 1.5rem' }} />
+        <h3 style={{
+          fontSize: '1.5rem',
+          fontWeight: 600,
+          color: 'var(--color-text-primary)',
+          marginBottom: '1rem'
+        }}>
+          Připravit piano
+        </h3>
+        <p style={{
+          color: 'var(--color-text-muted)',
+          marginBottom: '1.5rem',
+          fontSize: '0.95rem'
+        }}>
+          Klikněte pro načtení kvalitních piano samplů...
+        </p>
+        <PrimaryButton onClick={initPiano} disabled={isLoading}>
+          <Play size={20} />
+          {isLoading ? 'Načítání...' : 'Spustit piano'}
+        </PrimaryButton>
+      </div>
+    );
+  }
 
   return (
     <div style={{

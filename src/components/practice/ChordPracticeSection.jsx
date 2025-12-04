@@ -11,6 +11,7 @@ import audioEngine from '../../utils/audio';
 import useProgressTracking from '../../hooks/useProgressTracking';
 import PracticeCelebration from './PracticeCelebration';
 import { celebrate, triggerCelebration } from '../../services/celebrationService';
+import { usePiano } from '../../contexts/PianoContext';
 
 /**
  * ChordPracticeSection - Samostatná komponenta pro procvičování akordů
@@ -43,8 +44,8 @@ function ChordPracticeSection({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const celebrationTriggeredRef = useRef(false);
 
-  // Piano sampler loading state
-  const [pianoReady, setPianoReady] = useState(false);
+  // Piano Context - global piano initialization
+  const { pianoReady, isLoading, initPiano } = usePiano();
 
   // Hook pro sledování pokroku (dokončených akordů)
   const { completedCount, incrementCompleted, resetProgress } = useProgressTracking();
@@ -53,22 +54,6 @@ function ChordPracticeSection({
 
   const [playingNoteIndex, setPlayingNoteIndex] = useState(-1);
   const [isPlayingFullChord, setIsPlayingFullChord] = useState(false);
-
-  // Piano initialization handler (requires user click)
-  const handleInitPiano = async () => {
-    try {
-      console.log('🎹 Starting piano initialization with user gesture...');
-      await audioEngine.initWithUserGesture();
-      console.log('🎹 Audio engine initialized, waiting for sampler...');
-      await audioEngine.waitForSampler();
-      console.log('🎹 Sampler ready! Setting pianoReady to true');
-      setPianoReady(true);
-    } catch (err) {
-      console.error('❌ Piano initialization failed:', err);
-      // Fallback: allow playing with synth
-      setPianoReady(true);
-    }
-  };
 
   // Reset při změně obtížnosti nebo míchání
   useEffect(() => {
@@ -306,11 +291,11 @@ function ChordPracticeSection({
             Připravit piano
           </h3>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem' }}>
-            Klikněte pro načtení kvalitních piano samplu ze Salamander Grand Piano 🎹
+            Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano 🎹
           </p>
-          <PrimaryButton onClick={handleInitPiano}>
+          <PrimaryButton onClick={initPiano} disabled={isLoading}>
             <Play size={20} />
-            Spustit piano
+            {isLoading ? 'Načítání...' : 'Spustit piano'}
           </PrimaryButton>
         </PageCard>
       </div>

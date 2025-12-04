@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import useUserStore from './store/useUserStore';
 import useAchievementsStore from './store/useAchievementsStore';
+import { PianoProvider } from './contexts/PianoContext';
 import './styles/index.css';
 
 // Lazy load page components for better performance
@@ -31,34 +32,36 @@ function App() {
   }, [initAuth, loadAchievements]);
 
   return (
-    <Router>
-      <Layout>
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">Načítání...</p>
+    <PianoProvider>
+      <Router>
+        <Layout>
+          <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-gray-600">Načítání...</p>
+              </div>
             </div>
-          </div>
-        }>
-          <Routes>
-            {/* Veřejné routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/registration" element={<Registration />} />
-            <Route path="/piano-login" element={<PianoLogin />} />
+          }>
+            <Routes>
+              {/* Veřejné routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/registration" element={<Registration />} />
+              <Route path="/piano-login" element={<PianoLogin />} />
 
-            {/* Chráněné routes - vyžadují přihlášení */}
-            <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
-            <Route path="/lekce" element={<ProtectedRoute><Lekce /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="/lesson/:id" element={<ProtectedRoute><Lesson /></ProtectedRoute>} />
-            <Route path="/cviceni" element={<ProtectedRoute><Cviceni /></ProtectedRoute>} />
-            <Route path="/theory-quizzes" element={<ProtectedRoute><TheoryQuizzes /></ProtectedRoute>} />
-          </Routes>
-        </Suspense>
-      </Layout>
-    </Router>
+              {/* Chráněné routes - vyžadují přihlášení */}
+              <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+              <Route path="/lekce" element={<ProtectedRoute><Lekce /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+              <Route path="/lesson/:id" element={<ProtectedRoute><Lesson /></ProtectedRoute>} />
+              <Route path="/cviceni" element={<ProtectedRoute><Cviceni /></ProtectedRoute>} />
+              <Route path="/theory-quizzes" element={<ProtectedRoute><TheoryQuizzes /></ProtectedRoute>} />
+            </Routes>
+          </Suspense>
+        </Layout>
+      </Router>
+    </PianoProvider>
   );
 }
 
