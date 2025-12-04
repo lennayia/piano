@@ -19,7 +19,9 @@ export const getModalPadding = (width) => {
   if (width < BREAKPOINTS.sm) return 48;
   if (width < BREAKPOINTS.md) return 56;
   if (width < BREAKPOINTS.lg) return 60;
-  return 132;
+  if (width < BREAKPOINTS.xxl) return 80;   // 700-1024px: menší padding
+  if (width < BREAKPOINTS.xxxl) return 100; // 1024-1200px: střední padding
+  return 132; // 1200px+: plný padding
 };
 
 // Card horizontal padding v px (konvertováno z rem)
