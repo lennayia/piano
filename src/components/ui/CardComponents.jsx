@@ -134,7 +134,15 @@ export function QuestionCard({ children, isActive = true, as: Component = 'div',
  * @param {React.ReactNode} children - Obsah panelu
  * @param {object} style - Dodatečné styly
  */
-export function InfoPanel({ title, icon: Icon, variant = 'primary', children, style = {}, ...props }) {
+export function InfoPanel({
+  as: Component = 'div',
+  title,
+  icon: Icon,
+  variant = 'primary',
+  children,
+  style = {},
+  ...props
+}) {
   const variants = {
     primary: {
       background: 'rgba(181, 31, 101, 0.08)',
@@ -153,7 +161,7 @@ export function InfoPanel({ title, icon: Icon, variant = 'primary', children, st
   const variantStyle = variants[variant];
 
   return (
-    <div
+    <Component
       style={{
         padding: '1rem',
         background: variantStyle.background,
@@ -176,7 +184,7 @@ export function InfoPanel({ title, icon: Icon, variant = 'primary', children, st
       <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
         {children}
       </div>
-    </div>
+    </Component>
   );
 }
 

@@ -95,6 +95,18 @@ export function PageSection({
   const currentThirdLevelTabs = thirdLevelTabs[thirdLevelKey] || [];
   const hasThirdLevel = currentThirdLevelTabs.length > 0;
 
+  // MaxWidth mapping
+  const maxWidthMap = {
+    'sm': '640px',
+    'md': '768px',
+    'lg': '1024px',
+    'xl': '1280px',
+    'full': '100%'
+  };
+
+  // Pokud maxWidth není v mapě, použij ho jako custom hodnotu (např. '1200px')
+  const containerMaxWidth = maxWidthMap[maxWidth] || maxWidth;
+
   // Divider komponent
   const Divider = () => (
     <div style={{
@@ -106,7 +118,7 @@ export function PageSection({
   );
 
   return (
-    <div className="container">
+    <div className="container" style={{ maxWidth: containerMaxWidth }}>
       {/* Header sekce - kompaktnější */}
       {(Icon || title || description) && (
         <>

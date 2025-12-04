@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, Trophy, X, Eye, EyeOff, Piano, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { RADIUS } from '../../utils/styleConstants';
+import { InfoPanel } from './CardComponents';
 
 /**
  * Univerzální komponenta pro režimy cvičení (Procvičovat / Výzva)
@@ -181,18 +182,14 @@ function PracticeModeControls({
 
       {/* Progress karta - zobrazit jen když je aktivní režim */}
       {isActive && (
-        <motion.div
+        <InfoPanel
+          as={motion.div}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{
-            padding: '1rem',
-            background: 'rgba(181, 31, 101, 0.08)',
-            borderRadius: RADIUS.lg,
-            marginBottom: '1rem',
-            border: 'none'
-          }}
+          variant="primary"
+          style={{ marginBottom: '1rem', marginTop: 0, borderRadius: RADIUS.lg }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', marginTop: '-0.25rem' }}>
             {isChallenge ? <Trophy size={20} color="var(--color-primary)" /> : <Target size={20} color="var(--color-secondary)" />}
             <span style={{ fontWeight: 600, color: isChallenge ? 'var(--color-primary)' : 'var(--color-secondary)' }}>
               {isChallenge ? 'Režim výzvy - Hraj bez nápovědy!' : 'Režim procvičování - S nápovědou'}
@@ -207,7 +204,7 @@ function PracticeModeControls({
           <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
             Postup: <strong>{progress}</strong> / <strong>{totalNotes}</strong>
           </div>
-        </motion.div>
+        </InfoPanel>
       )}
 
       {/* Feedback ikony a tlačítko Znovu - zobrazit když je aktivní režim a callback existuje */}
