@@ -3,7 +3,7 @@ import audioEngine from '../utils/audio';
 
 const PianoContext = createContext(null);
 
-export function PianoProvider({ children }) {
+export const PianoProvider = ({ children }) => {
   const [pianoReady, setPianoReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -42,12 +42,12 @@ export function PianoProvider({ children }) {
       {children}
     </PianoContext.Provider>
   );
-}
+};
 
-export function usePiano() {
+export const usePiano = () => {
   const context = useContext(PianoContext);
   if (!context) {
     throw new Error('usePiano must be used within PianoProvider');
   }
   return context;
-}
+};

@@ -1,6 +1,86 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 4. prosince 2025 (Session 8 - Chord Refactoring)
+Datum poslední aktualizace: 5. prosince 2025 (Session 9 - Practice UI Improvements)
+
+## ✅ Dokončeno v Session 9 - Practice UI Improvements (5.12.2025)
+
+### 🐛 Hotfix: PianoContext Vite Fast Refresh Error
+
+**Problém:**
+- ✅ Error "usePiano must be used within PianoProvider" po keyboard responsiveness session
+- ✅ Vite HMR nekompatibilita s `export function` pro component + hook v jednom souboru
+- ✅ Při hot reload se kontext "ztratil"
+
+**Řešení:**
+- ✅ Změna `export function` → `export const` s arrow functions
+- ✅ PianoProvider: `export const PianoProvider = ({ children }) => { ... }`
+- ✅ usePiano: `export const usePiano = () => { ... }`
+
+**Výsledek:**
+- ✅ Vite Fast Refresh nyní správně funguje
+- ✅ Žádné HMR problémy během developmentu
+- ✅ Kontext stabilní při hot reloadech
+
+**Soubory:** `src/contexts/PianoContext.jsx`
+
+---
+
+### 🎨 Feature: Vylepšení PracticeModeControls Info Panelu
+
+**User feedback:**
+- ❌ "Chyby: 0, Postup: 0/3" - matoucí, co to znamená?
+- ❌ Není vidět celkový pokrok v sérii
+- ❌ Technické labely místo srozumitelných českých
+
+**Implementace:**
+
+**1. Nové props v PracticeModeControls:**
+- ✅ `completedItems` - počet dokončených položek v sérii
+- ✅ `totalItems` - celkový počet položek v sérii
+- ✅ Zpětně kompatibilní (default = 0)
+
+**2. Vylepšené labely:**
+- ✅ "Postup aktuální položky" → **"Správné tóny"**
+- ✅ "Dokončeno v sérii" → **"Bezchybné akordy"**
+- ✅ Pořadí: Chyby → Správné tóny → Bezchybné akordy
+
+**3. Display před/po:**
+
+**PŘED:**
+```
+Chyby: 0
+Postup: 0 / 3
+```
+
+**PO:**
+```
+Chyby: 0
+Správné tóny: 0 / 3
+Bezchybné akordy: 2 / 12
+```
+
+**4. ChordPracticeSection integrace:**
+- ✅ Předávání `completedItems={challengeMode ? completedCount : practiceCompletedChordIds.size}`
+- ✅ Předávání `totalItems={chords.length}`
+- ✅ Info panel nyní zobrazuje kompletní přehled
+
+**UX výsledky:**
+- ✅ Jasný přehled o pokroku v aktuálním akordu (správné tóny)
+- ✅ Jasný přehled o celkovém pokroku série (bezchybné akordy)
+- ✅ Srozumitelné české labely
+- ✅ Kompletní informace v jednom panelu
+
+**Soubory změněny:**
+- `src/components/ui/PracticeModeControls.jsx` - nové props + display
+- `src/components/practice/ChordPracticeSection.jsx` - předávání dat
+
+**Dokumentace:**
+- ✅ `SESSION_CONTEXT-20251205-practice-ui-improvements.md` (kompletní)
+
+**Commits:**
+- Připraveno pro commit: "feat: Improve PracticeModeControls UX + fix PianoContext HMR"
+
+---
 
 ## ✅ Dokončeno v Session 8 - ChordPracticeSection refactoring + modularizace (4.12.2025)
 

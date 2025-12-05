@@ -14,6 +14,8 @@ function PracticeModeControls({
   practiceErrors = 0,          // počet chyb
   progress = 0,                // kolik not už bylo zahráno
   totalNotes = 0,              // celkový počet not
+  completedItems = 0,          // kolik položek (akordů/písniček) bylo dokončeno
+  totalItems = 0,              // celkový počet položek v sérii
 
   // Callbacks
   onStartPractice,             // callback pro start procvičování
@@ -202,8 +204,13 @@ function PracticeModeControls({
             } Chyby: <strong style={{ color: practiceErrors > 0 ? '#ef4444' : '#10b981' }}>{practiceErrors}</strong>
           </div>
           <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
-            Postup: <strong>{progress}</strong> / <strong>{totalNotes}</strong>
+            Správné tóny: <strong>{progress}</strong> / <strong>{totalNotes}</strong>
           </div>
+          {totalItems > 0 && (
+            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
+              Bezchybné akordy: <strong style={{ color: 'var(--color-primary)' }}>{completedItems}</strong> / <strong>{totalItems}</strong>
+            </div>
+          )}
         </InfoPanel>
       )}
 

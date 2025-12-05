@@ -431,6 +431,8 @@ function ChordPracticeSection({
             practiceErrors={practiceErrors}
             progress={playedNotes.length}
             totalNotes={chordNotesWithOctaves.length}
+            completedItems={challengeMode ? completedCount : practiceCompletedChordIds.size}
+            totalItems={chords.length}
             onStartPractice={() => {
               setPracticingMode(true);
               setChallengeMode(false);
