@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Music, Headphones, Shuffle, Piano, Target } from 'lucide-react';
@@ -9,14 +9,16 @@ import { saveDailyGoalCompletion } from '../services/dailyGoalService';
 import { getCelebrationConfig, triggerCelebration } from '../services/celebrationService';
 import CelebrationEffect from '../components/ui/CelebrationEffect';
 import { RADIUS, SHADOW, BORDER } from '../utils/styleConstants';
-import SongLibrary from '../components/resources/SongLibrary';
-import ChordQuiz from '../components/games/ChordQuiz';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import { shuffleArray } from '../utils/noteUtils';
 import { supabase } from '../lib/supabase';
-import ChordPracticeSection from '../components/practice/ChordPracticeSection';
 import { Card } from '../components/ui/CardComponents';
 import { ToggleButton } from '../components/ui/ButtonComponents';
+
+// Lazy load section components for better performance
+const ChordPracticeSection = lazy(() => import('../components/practice/ChordPracticeSection'));
+const ChordQuiz = lazy(() => import('../components/games/ChordQuiz'));
+const SongLibrary = lazy(() => import('../components/resources/SongLibrary'));
 
 // Konstanty pro navigaci - mimo komponentu pro lepší performance
 const MAIN_TABS = [
@@ -77,8 +79,8 @@ function Cviceni() {
   const [dailyGoalCelebrationData, setDailyGoalCelebrationData] = useState(null);
   const [showDailyGoalCelebration, setShowDailyGoalCelebration] = useState(false);
 
-  // Callback pro splnění denního cíle - AKORDY
-  const handleChordGoalCompleted = useCallback(
+  // Univerzální callback pro splnění denního cíle (AKORDY, QUIZ, PÍSNIČKY)
+  const handleDailyGoalCompleted = useCallback(
     async (goalData) => {
       if (!currentUser) return;
 
@@ -124,104 +126,10 @@ function Cviceni() {
     [currentUser]
   );
 
-  // Callback pro splnění denního cíle - QUIZ
-  const handleQuizGoalCompleted = useCallback(
-    async (goalData) => {
-      if (!currentUser) return;
-
-      const result = await saveDailyGoalCompletion(currentUser.id, goalData);
-
-      if (result.success) {
-        const unlockedAchievements = result.unlockedAchievements || [];
-        const config = getCelebrationConfig('daily_goal', unlockedAchievements);
-
-        if (unlockedAchievements.length === 0) {
-          const streakText = result.newStreak > 1
-            ? `${result.newStreak} dní v řadě! 🔥`
-            : 'První den! 💪';
-          config.message = `🎯 Denní cíl splněn!\n${streakText}`;
-        }
-
-        setDailyGoalCelebrationData({
-          config,
-          xpEarned: result.xpEarned,
-          achievements: unlockedAchievements
-        });
-        setShowDailyGoalCelebration(true);
-
-        if (result.leveledUp && result.levelUpConfig) {
-          setTimeout(() => {
-            triggerCelebration(
-              result.levelUpConfig.confettiType,
-              result.levelUpConfig.sound,
-              {
-                title: `⭐ Level ${result.level}!`,
-                message: `Gratulujeme! Dosáhli jste levelu ${result.level} s ${result.totalXP} XP!`,
-                type: 'success',
-                duration: 5000
-              }
-            );
-          }, 3500);
-        }
-
-        const updateUserStats = useUserStore.getState().updateUserStats;
-        if (updateUserStats) updateUserStats();
-      }
-    },
-    [currentUser]
-  );
-
-  // Callback pro splnění denního cíle - PÍSNIČKY
-  const handleSongGoalCompleted = useCallback(
-    async (goalData) => {
-      if (!currentUser) return;
-
-      const result = await saveDailyGoalCompletion(currentUser.id, goalData);
-
-      if (result.success) {
-        const unlockedAchievements = result.unlockedAchievements || [];
-        const config = getCelebrationConfig('daily_goal', unlockedAchievements);
-
-        if (unlockedAchievements.length === 0) {
-          const streakText = result.newStreak > 1
-            ? `${result.newStreak} dní v řadě! 🔥`
-            : 'První den! 💪';
-          config.message = `🎯 Denní cíl splněn!\n${streakText}`;
-        }
-
-        setDailyGoalCelebrationData({
-          config,
-          xpEarned: result.xpEarned,
-          achievements: unlockedAchievements
-        });
-        setShowDailyGoalCelebration(true);
-
-        if (result.leveledUp && result.levelUpConfig) {
-          setTimeout(() => {
-            triggerCelebration(
-              result.levelUpConfig.confettiType,
-              result.levelUpConfig.sound,
-              {
-                title: `⭐ Level ${result.level}!`,
-                message: `Gratulujeme! Dosáhli jste levelu ${result.level} s ${result.totalXP} XP!`,
-                type: 'success',
-                duration: 5000
-              }
-            );
-          }, 3500);
-        }
-
-        const updateUserStats = useUserStore.getState().updateUserStats;
-        if (updateUserStats) updateUserStats();
-      }
-    },
-    [currentUser]
-  );
-
-  // Daily goal hooks - 3 samostatné pro každou sekci
-  const chordsGoal = useDailyGoal('chords', handleChordGoalCompleted);
-  const quizGoal = useDailyGoal('quiz', handleQuizGoalCompleted);
-  const songsGoal = useDailyGoal('songs', handleSongGoalCompleted);
+  // Daily goal hooks - univerzální callback pro všechny typy
+  const chordsGoal = useDailyGoal('chords', handleDailyGoalCompleted);
+  const quizGoal = useDailyGoal('quiz', handleDailyGoalCompleted);
+  const songsGoal = useDailyGoal('songs', handleDailyGoalCompleted);
 
   // Helper funkce - vrátí aktuální daily goal podle aktivní sekce
   const getCurrentGoal = () => {
@@ -430,29 +338,56 @@ function Cviceni() {
 
       {/* Sekce Akordy - MIMO PageSection */}
       {activeSection === 'chords' && (
-        <ChordPracticeSection
-          chords={chords}
-          selectedDifficulty={selectedDifficulty}
-          isShuffled={isShuffled}
-          currentUser={currentUser}
-          onDailyGoalComplete={chordsGoal.markCompleted}
-          onResetProgress={handleResetProgress}
-        />
+        <Suspense fallback={
+          <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto', textAlign: 'center' }}>
+            <Card style={{ padding: '2rem' }}>
+              <Music size={32} color="var(--color-primary)" style={{ marginBottom: '0.5rem' }} />
+              <p style={{ color: 'var(--color-text-muted)' }}>Načítám akordy...</p>
+            </Card>
+          </div>
+        }>
+          <ChordPracticeSection
+            chords={chords}
+            selectedDifficulty={selectedDifficulty}
+            isShuffled={isShuffled}
+            currentUser={currentUser}
+            onDailyGoalComplete={chordsGoal.markCompleted}
+            onResetProgress={handleResetProgress}
+          />
+        </Suspense>
       )}
 
       {/* Sekce Poznáte akord? - MIMO PageSection */}
       {activeSection === 'quiz' && (
-        <ChordQuiz onDailyGoalComplete={quizGoal.markCompleted} />
+        <Suspense fallback={
+          <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto', textAlign: 'center' }}>
+            <Card style={{ padding: '2rem' }}>
+              <Target size={32} color="var(--color-primary)" style={{ marginBottom: '0.5rem' }} />
+              <p style={{ color: 'var(--color-text-muted)' }}>Načítám kvíz...</p>
+            </Card>
+          </div>
+        }>
+          <ChordQuiz onDailyGoalComplete={quizGoal.markCompleted} />
+        </Suspense>
       )}
 
       {/* Sekce Písničky - MIMO PageSection */}
       {activeSection === 'songs' && (
-        <SongLibrary
-          activeCategory={activeSongCategory}
-          searchTerm={searchTerm}
-          sortBy={sortBy}
-          onDailyGoalComplete={songsGoal.markCompleted}
-        />
+        <Suspense fallback={
+          <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto', textAlign: 'center' }}>
+            <Card style={{ padding: '2rem' }}>
+              <Music size={32} color="var(--color-primary)" style={{ marginBottom: '0.5rem' }} />
+              <p style={{ color: 'var(--color-text-muted)' }}>Načítám písničky...</p>
+            </Card>
+          </div>
+        }>
+          <SongLibrary
+            activeCategory={activeSongCategory}
+            searchTerm={searchTerm}
+            sortBy={sortBy}
+            onDailyGoalComplete={songsGoal.markCompleted}
+          />
+        </Suspense>
       )}
 
       {/* Oslava pro denní cíle */}

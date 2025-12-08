@@ -15,11 +15,9 @@ export const PianoProvider = ({ children }) => {
     setError(null);
 
     try {
-      console.log('🎹 Initializing Salamander Piano with user gesture...');
       await audioEngine.initWithUserGesture();
       await audioEngine.waitForSampler();
       setPianoReady(true);
-      console.log('✅ Salamander Piano ready globally!');
     } catch (err) {
       console.error('❌ Piano initialization failed:', err);
       setError(err.message);

@@ -65,7 +65,6 @@ class AudioEngine {
 
       // Initialize Tone.js context (requires user gesture)
       await Tone.start();
-      console.log('🎹 Tone.js started with user gesture');
 
       // Initialize Piano Sampler with Salamander samples
       await this.initPianoSampler();
@@ -117,7 +116,6 @@ class AudioEngine {
         baseUrl: baseUrl,
         onload: () => {
           this.samplerReady = true;
-          console.log('✅ Salamander Piano loaded successfully!');
           // Resolve the promise for components waiting for sampler
           if (this.samplerReadyResolve) {
             this.samplerReadyResolve();

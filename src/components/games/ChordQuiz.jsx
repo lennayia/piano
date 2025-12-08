@@ -5,13 +5,14 @@ import audioEngine from '../../utils/audio';
 import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
-import { sortNotesByKeyboard } from '../../utils/noteUtils';
+import { sortNotesByKeyboard, shuffleArray } from '../../utils/noteUtils';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
 import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
 import QuizResultsPanel from './QuizResultsPanel';
 import { calculateXP } from '../../utils/quizUtils';
 import { saveQuizResults } from '../../utils/saveQuizResults';
 import { triggerCelebration } from '../../services/celebrationService';
+import { useResponsive } from '../../hooks/useResponsive';
 
 function ChordQuiz({ onDailyGoalComplete }) {
   const [score, setScore] = useState(0);
@@ -31,28 +32,12 @@ function ChordQuiz({ onDailyGoalComplete }) {
   const updateUserStats = useUserStore((state) => state.updateUserStats);
 
   // Detekce velikosti obrazovky pro responzivitu
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { isMobile } = useResponsive();
 
   // Načtení akordů z databáze
   useEffect(() => {
     fetchChords();
   }, []);
-
-  // Helper funkce pro zamíchání pole
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
 
   const fetchChords = async () => {
     try {
