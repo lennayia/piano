@@ -1,6 +1,80 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 8. prosince 2025 (Session 10 - Console Logs Cleanup)
+Datum poslední aktualizace: 8. prosince 2025 (Session 11 - ChordQuiz Modularization)
+
+## ✅ Dokončeno v Session 11 - ChordQuiz Modularizace + Optimalizace (8.12.2025)
+
+### 🎯 Modularizace "Poznáte akord?" kvízu
+
+**Fáze 1: Extrakce reusable komponent (-140 řádků duplicate kódu):**
+1. ✅ **QuizStatCard.jsx** (110 řádků)
+   - Univerzální stat karty s 2 sizes (normal, compact)
+   - 2 varianty (primary, secondary)
+   - Eliminuje 87 řádků duplicate kódu (6x usage)
+
+2. ✅ **QuizStartScreen.jsx** (124 řádků)
+   - Reusable start screen pro všechny kvízy
+   - Nahrazuje 82 řádků inline kódu → 12 řádků usage
+   - Čistý zisk: -70 řádků
+
+3. ✅ **PianoPrepareDialog.jsx** (68 řádků)
+   - Reusable dialog pro Salamander Piano inicializaci
+   - Použitý v ChordQuiz + ChordPracticeSection
+   - ChordPracticeSection: -28 řádků
+
+**Fáze 2: Performance optimalizace:**
+1. ✅ **useCallback** pro 8 funkcí v ChordQuiz:
+   - fetchChords, playChord, saveQuizCompletion, startGame
+   - handleAnswer, nextQuestion, previousQuestion, resetGame
+   - Prevence zbytečných re-renders
+
+2. ✅ **useMemo** pro computed hodnoty:
+   - currentChord (depends: chords, currentQuestion)
+
+**Audio fix:**
+- ✅ Piano Context integrace v ChordQuiz
+- ✅ Eliminován "plechový" zvuk (tinny/synthetic fallback)
+- ✅ Správné čekání na Salamander Grand Piano samples
+
+**UX vylepšení:**
+- ✅ Odstraněn denní cíl z kvízu (trackuje se jen session stats)
+- ✅ Kvíz zobrazuje jen real-time progress (score, streak, XP)
+- ✅ Denní cíle zachovány pro Akordy a Písničky sekce
+- ✅ Conditional rendering: `showDailyGoal={activeSection !== 'quiz'}`
+
+**Cviceni.jsx refactoring:**
+- ✅ Fix React Hooks order violation (useMemo před early returns)
+- ✅ Odstranění fallback hodnot (`|| 5`, `|| 0`) pro konzistenci s Lekce.jsx
+- ✅ Odstranění zbytečného optional chaining (`?.`)
+- ✅ Conditional rendering denního cíle + progress baru pro quiz
+
+**Statistiky změn:**
+- **7 souborů změněno**
+- **+945 řádků** (nové komponenty + dokumentace)
+- **-269 řádků** (odstranění duplicit)
+- **Čistý zisk: +676 řádků** (ale s eliminací duplicit a modularizací)
+
+**Soubory:**
+- ➕ `src/components/games/QuizStartScreen.jsx` (127 řádků)
+- ➕ `src/components/games/QuizStatCard.jsx` (110 řádků)
+- ➕ `src/components/ui/PianoPrepareDialog.jsx` (68 řádků)
+- ➕ `docs/AUDIT-ChordQuiz-20251208.md` (485 řádků - kompletní audit)
+- 🔧 `src/components/games/ChordQuiz.jsx` (optimalizace + modularizace)
+- 🔧 `src/components/practice/ChordPracticeSection.jsx` (refactor na PianoPrepareDialog)
+- 🔧 `src/pages/Cviceni.jsx` (hooks fix + UX vylepšení)
+
+**Git:**
+- ✅ Branch: `feat/chord-quiz-modularization`
+- ✅ Commit: `41cf409` - pushnutý do origin/main
+- ✅ Fast-forward merge do main
+
+**Dokumentace:**
+- ✅ `docs/AUDIT-ChordQuiz-20251208.md` (kompletní audit před refactoringem)
+- ✅ MASTER_TODO.md aktualizován
+- ✅ OPTIMALIZACE_CHECKLIST.md aktualizován
+- ✅ STYLE_CHECKLIST.md aktualizován
+
+---
 
 ## ✅ Dokončeno v Session 10 - Console Logs Cleanup (8.12.2025)
 

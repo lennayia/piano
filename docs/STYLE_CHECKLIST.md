@@ -788,8 +788,15 @@ export function PageCard({ children, style = {}, ...props }) {
 
 ---
 
-**Poslední update:** 8. prosince 2025 (Session 10 - Console Logs Cleanup)
+**Poslední update:** 8. prosince 2025 (Session 11 - ChordQuiz Modularization)
 **Aktualizováno:**
+- ✅ **Nové reusable komponenty vytvořeny** (Session 11):
+  - QuizStatCard.jsx - Používá RADIUS, SHADOW konstanty, CSS variables
+  - QuizStartScreen.jsx - Používá RADIUS, SHADOW, BORDER konstanty
+  - PianoPrepareDialog.jsx - Používá Card komponentu, RADIUS konstanty
+- ✅ **ChordQuiz.jsx** - Modularizace dokončena, eliminace inline stylů
+- ✅ **Cviceni.jsx** - React Hooks order fix, odstranění optional chaining
+**Dříve aktualizováno (Session 10):**
 - ✅ Code Quality - Odstranění console.log() z audio enginu (PianoContext.jsx, audio.js)
 - ✅ Sekce Cvičení/Akordy production-ready (0 debug logů, čistá konzole)
 **Dříve aktualizováno (Session 8):**
