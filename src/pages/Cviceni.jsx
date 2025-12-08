@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Music, Headphones, Shuffle, Piano, Target } from 'lucide-react';
@@ -12,7 +12,7 @@ import { RADIUS, SHADOW, BORDER } from '../utils/styleConstants';
 import { FloatingHelpButton } from '../components/ui/FloatingHelp';
 import { shuffleArray } from '../utils/noteUtils';
 import { supabase } from '../lib/supabase';
-import { Card } from '../components/ui/CardComponents';
+import { Card, ProgressBar } from '../components/ui/CardComponents';
 import { ToggleButton } from '../components/ui/ButtonComponents';
 
 // Lazy load section components for better performance
@@ -131,8 +131,8 @@ function Cviceni() {
   const quizGoal = useDailyGoal('quiz', handleDailyGoalCompleted);
   const songsGoal = useDailyGoal('songs', handleDailyGoalCompleted);
 
-  // Helper funkce - vrátí aktuální daily goal podle aktivní sekce
-  const getCurrentGoal = () => {
+  // Aktuální daily goal podle aktivní sekce - memoizovaný
+  const currentGoalData = useMemo(() => {
     switch (activeSection) {
       case 'chords':
         return { goal: chordsGoal, label: 'série v režimu procvičování' };
@@ -143,9 +143,27 @@ function Cviceni() {
       default:
         return { goal: chordsGoal, label: 'série v režimu procvičování' };
     }
-  };
+  }, [activeSection, chordsGoal, quizGoal, songsGoal]);
 
-  const currentGoalData = getCurrentGoal();
+  // Dynamický obsah podle aktivní sekce - memoizovaný
+  const sectionContent = useMemo(() => {
+    const mainTabContent = {
+      chords: {
+        title: 'Procvičování akordů',
+        description: 'Procvičujte hraní akordů. Zobrazí se vám název akordu a tóny, které máte zahrát na klaviatuře.'
+      },
+      quiz: {
+        title: 'Poznáte akord?',
+        description: 'Kvíz pro trénink sluchové analýzy. Přehrajte si akord a hádejte, který to je. Skvělé pro rozvoj hudebního sluchu.'
+      },
+      songs: {
+        title: 'Písničky',
+        description: 'Hrajte známé písničky podle not. Vyberte kategorii (Lidovky, Užskorolidovky, Dětské) a procvičujte melodie.'
+      }
+    };
+
+    return mainTabContent[activeSection] || mainTabContent.chords;
+  }, [activeSection]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -300,6 +318,8 @@ function Cviceni() {
         activeMainTab={activeSection}
         activeSubTab={activeSection === 'chords' ? selectedDifficulty : activeSection === 'songs' ? activeSongCategory : 'all'}
         onMainTabChange={setActiveSection}
+        sectionTitle={sectionContent.title}
+        sectionDescription={sectionContent.description}
         onSubTabChange={(value) => {
           if (activeSection === 'chords') {
             setSelectedDifficulty(value);
@@ -317,14 +337,14 @@ function Cviceni() {
             inactiveTitle="Zamíchat akordy"
           />
         ) : null}
-        showDailyGoal={true}
+        showDailyGoal={activeSection !== 'quiz'}
         dailyGoal={currentGoalData.goal.dailyGoal}
         onSetDailyGoal={currentGoalData.goal.setDailyGoal}
         completedToday={currentGoalData.goal.completedToday}
         progressCurrent={currentGoalData.goal.completedToday}
         progressTotal={currentGoalData.goal.dailyGoal}
         progressTitle="Dnešní pokrok:"
-        goalLabel={currentGoalData.label}
+        goalLabel={currentGoalData?.label || 'cílů'}
         showSearch={activeSection === 'songs'}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
@@ -334,61 +354,64 @@ function Cviceni() {
         sortOptions={SORT_OPTIONS}
         onSortChange={setSortBy}
       >
-      </PageSection>
+        {/* Progress bar - denní pokrok aktuální sekce (skrytý pro kvíz) */}
+        {activeSection !== 'quiz' && (
+          <ProgressBar
+            current={currentGoalData.goal.completedToday}
+            total={currentGoalData.goal.dailyGoal}
+            title="Dnešní pokrok:"
+            titleColor="var(--color-secondary)"
+          />
+        )}
 
-      {/* Sekce Akordy - MIMO PageSection */}
-      {activeSection === 'chords' && (
-        <Suspense fallback={
-          <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto', textAlign: 'center' }}>
-            <Card style={{ padding: '2rem' }}>
+        {/* Sekce Akordy - UVNITŘ PageSection */}
+        {activeSection === 'chords' && (
+          <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
               <Music size={32} color="var(--color-primary)" style={{ marginBottom: '0.5rem' }} />
               <p style={{ color: 'var(--color-text-muted)' }}>Načítám akordy...</p>
-            </Card>
-          </div>
-        }>
-          <ChordPracticeSection
-            chords={chords}
-            selectedDifficulty={selectedDifficulty}
-            isShuffled={isShuffled}
-            currentUser={currentUser}
-            onDailyGoalComplete={chordsGoal.markCompleted}
-            onResetProgress={handleResetProgress}
-          />
-        </Suspense>
-      )}
+            </div>
+          }>
+            <ChordPracticeSection
+              chords={chords}
+              selectedDifficulty={selectedDifficulty}
+              isShuffled={isShuffled}
+              currentUser={currentUser}
+              onDailyGoalComplete={chordsGoal.markCompleted}
+              onResetProgress={handleResetProgress}
+            />
+          </Suspense>
+        )}
 
-      {/* Sekce Poznáte akord? - MIMO PageSection */}
-      {activeSection === 'quiz' && (
-        <Suspense fallback={
-          <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto', textAlign: 'center' }}>
-            <Card style={{ padding: '2rem' }}>
+        {/* Sekce Poznáte akord? - UVNITŘ PageSection */}
+        {activeSection === 'quiz' && (
+          <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
               <Target size={32} color="var(--color-primary)" style={{ marginBottom: '0.5rem' }} />
               <p style={{ color: 'var(--color-text-muted)' }}>Načítám kvíz...</p>
-            </Card>
-          </div>
-        }>
-          <ChordQuiz onDailyGoalComplete={quizGoal.markCompleted} />
-        </Suspense>
-      )}
+            </div>
+          }>
+            <ChordQuiz />
+          </Suspense>
+        )}
 
-      {/* Sekce Písničky - MIMO PageSection */}
-      {activeSection === 'songs' && (
-        <Suspense fallback={
-          <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto', textAlign: 'center' }}>
-            <Card style={{ padding: '2rem' }}>
+        {/* Sekce Písničky - UVNITŘ PageSection */}
+        {activeSection === 'songs' && (
+          <Suspense fallback={
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
               <Music size={32} color="var(--color-primary)" style={{ marginBottom: '0.5rem' }} />
               <p style={{ color: 'var(--color-text-muted)' }}>Načítám písničky...</p>
-            </Card>
-          </div>
-        }>
-          <SongLibrary
-            activeCategory={activeSongCategory}
-            searchTerm={searchTerm}
-            sortBy={sortBy}
-            onDailyGoalComplete={songsGoal.markCompleted}
-          />
-        </Suspense>
-      )}
+            </div>
+          }>
+            <SongLibrary
+              activeCategory={activeSongCategory}
+              searchTerm={searchTerm}
+              sortBy={sortBy}
+              onDailyGoalComplete={songsGoal.markCompleted}
+            />
+          </Suspense>
+        )}
+      </PageSection>
 
       {/* Oslava pro denní cíle */}
       {dailyGoalCelebrationData && (

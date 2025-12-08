@@ -6,6 +6,7 @@ import PianoKeyboard from '../lessons/PianoKeyboard';
 import { IconButton, MelodyNote, PrimaryButton } from '../ui/ButtonComponents';
 import { ProgressBar, InfoPanel, Card, PageCard } from '../ui/CardComponents';
 import PracticeModeControls from '../ui/PracticeModeControls';
+import PianoPrepareDialog from '../ui/PianoPrepareDialog';
 import { RADIUS, SHADOW } from '../../utils/styleConstants';
 import audioEngine from '../../utils/audio';
 import useProgressTracking from '../../hooks/useProgressTracking';
@@ -283,33 +284,7 @@ function ChordPracticeSection({
 
   // Show "Start Piano" button before initialization
   if (!pianoReady) {
-    return (
-      <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
-        <Card opacity={0.4} style={{ textAlign: 'center', padding: '1.5rem 2rem' }}>
-          <Piano size={32} color="var(--color-primary)" style={{ marginBottom: '0.75rem' }} />
-          <h3 style={{ color: 'var(--color-text-primary)', marginBottom: '0.5rem', fontSize: '1.125rem' }}>
-            Připravit piano
-          </h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: '1.4' }}>
-            Klikněte pro načtení kvalitních piano samplů ze Salamander Grand Piano
-          </p>
-          <PrimaryButton
-            onClick={initPiano}
-            disabled={isLoading}
-            style={{
-              background: 'var(--color-primary)',
-              padding: '0.75rem 1.5rem',
-              fontSize: '0.9rem',
-              boxShadow: '0 2px 8px rgba(45, 91, 120, 0.3)',
-              margin: '0 auto'
-            }}
-          >
-            <Play size={18} />
-            {isLoading ? 'Načítání...' : 'Spustit piano'}
-          </PrimaryButton>
-        </Card>
-      </div>
-    );
+    return <PianoPrepareDialog onInitPiano={initPiano} isLoading={isLoading} />;
   }
 
   return (

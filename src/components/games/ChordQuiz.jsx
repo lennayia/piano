@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, Music, CheckCircle, XCircle, Award, Star, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
@@ -9,12 +9,16 @@ import { sortNotesByKeyboard, shuffleArray } from '../../utils/noteUtils';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
 import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
 import QuizResultsPanel from './QuizResultsPanel';
+import QuizStatCard from './QuizStatCard';
+import QuizStartScreen from './QuizStartScreen';
+import PianoPrepareDialog from '../ui/PianoPrepareDialog';
 import { calculateXP } from '../../utils/quizUtils';
 import { saveQuizResults } from '../../utils/saveQuizResults';
 import { triggerCelebration } from '../../services/celebrationService';
 import { useResponsive } from '../../hooks/useResponsive';
+import { usePiano } from '../../contexts/PianoContext';
 
-function ChordQuiz({ onDailyGoalComplete }) {
+function ChordQuiz() {
   const [score, setScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
@@ -34,12 +38,10 @@ function ChordQuiz({ onDailyGoalComplete }) {
   // Detekce velikosti obrazovky pro responzivitu
   const { isMobile } = useResponsive();
 
-  // Načtení akordů z databáze
-  useEffect(() => {
-    fetchChords();
-  }, []);
+  // Piano Context - global piano initialization
+  const { pianoReady, isLoading: pianoLoading, initPiano } = usePiano();
 
-  const fetchChords = async () => {
+  const fetchChords = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -101,18 +103,23 @@ function ChordQuiz({ onDailyGoalComplete }) {
       setError('Neumíme načíst tyhle akordy: ' + err.message);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const playChord = async (notes) => {
+  // Načtení akordů z databáze při mount
+  useEffect(() => {
+    fetchChords();
+  }, [fetchChords]);
+
+  const playChord = useCallback(async (notes) => {
     audioEngine.playClick();
     // Seřadit noty podle pořadí na klaviatuře (odleva doprava)
     const sortedNotes = sortNotesByKeyboard(notes);
     for (const note of sortedNotes) {
       audioEngine.playNote(note, 0.8);
     }
-  };
+  }, []);
 
-  const saveQuizCompletion = async (finalScore) => {
+  const saveQuizCompletion = useCallback(async (finalScore) => {
     try {
       // Vypočítat získané XP
       const xpEarned = calculateXP(finalScore, chords.length);
@@ -153,9 +160,9 @@ function ChordQuiz({ onDailyGoalComplete }) {
     } catch (error) {
       console.error('Neočekávaná chyba při ukládání kvízu:', error);
     }
-  };
+  }, [chords, bestStreak]);
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     setGameStarted(true);
     setScore(0);
     setCurrentQuestion(0);
@@ -163,9 +170,9 @@ function ChordQuiz({ onDailyGoalComplete }) {
     setSelectedAnswer(null);
     setShowResult(false);
     setTotalXpEarned(0);
-  };
+  }, []);
 
-  const handleAnswer = (answer) => {
+  const handleAnswer = useCallback((answer) => {
     if (showResult) return;
 
     setSelectedAnswer(answer);
@@ -178,10 +185,6 @@ function ChordQuiz({ onDailyGoalComplete }) {
       setStreak(streak + 1);
       if (streak + 1 > bestStreak) {
         setBestStreak(streak + 1);
-      }
-      // Zvýšit denní cíl pro quiz
-      if (onDailyGoalComplete) {
-        onDailyGoalComplete();
       }
     } else {
       setStreak(0);
@@ -202,17 +205,17 @@ function ChordQuiz({ onDailyGoalComplete }) {
         setTimeout(() => setShowCelebration(false), 3000);
       }
     }
-  };
+  }, [showResult, chords, currentQuestion, score, streak, bestStreak, saveQuizCompletion]);
 
-  const nextQuestion = () => {
+  const nextQuestion = useCallback(() => {
     if (currentQuestion < chords.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer(null);
       setShowResult(false);
     }
-  };
+  }, [currentQuestion, chords.length]);
 
-  const previousQuestion = () => {
+  const previousQuestion = useCallback(() => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
       setSelectedAnswer(null);
@@ -227,9 +230,9 @@ function ChordQuiz({ onDailyGoalComplete }) {
       setStreak(0);
       setTotalXpEarned(0);
     }
-  };
+  }, [currentQuestion]);
 
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     setGameStarted(false);
     setScore(0);
     setCurrentQuestion(0);
@@ -237,9 +240,9 @@ function ChordQuiz({ onDailyGoalComplete }) {
     setShowResult(false);
     setStreak(0);
     setTotalXpEarned(0);
-  };
+  }, []);
 
-  const currentChord = chords[currentQuestion];
+  const currentChord = useMemo(() => chords[currentQuestion], [chords, currentQuestion]);
 
   // Loading state
   if (loading) {
@@ -283,6 +286,18 @@ function ChordQuiz({ onDailyGoalComplete }) {
     );
   }
 
+  // Show "Připravit piano" dialog before game starts
+  if (!pianoReady) {
+    return (
+      <PianoPrepareDialog
+        onInitPiano={initPiano}
+        isLoading={pianoLoading}
+        title="Připravit piano pro kvíz"
+        description="Kvíz používá kvalitní piano samples ze Salamander Grand Piano. Klikněte pro načtení."
+      />
+    );
+  }
+
   return (
     <div>
       {/* Confetti při dokončení kvízu */}
@@ -319,118 +334,18 @@ function ChordQuiz({ onDailyGoalComplete }) {
 
       <AnimatePresence mode="wait">
         {!gameStarted ? (
-          <motion.div
+          <QuizStartScreen
             key="start"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              background: 'rgba(255, 255, 255, 0.6)',
-              borderRadius: RADIUS.lg,
-              padding: isMobile ? '1.5rem' : '2rem',
-              textAlign: 'center',
-              border: BORDER.default,
-              boxShadow: SHADOW.default
-            }}
-          >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              marginBottom: '1rem'
-            }}>
-              <Music size={32} color="var(--color-primary)" />
-              <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', margin: 0, color: 'var(--text-primary)' }}>
-                Kvíz: Akordy
-              </h2>
-            </div>
-
-            <p style={{
-              fontSize: isMobile ? '0.875rem' : '1rem',
-              color: 'var(--text-secondary)',
-              marginBottom: '2rem',
-              maxWidth: '500px',
-              margin: '0 auto 2rem'
-            }}>
-              Naučte se rozpoznávat hudební akordy poslechem. Odpovězte na {chords.length} otázek a prokažte své znalosti!
-            </p>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-              gap: '1rem',
-              marginBottom: '2rem',
-              maxWidth: '600px',
-              margin: '0 auto 2rem'
-            }}>
-              <div style={{
-                background: 'rgba(45, 91, 120, 0.05)',
-                padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
-                borderRadius: RADIUS.md,
-                boxShadow: SHADOW.default
-              }}>
-                <div style={{
-                  fontSize: isMobile ? '1.25rem' : '1.5rem',
-                  fontWeight: 'bold',
-                  color: 'var(--color-secondary)',
-                  marginBottom: '0.25rem'
-                }}>
-                  {chords.length}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Otázek</div>
-              </div>
-
-              <div style={{
-                background: 'rgba(181, 31, 101, 0.05)',
-                padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
-                borderRadius: RADIUS.md,
-                boxShadow: SHADOW.default
-              }}>
-                <div style={{
-                  fontSize: isMobile ? '1.25rem' : '1.5rem',
-                  fontWeight: 'bold',
-                  color: 'var(--color-primary)',
-                  marginBottom: '0.25rem'
-                }}>
-                  {bestStreak}
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Nejlepší série</div>
-              </div>
-
-              <div style={{
-                background: 'rgba(45, 91, 120, 0.05)',
-                padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
-                borderRadius: RADIUS.md,
-                boxShadow: SHADOW.default
-              }}>
-                <div style={{
-                  fontSize: isMobile ? '1.25rem' : '1.5rem',
-                  fontWeight: 'bold',
-                  color: 'var(--color-secondary)',
-                  marginBottom: '0.25rem'
-                }}>
-                  100
-                </div>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Max XP</div>
-              </div>
-            </div>
-
-            <button
-              onClick={startGame}
-              className="btn btn-primary"
-              style={{
-                fontSize: isMobile ? '0.875rem' : '1rem',
-                padding: isMobile ? '0.625rem 1.25rem' : '0.625rem 1.5rem',
-                borderRadius: RADIUS.md,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <Play size={18} />
-              Začít kvíz
-            </button>
-          </motion.div>
+            title="Kvíz: Akordy"
+            description="Naučte se rozpoznávat hudební akordy poslechem."
+            icon={Music}
+            questionCount={chords.length}
+            bestStreak={bestStreak}
+            maxXP={100}
+            onStart={startGame}
+            isMobile={isMobile}
+            buttonText="Začít kvíz"
+          />
         ) : (
           <motion.div
             key="game"
@@ -445,56 +360,29 @@ function ChordQuiz({ onDailyGoalComplete }) {
               flexWrap: 'wrap',
               marginBottom: isMobile ? '1rem' : '1.5rem'
             }}>
-              <div style={{
-                background: 'rgba(45, 91, 120, 0.05)',
-                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
-                borderRadius: RADIUS.md,
-                boxShadow: SHADOW.default,
-                flex: 1,
-                minWidth: isMobile ? '80px' : '100px',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                  Skóre
-                </div>
-                <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
-                  {score}/{chords.length}
-                </div>
-              </div>
+              <QuizStatCard
+                value={`${score}/${chords.length}`}
+                label="Skóre"
+                variant="secondary"
+                size="compact"
+                isMobile={isMobile}
+              />
 
-              <div style={{
-                background: 'rgba(45, 91, 120, 0.05)',
-                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
-                borderRadius: RADIUS.md,
-                boxShadow: SHADOW.default,
-                flex: 1,
-                minWidth: isMobile ? '80px' : '100px',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                  Série
-                </div>
-                <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
-                  {streak}
-                </div>
-              </div>
+              <QuizStatCard
+                value={streak}
+                label="Série"
+                variant="secondary"
+                size="compact"
+                isMobile={isMobile}
+              />
 
-              <div style={{
-                background: 'rgba(45, 91, 120, 0.05)',
-                padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
-                borderRadius: RADIUS.md,
-                boxShadow: SHADOW.default,
-                flex: 1,
-                minWidth: isMobile ? '80px' : '100px',
-                textAlign: 'center'
-              }}>
-                <div style={{ fontSize: isMobile ? '0.625rem' : '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                  Otázka
-                </div>
-                <div style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: 'bold', color: 'var(--color-secondary)' }}>
-                  {currentQuestion + 1}/{chords.length}
-                </div>
-              </div>
+              <QuizStatCard
+                value={`${currentQuestion + 1}/${chords.length}`}
+                label="Otázka"
+                variant="secondary"
+                size="compact"
+                isMobile={isMobile}
+              />
             </div>
 
             {/* Question Card */}
