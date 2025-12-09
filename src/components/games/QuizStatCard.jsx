@@ -45,13 +45,13 @@ function QuizStatCard({
   const dimensions = {
     normal: {
       padding: isMobile ? '0.875rem 1.25rem' : '1rem 1.5rem',
-      valueFontSize: isMobile ? '1.25rem' : '1.5rem',
+      valueFontSize: '1.5rem',
       labelFontSize: '0.875rem'
     },
     compact: {
       padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1rem',
-      valueFontSize: isMobile ? '1rem' : '1.25rem',
-      labelFontSize: isMobile ? '0.625rem' : '0.75rem'
+      valueFontSize: '1.25rem',
+      labelFontSize: '0.75rem'
     }
   };
 

@@ -34,7 +34,7 @@ function QuizResultsPanel({ score, total, bestStreak, totalXpEarned, isMobile = 
     >
       {/* Emoji */}
       <div style={{
-        fontSize: isMobile ? '2rem' : '2.5rem',
+        fontSize: '2.5rem',
         marginBottom: '1rem'
       }}>
         {motivation.emoji}
@@ -42,7 +42,6 @@ function QuizResultsPanel({ score, total, bestStreak, totalXpEarned, isMobile = 
 
       {/* Titulek */}
       <h3 style={{
-        fontSize: isMobile ? '1.5rem' : '2rem',
         marginBottom: '0.5rem',
         color: 'var(--color-primary)'
       }}>
@@ -51,7 +50,6 @@ function QuizResultsPanel({ score, total, bestStreak, totalXpEarned, isMobile = 
 
       {/* Zpráva */}
       <p style={{
-        fontSize: isMobile ? '0.95rem' : '1.125rem',
         color: 'var(--text-secondary)',
         marginBottom: '1rem'
       }}>
@@ -60,7 +58,6 @@ function QuizResultsPanel({ score, total, bestStreak, totalXpEarned, isMobile = 
 
       {/* Skóre */}
       <p style={{
-        fontSize: isMobile ? '1rem' : '1.25rem',
         color: 'var(--text-secondary)'
       }}>
         Vaše skóre: <strong style={{ color: 'var(--color-secondary)' }}>{score}/{total}</strong>
@@ -70,7 +67,6 @@ function QuizResultsPanel({ score, total, bestStreak, totalXpEarned, isMobile = 
       {/* Nejlepší série */}
       {bestStreak > 1 && (
         <p style={{
-          fontSize: isMobile ? '0.875rem' : '1rem',
           color: 'var(--text-secondary)',
           marginTop: '0.5rem'
         }}>
@@ -104,7 +100,7 @@ function QuizResultsPanel({ score, total, bestStreak, totalXpEarned, isMobile = 
             }}
           />
           <strong style={{
-            fontSize: isMobile ? '1.125rem' : '1.5rem',
+            fontSize: '1.5rem',
             color: 'var(--color-secondary)'
           }}>
             +{totalXpEarned} XP získáno!
