@@ -56,21 +56,27 @@ function UniversalTheoryQuiz({
   // Načtení perfect stats (série celkem a streak za sebou)
   useEffect(() => {
     const fetchPerfectStats = async () => {
+      if (!currentUser?.id) {
+        console.log('🔍 fetchPerfectStats - currentUser not ready yet');
+        return;
+      }
+
       try {
-        // Získat aktuálně přihlášeného uživatele
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return;
+        console.log('🔍 fetchPerfectStats - loading for user:', currentUser.id);
 
         const { data, error } = await supabase
           .from('piano_quiz_scores')
           .select('score, total_questions, completed_at, streak')
-          .eq('user_id', user.id)
+          .eq('user_id', currentUser.id)
           .eq('quiz_type', `theory_${quizType}`)
           .order('completed_at', { ascending: false });
+
+        console.log('🔍 fetchPerfectStats - data:', data, 'error:', error);
 
         if (error) throw error;
 
         if (!data || data.length === 0) {
+          console.log('🔍 fetchPerfectStats - NO DATA, setting all to 0');
           setPerfectTotal(0);
           setPerfectStreak(0);
           setBestStreak(0);
@@ -94,14 +100,15 @@ function UniversalTheoryQuiz({
 
         // Nejlepší série = maximum ze všech streak hodnot pro tento typ kvízu
         const maxBestStreak = Math.max(...data.map(item => item.streak || 0));
+        console.log('🔍 fetchPerfectStats - maxBestStreak:', maxBestStreak, 'perfectTotal:', perfectCompletions.length, 'perfectStreak:', currentStreak);
         setBestStreak(maxBestStreak);
       } catch (error) {
-        // Tiché zpracování chyby
+        console.error('🔴 fetchPerfectStats ERROR:', error);
       }
     };
 
     fetchPerfectStats();
-  }, [quizType]);
+  }, [currentUser, quizType]);
 
   // Mapování tabulek podle typu kvízu
   const getTableNames = () => {
@@ -248,6 +255,7 @@ function UniversalTheoryQuiz({
       // isPerfect = true → celebrate s XP a odměnami
       // isPerfect = false → jen historie bez XP
       const result = await saveQuizResults(
+        currentUser.id,
         `theory_${quizType}`,
         finalScore,
         questions.length,

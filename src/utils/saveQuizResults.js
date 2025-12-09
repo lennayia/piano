@@ -3,6 +3,7 @@ import { celebrate } from '../services/celebrationService';
 
 /**
  * Uloží výsledky kvízu do databáze a aktualizuje statistiky uživatele
+ * @param {string} userId - ID uživatele
  * @param {string} quizType - Typ kvízu ('chord_quiz', 'theory_quiz', atd.)
  * @param {number} score - Počet správných odpovědí
  * @param {number} totalQuestions - Celkový počet otázek
@@ -11,13 +12,12 @@ import { celebrate } from '../services/celebrationService';
  * @param {boolean} isPerfect - Je kvíz bezchybný? (true = celebrate s odměnami, false = jen historie)
  * @returns {Promise<{success: boolean, error?: string, data?: Object}>}
  */
-export const saveQuizResults = async (quizType, score, totalQuestions, bestStreak, xpEarned, isPerfect = true) => {
-  try {
-    // Získat aktuálního uživatele
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+export const saveQuizResults = async (userId, quizType, score, totalQuestions, bestStreak, xpEarned, isPerfect = true) => {
+  console.log('💾 saveQuizResults CALLED:', { userId, quizType, score, totalQuestions, bestStreak, isPerfect });
 
-    if (authError || !user) {
-      console.error('Auth error:', authError);
+  try {
+    if (!userId) {
+      console.error('❌ No userId provided');
       return { success: false, error: 'Uživatel není přihlášen' };
     }
 
@@ -26,7 +26,7 @@ export const saveQuizResults = async (quizType, score, totalQuestions, bestStrea
       const { error } = await supabase
         .from('piano_quiz_scores')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           quiz_type: quizType,
           score,
           total_questions: totalQuestions,
@@ -45,7 +45,7 @@ export const saveQuizResults = async (quizType, score, totalQuestions, bestStrea
     // BEZCHYBNÝ kvíz: použít celebration service s odměnami
     const result = await celebrate({
       type: 'quiz',
-      userId: user.id,
+      userId: userId,
       itemId: quizType,
       itemTitle: `Kvíz: ${quizType}`,
       metadata: {
