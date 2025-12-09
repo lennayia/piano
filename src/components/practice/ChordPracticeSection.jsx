@@ -166,11 +166,9 @@ function ChordPracticeSection({
                   );
                 }, 3500);
               }
-            } else {
-              console.error('Chyba při ukládání dokončení akordů:', result.error);
             }
           } catch (error) {
-            console.error('Chyba při ukládání dokončení akordů:', error);
+            // Tiché zpracování chyby
           }
         }
       }, 500);
