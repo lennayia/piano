@@ -81,7 +81,7 @@ function ChordQuiz() {
       }
       setPerfectStreak(currentStreak);
     } catch (error) {
-      console.error('Chyba při načítání perfect stats:', error);
+      // Tiché zpracování chyby
     }
   }, [currentUser]);
 
@@ -143,7 +143,6 @@ function ChordQuiz() {
       setChords(transformedChords);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching chords:', err);
       setError('Neumíme načíst tyhle akordy: ' + err.message);
       setLoading(false);
     }
@@ -205,12 +204,10 @@ function ChordQuiz() {
             );
           }, 1000);
         }
-      } else if (!result.success) {
-        console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
 
     } catch (error) {
-      console.error('Neočekávaná chyba při ukládání kvízu:', error);
+      // Tiché zpracování chyby
     }
   }, [chords, bestStreak]);
 
@@ -331,15 +328,11 @@ function ChordQuiz() {
         <p style={{ color: 'var(--color-danger)' }}>{error}</p>
         <button
           onClick={fetchChords}
+          className="btn btn-primary"
           style={{
-            background: 'var(--color-primary)',
-            color: '#ffffff',
-            border: 'none',
             borderRadius: RADIUS.md,
             padding: '12px 24px',
-            cursor: 'pointer',
             fontSize: '1rem',
-            fontWeight: 600,
             marginTop: '1rem'
           }}
         >
