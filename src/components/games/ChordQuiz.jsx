@@ -47,14 +47,16 @@ function ChordQuiz() {
 
   // Načtení perfect stats (série celkem a streak za sebou)
   const fetchPerfectStats = useCallback(async () => {
-    if (!currentUser?.id) return;
-
     try {
+      // Získat aktuálně přihlášeného uživatele
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) return;
+
       // Načíst všechny výsledky chord_quiz pro aktuálního uživatele
       const { data, error } = await supabase
         .from('piano_quiz_scores')
         .select('score, total_questions, completed_at, streak')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .eq('quiz_type', 'chord_quiz')
         .order('completed_at', { ascending: false });
 
@@ -88,7 +90,7 @@ function ChordQuiz() {
     } catch (error) {
       // Tiché zpracování chyby
     }
-  }, [currentUser]);
+  }, []);
 
   const fetchChords = useCallback(async () => {
     try {

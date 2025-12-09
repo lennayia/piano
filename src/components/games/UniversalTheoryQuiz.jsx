@@ -55,14 +55,16 @@ function UniversalTheoryQuiz({
 
   // Načtení perfect stats (série celkem a streak za sebou)
   useEffect(() => {
-    if (!currentUser?.id) return;
-
     const fetchPerfectStats = async () => {
       try {
+        // Získat aktuálně přihlášeného uživatele
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) return;
+
         const { data, error } = await supabase
           .from('piano_quiz_scores')
           .select('score, total_questions, completed_at, streak')
-          .eq('user_id', currentUser.id)
+          .eq('user_id', user.id)
           .eq('quiz_type', `theory_${quizType}`)
           .order('completed_at', { ascending: false });
 
@@ -99,7 +101,7 @@ function UniversalTheoryQuiz({
     };
 
     fetchPerfectStats();
-  }, [currentUser, quizType]);
+  }, [quizType]);
 
   // Mapování tabulek podle typu kvízu
   const getTableNames = () => {
