@@ -79,7 +79,7 @@ function QuizStartScreen({
       }}>
         <QuizStatCard
           value={questionCount}
-          label="Otázek"
+          label="otázek"
           variant="secondary"
           size="normal"
           isMobile={isMobile}
@@ -87,7 +87,7 @@ function QuizStartScreen({
 
         <QuizStatCard
           value={bestStreak}
-          label="Nejlepší série"
+          label="nejlepší série"
           variant="primary"
           size="normal"
           isMobile={isMobile}
@@ -95,7 +95,7 @@ function QuizStartScreen({
 
         <QuizStatCard
           value={maxXP}
-          label="Max XP"
+          label="max XP"
           variant="secondary"
           size="normal"
           isMobile={isMobile}
