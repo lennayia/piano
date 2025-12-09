@@ -48,13 +48,10 @@ function ChordQuiz() {
   // Načtení perfect stats (série celkem a streak za sebou)
   const fetchPerfectStats = useCallback(async () => {
     if (!currentUser?.id) {
-      console.log('🔍 fetchPerfectStats - currentUser not ready yet');
       return;
     }
 
     try {
-      console.log('🔍 fetchPerfectStats - loading for user:', currentUser.id);
-
       // Načíst všechny výsledky chord_quiz pro aktuálního uživatele
       const { data, error } = await supabase
         .from('piano_quiz_scores')
@@ -63,12 +60,9 @@ function ChordQuiz() {
         .eq('quiz_type', 'chord_quiz')
         .order('completed_at', { ascending: false });
 
-      console.log('🔍 fetchPerfectStats - data:', data, 'error:', error);
-
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        console.log('🔍 fetchPerfectStats - NO DATA, setting all to 0');
         setPerfectTotal(0);
         setPerfectStreak(0);
         setBestStreak(0);
@@ -92,10 +86,9 @@ function ChordQuiz() {
 
       // Nejlepší série = maximum ze všech streak hodnot pro tento typ kvízu
       const maxBestStreak = Math.max(...data.map(item => item.streak || 0));
-      console.log('🔍 fetchPerfectStats - maxBestStreak:', maxBestStreak, 'perfectTotal:', perfectCompletions.length, 'perfectStreak:', currentStreak);
       setBestStreak(maxBestStreak);
     } catch (error) {
-      console.error('🔴 fetchPerfectStats ERROR:', error);
+      // Tiché zpracování chyby
     }
   }, [currentUser]);
 

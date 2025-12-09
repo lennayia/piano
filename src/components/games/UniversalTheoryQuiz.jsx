@@ -57,13 +57,10 @@ function UniversalTheoryQuiz({
   useEffect(() => {
     const fetchPerfectStats = async () => {
       if (!currentUser?.id) {
-        console.log('🔍 fetchPerfectStats - currentUser not ready yet');
         return;
       }
 
       try {
-        console.log('🔍 fetchPerfectStats - loading for user:', currentUser.id);
-
         const { data, error } = await supabase
           .from('piano_quiz_scores')
           .select('score, total_questions, completed_at, streak')
@@ -71,12 +68,9 @@ function UniversalTheoryQuiz({
           .eq('quiz_type', `theory_${quizType}`)
           .order('completed_at', { ascending: false });
 
-        console.log('🔍 fetchPerfectStats - data:', data, 'error:', error);
-
         if (error) throw error;
 
         if (!data || data.length === 0) {
-          console.log('🔍 fetchPerfectStats - NO DATA, setting all to 0');
           setPerfectTotal(0);
           setPerfectStreak(0);
           setBestStreak(0);
@@ -100,10 +94,9 @@ function UniversalTheoryQuiz({
 
         // Nejlepší série = maximum ze všech streak hodnot pro tento typ kvízu
         const maxBestStreak = Math.max(...data.map(item => item.streak || 0));
-        console.log('🔍 fetchPerfectStats - maxBestStreak:', maxBestStreak, 'perfectTotal:', perfectCompletions.length, 'perfectStreak:', currentStreak);
         setBestStreak(maxBestStreak);
       } catch (error) {
-        console.error('🔴 fetchPerfectStats ERROR:', error);
+        // Tiché zpracování chyby
       }
     };
 

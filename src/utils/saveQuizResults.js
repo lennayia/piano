@@ -13,11 +13,8 @@ import { celebrate } from '../services/celebrationService';
  * @returns {Promise<{success: boolean, error?: string, data?: Object}>}
  */
 export const saveQuizResults = async (userId, quizType, score, totalQuestions, bestStreak, xpEarned, isPerfect = true) => {
-  console.log('💾 saveQuizResults CALLED:', { userId, quizType, score, totalQuestions, bestStreak, isPerfect });
-
   try {
     if (!userId) {
-      console.error('❌ No userId provided');
       return { success: false, error: 'Uživatel není přihlášen' };
     }
 
