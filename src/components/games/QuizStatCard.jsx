@@ -103,7 +103,11 @@ function QuizStatCard({
         </div>
       ) : size === 'normal' ? (
         // Normal layout: VALUE nahoře, LABEL dole
-        <>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
           <div style={{
             fontSize: dim.valueFontSize,
             fontWeight: 'bold',
@@ -118,10 +122,14 @@ function QuizStatCard({
           }}>
             {label}
           </div>
-        </>
+        </div>
       ) : (
         // Compact layout: LABEL nahoře, VALUE dole
-        <>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
           <div style={{
             fontSize: dim.labelFontSize,
             color: 'var(--text-secondary)',
@@ -136,7 +144,7 @@ function QuizStatCard({
           }}>
             {value}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
