@@ -332,7 +332,6 @@ function ChordQuiz() {
           style={{
             borderRadius: RADIUS.md,
             padding: '12px 24px',
-            fontSize: '1rem',
             marginTop: '1rem'
           }}
         >
@@ -455,10 +454,8 @@ function ChordQuiz() {
                 marginBottom: isMobile ? '1rem' : '1.5rem'
               }}>
                 <h3 style={{
-                  fontSize: isMobile ? '1.125rem' : '1.5rem',
                   color: 'var(--text-primary)',
-                  margin: '0 0 0.5rem 0',
-                  lineHeight: 1.4
+                  margin: '0 0 0.5rem 0'
                 }}>
                   Který akord slyšíte?
                 </h3>
@@ -534,8 +531,7 @@ function ChordQuiz() {
                     borderRadius: RADIUS.md,
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
-                    ...(isMobile ? {} : { fontSize: '1rem' })
+                    gap: '0.5rem'
                   }}
                 >
                   <RotateCcw size={isMobile ? 16 : 18} />
