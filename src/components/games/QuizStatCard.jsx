@@ -6,7 +6,10 @@ import { RADIUS, SHADOW } from '../../utils/styleConstants';
  *
  * @param {string|number} value - Hodnota (číslo nebo text)
  * @param {string} label - Popisek pod hodnotou
- * @param {string} variant - 'primary' | 'secondary' (barva)
+ * @param {React.Component} icon - Ikona z lucide-react (optional)
+ * @param {string} iconColor - Barva ikony (optional)
+ * @param {number} iconSize - Velikost ikony (optional)
+ * @param {string} variant - 'primary' | 'secondary' | 'success' | 'danger' (barva)
  * @param {string} size - 'normal' (start screen) | 'compact' (game stats)
  * @param {boolean} isMobile - Responzivní úpravy
  * @param {object} style - Dodatečné styly
@@ -14,6 +17,9 @@ import { RADIUS, SHADOW } from '../../utils/styleConstants';
 function QuizStatCard({
   value,
   label,
+  icon: Icon,
+  iconColor,
+  iconSize,
   variant = 'secondary',
   size = 'normal',
   isMobile = false,
@@ -23,12 +29,16 @@ function QuizStatCard({
   // Barvy podle varianty
   const backgrounds = {
     primary: 'rgba(181, 31, 101, 0.05)',
-    secondary: 'rgba(45, 91, 120, 0.05)'
+    secondary: 'rgba(45, 91, 120, 0.05)',
+    success: 'rgba(16, 185, 129, 0.05)',
+    danger: 'rgba(239, 68, 68, 0.05)'
   };
 
   const textColors = {
     primary: 'var(--color-primary)',
-    secondary: 'var(--color-secondary)'
+    secondary: 'var(--color-secondary)',
+    success: 'rgb(16, 185, 129)',
+    danger: 'rgb(239, 68, 68)'
   };
 
   // Rozměry podle velikosti
@@ -61,6 +71,9 @@ function QuizStatCard({
         padding: dim.padding,
         borderRadius: RADIUS.md,
         boxShadow: SHADOW.default,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         ...compactLayout,
         ...style
       }}
@@ -68,7 +81,28 @@ function QuizStatCard({
     >
       {/* Normal: VALUE nahoře, LABEL dole */}
       {/* Compact: LABEL nahoře, VALUE dole */}
-      {size === 'normal' ? (
+      {/* Ikona: Ikona vedle VALUE (horizontální, bez labelu) */}
+      {Icon ? (
+        // Layout s ikonou (bez labelu)
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem'
+        }}>
+          <Icon size={iconSize || (isMobile ? 16 : 20)} color={iconColor || textColors[variant]} />
+          <div style={{
+            fontSize: dim.valueFontSize,
+            fontWeight: 'bold',
+            color: 'var(--color-text-primary)',
+            lineHeight: 1
+          }}>
+            {value}
+          </div>
+        </div>
+      ) : size === 'normal' ? (
+        // Normal layout: VALUE nahoře, LABEL dole
         <>
           <div style={{
             fontSize: dim.valueFontSize,
@@ -86,6 +120,7 @@ function QuizStatCard({
           </div>
         </>
       ) : (
+        // Compact layout: LABEL nahoře, VALUE dole
         <>
           <div style={{
             fontSize: dim.labelFontSize,

@@ -1,6 +1,6 @@
 # 📋 MASTER TODO - Piano Learning App
 
-Datum poslední aktualizace: 8. prosince 2025 (Session 11 - ChordQuiz Modularization)
+Datum poslední aktualizace: 9. prosince 2025 (Session 12 - ChordPractice Debug + RLS Auth Issue)
 
 ## ✅ Dokončeno v Session 11 - ChordQuiz Modularizace + Optimalizace (8.12.2025)
 
@@ -427,7 +427,395 @@ Bezchybné akordy: 2 / 12
 
 ---
 
-### 1. ⏳ Vlastní systém notifikací
+### 1. 🚨 MIGRACE NA SUPABASE AUTH (PŘED PRODUKCÍ!)
+**Status:** ⏳ Pending - KRITICKÉ PRO PRODUKCI
+**Priorita:** 🔴🔴🔴 NEJVYŠŠÍ - NESMÍME ZAPOMENOUT!
+
+**Problém:**
+- Aplikace NEPOUŽÍVÁ Supabase Auth - jen vlastní tabulku `piano_users`
+- User ID je z `piano_users`, NE z Supabase Auth
+- `auth.uid()` je proto VŽDY null
+- RLS politiky s `auth.uid() = user_id` NIKDY nefungují
+- **DOČASNÉ ŘEŠENÍ:** RLS vypnuté na `piano_quiz_scores` a `piano_user_stats`
+  - `ALTER TABLE piano.piano_quiz_scores DISABLE ROW LEVEL SECURITY;`
+  - `ALTER TABLE piano.piano_user_stats DISABLE ROW LEVEL SECURITY;`
+
+**Riziko:**
+- ⚠️ Bez RLS jsou data méně zabezpečená
+- ⚠️ Nemůžeme jít do produkce s vypnutým RLS
+- ⚠️ RLS politiky jsou připravené, ale nefungují kvůli chybějícímu Auth
+
+**Řešení - Migrace na Supabase Auth:**
+
+**1. Migrace existujících uživatelů:**
+```javascript
+// Pro každého uživatele v piano_users:
+const { data, error } = await supabase.auth.admin.createUser({
+  email: user.email,
+  email_confirm: true,
+  user_metadata: {
+    first_name: user.first_name,
+    last_name: user.last_name
+  }
+});
+```
+
+**2. Aktualizovat loginUser v useUserStore:**
+```javascript
+// Místo custom piano_users lookup:
+const { data, error } = await supabase.auth.signInWithOtp({
+  email: userData.email,
+  options: {
+    data: {
+      first_name: userData.firstName,
+      last_name: userData.lastName
+    }
+  }
+});
+```
+
+**3. Propojit piano_users s Auth:**
+- Přidat `auth_user_id` do `piano_users` tabulky
+- Nebo použít `auth.users.id` přímo jako primární klíč
+- Linkovat všechny tabulky přes `user_id = auth.uid()`
+
+**4. Zapnout RLS zpět:**
+```sql
+ALTER TABLE piano.piano_quiz_scores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE piano.piano_user_stats ENABLE ROW LEVEL SECURITY;
+```
+
+**5. Otestovat RLS politiky:**
+- Ověřit že INSERT/UPDATE/SELECT fungují správně
+- Ověřit že uživatelé vidí jen svá data
+
+**Soubory k úpravě:**
+- `src/store/useUserStore.js` - loginUser funkce
+- `src/components/auth/LoginForm.jsx` - UI (možná přidat OTP input)
+- Migrace script pro existující uživatele
+- Aktualizace RLS politik v Supabase
+
+**Poznámky:**
+- Zachovat `piano_users` tabulku pro dodatečné údaje (jméno, příjmení)
+- Použít Supabase Auth jen pro autentizaci
+- Magic link (OTP) je uživatelsky nejpříjemnější (bez hesla)
+
+---
+
+### 2. 🚨 UNIFIKACE XP SYSTÉMU + KONFIGUROVATELNÉ STATISTIKY
+**Status:** ⏳ Pending - KRITICKÉ PO REFAKTORINGU
+**Priorita:** 🔴🔴 VYSOKÁ - UDĚLAT HNED PO AUTH MIGRACI!
+
+**Problém 1: Chaotické XP hodnoty**
+- ❌ XP hodnoty jsou **hardcoded na více místech** v kódu
+- ❌ Admin panel má "Gamifikace/Pravidla/XP Body", ale kód je **ignoruje**
+- ❌ Různé soubory počítají XP různě → **nekonzistence**
+- ❌ Nelze změnit XP hodnoty bez zásahu do kódu
+
+**Hardcoded XP místa:**
+```javascript
+// celebrationService.js
+- řádek 157: return chordsCompleted * 10;  // ← hardcoded 10 XP/akord
+- řádek 147: score * (xpRules.quiz_correct || 5);  // ← fallback 5 XP
+
+// activityService.js
+- řádek 65: quiz.score * 5  // ← hardcoded pro historie
+- řádek 180: quiz.quiz_type === 'chord_practice' ? quiz.score * 10 : quiz.score * 5
+- řádek 315: item.score * 5
+- řádek 393: item.score * 5
+```
+
+**Problém 2: Fixní zobrazení statistik**
+- ❌ Dashboard, Historie, Žebříček mají **pevně nastavené** které statistiky zobrazují
+- ❌ Nelze to změnit bez úpravy kódu
+- ❌ Admin nemá kontrolu nad tím, co se uživatelům zobrazuje
+
+**Řešení:**
+
+**A) Centralizovaný XP systém:**
+
+1. **Vytvořit `src/services/xpCalculator.js`:**
+```javascript
+/**
+ * Centralizovaný výpočet XP pro všechny typy aktivit
+ * Čte VŠECHNY hodnoty z databáze (piano_xp_rules)
+ */
+export const calculateXP = async (activityType, metadata) => {
+  const rules = await getXPRules(); // z databáze
+
+  switch(activityType) {
+    case 'chord_practice':
+      return metadata.chordsCompleted * rules.chord_completion;
+    case 'quiz':
+      return metadata.score * rules.quiz_correct;
+    case 'lesson':
+      return rules.lesson_completion;
+    case 'song':
+      return rules.song_completion;
+    // ... atd.
+  }
+};
+```
+
+2. **Odstranit VŠECHNY hardcoded hodnoty:**
+   - celebrationService.js - použít xpCalculator
+   - activityService.js - použít xpCalculator
+   - Žádné `* 5`, `* 10`, `|| 50` fallbacky
+
+3. **Rozšířit piano_xp_rules tabulku:**
+```sql
+-- Přidat chybějící pravidla:
+ALTER TABLE piano_xp_rules ADD COLUMN chord_completion INTEGER DEFAULT 10;
+ALTER TABLE piano_xp_rules ADD COLUMN chord_perfect_bonus INTEGER DEFAULT 50;
+-- atd. pro všechny typy aktivit
+```
+
+**B) Konfigurovatelné statistiky:**
+
+1. **Vytvořit tabulku `piano_display_config`:**
+```sql
+CREATE TABLE piano_display_config (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  page VARCHAR(50) NOT NULL,  -- 'dashboard', 'history', 'leaderboard', 'admin'
+  stat_key VARCHAR(50) NOT NULL,  -- 'total_xp', 'lessons_completed', atd.
+  display_order INTEGER,
+  is_visible BOOLEAN DEFAULT true,
+  label_cs VARCHAR(100),  -- český popisek
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+2. **Admin panel:**
+   - Sekce "Konfigurace zobrazení"
+   - Pro každou stránku (Dashboard, Historie, atd.):
+     - Checkboxy: které statistiky zobrazit
+     - Drag & drop: pořadí statistik
+     - Editace popisků
+
+3. **Frontend:**
+```javascript
+// Dashboard.jsx
+const displayConfig = await getDisplayConfig('dashboard');
+const visibleStats = displayConfig.filter(s => s.is_visible);
+
+{visibleStats.map(stat => (
+  <StatCard key={stat.stat_key}
+    value={userStats[stat.stat_key]}
+    label={stat.label_cs}
+  />
+))}
+```
+
+**Výhody:**
+- ✅ Admin má **plnou kontrolu** nad XP hodnotami
+- ✅ Admin **konfiguruje zobrazení** statistik bez kódu
+- ✅ Žádné hardcoded hodnoty → **konzistence**
+- ✅ Snadné testování různých XP hodnot
+- ✅ A/B testing statistik zobrazení
+
+**Soubory k vytvoření:**
+- `src/services/xpCalculator.js` - centralizovaný XP výpočet
+- `src/services/displayConfigService.js` - načítání config
+- Admin panel stránka pro konfiguraci
+
+**Soubory k úpravě:**
+- `src/services/celebrationService.js` - použít xpCalculator
+- `src/services/activityService.js` - použít xpCalculator
+- `src/pages/Dashboard.jsx` - dynamické statistiky
+- `src/pages/History.jsx` - dynamické statistiky
+- Všechny komponenty zobrazující statistiky
+
+**Databáze:**
+- Rozšířit `piano_xp_rules` o všechny typy aktivit
+- Vytvořit `piano_display_config` tabulku
+- Migrace dat pro config (default hodnoty)
+
+**Testování:**
+- Ověřit že všechny XP výpočty odpovídají
+- Ověřit že změny v admin se projeví všude
+- Ověřit konzistenci Dashboard vs Historie vs Žebříček
+
+---
+
+### 3. 🚨 ARCHIVACE A EXPORT DAT
+**Status:** ⏳ Pending - DŮLEŽITÉ PRO SPRÁVU DAT
+**Priorita:** 🔴 Vysoká - GDPR compliance + admin nástroje
+
+**Problém:**
+- ❌ Nelze resetovat statistiky bez kompletního smazání
+- ❌ Uživatelé nemohou exportovat svá data (GDPR requirement)
+- ❌ Admin nemá nástroje pro hromadný export
+- ❌ Chybí možnost "začít znovu" bez ztráty historie
+
+**Požadavek 1: Archivace statistik (Admin)**
+
+Admin má možnost **archivovat statistiky** místo mazání:
+- Uložit současné statistiky do archivní tabulky
+- Resetovat aktivní statistiky na 0
+- Možnost obnovit z archivu
+- Historie archivací (kdy, co, kdo)
+
+**Implementace:**
+
+1. **Vytvořit tabulky:**
+```sql
+-- Archivní snapshot všech dat uživatele
+CREATE TABLE piano_user_archives (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES piano_users(id),
+  archive_name VARCHAR(200),  -- "Před reset 2025-12", "Export test data"
+  archived_by UUID REFERENCES piano_users(id),  -- admin který archivoval
+  archived_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- Snapshot dat (JSON)
+  stats_snapshot JSONB,  -- piano_user_stats
+  achievements_snapshot JSONB,  -- piano_user_achievements
+  completions_snapshot JSONB,  -- všechny completion tabulky
+
+  notes TEXT  -- poznámka admina
+);
+
+-- Index pro rychlé hledání
+CREATE INDEX idx_user_archives_user ON piano_user_archives(user_id);
+CREATE INDEX idx_user_archives_date ON piano_user_archives(archived_at);
+```
+
+2. **Admin UI - Archivace:**
+```
+Admin Panel → Uživatelé → [Uživatel] → Správa dat
+
+┌─ Archivace statistik ────────────────┐
+│ Název archivu: [________________]    │
+│ Poznámka:      [________________]    │
+│                [________________]    │
+│                                      │
+│ Co archivovat:                       │
+│ ☑ Statistiky (XP, level, streaky)   │
+│ ☑ Achievementy                       │
+│ ☑ Historie dokončení (lekce, písně)  │
+│ ☑ Kvízy a testy                      │
+│                                      │
+│ ⚠️ Po archivaci budou statistiky     │
+│    resetovány na 0, ale uloženy      │
+│    v archivu. Lze obnovit.           │
+│                                      │
+│ [Zrušit]  [Archivovat a resetovat]  │
+└──────────────────────────────────────┘
+```
+
+3. **Admin UI - Zobrazení archivů:**
+```
+┌─ Archivy uživatele ──────────────────┐
+│ 📦 Před reset 2025-12                │
+│    09.12.2025 19:30                   │
+│    Admin: Lenka                       │
+│    [Zobrazit] [Obnovit] [Stáhnout]   │
+│                                       │
+│ 📦 Export test data                   │
+│    03.12.2025 14:20                   │
+│    Admin: Lenka                       │
+│    [Zobrazit] [Obnovit] [Stáhnout]   │
+└───────────────────────────────────────┘
+```
+
+**Požadavek 2: Export dat (Všichni uživatelé)**
+
+Každý uživatel může **exportovat svá data** (GDPR):
+- Tlačítko "Exportovat moje data" v profilu
+- Export ve formátech: JSON, CSV, PDF
+- Obsahuje všechna uživatelská data
+- Admin může exportovat data všech uživatelů
+
+**Implementace:**
+
+1. **User UI - Export vlastních dat:**
+```
+Dashboard → Profil → Moje data
+
+┌─ Export dat ─────────────────────────┐
+│ Stáhněte si kompletní historii        │
+│ svých aktivit a statistik.            │
+│                                       │
+│ Formát exportu:                       │
+│ ○ JSON (kompletní data)               │
+│ ● CSV (tabulka pro Excel)             │
+│ ○ PDF (přehledná zpráva)              │
+│                                       │
+│ Co exportovat:                        │
+│ ☑ Osobní údaje                        │
+│ ☑ Statistiky a pokrok                 │
+│ ☑ Historie aktivit                    │
+│ ☑ Achievementy                        │
+│                                       │
+│ [Stáhnout moje data]                  │
+└───────────────────────────────────────┘
+```
+
+2. **Export soubor - struktura:**
+```json
+{
+  "export_date": "2025-12-09T20:00:00Z",
+  "user": {
+    "first_name": "Jan",
+    "last_name": "Novák",
+    "email": "jan@example.com",
+    "created_at": "2025-11-01T10:00:00Z"
+  },
+  "statistics": {
+    "total_xp": 412,
+    "level": 3,
+    "lessons_completed": 5,
+    "songs_completed": 10,
+    ...
+  },
+  "achievements": [
+    {"title": "První lekce", "earned_at": "2025-11-02T..."},
+    ...
+  ],
+  "history": {
+    "lessons": [...],
+    "songs": [...],
+    "quizzes": [...]
+  }
+}
+```
+
+3. **Admin UI - Hromadný export:**
+```
+Admin Panel → Export dat
+
+┌─ Hromadný export ────────────────────┐
+│ Exportovat data:                      │
+│ ○ Všichni uživatelé                   │
+│ ○ Vybraní uživatelé [Vybrat...]       │
+│ ○ Podle filtru (aktivní za 30 dní)    │
+│                                       │
+│ Formát: [JSON ▾]                      │
+│                                       │
+│ [Exportovat] [Naplánovat export]      │
+└───────────────────────────────────────┘
+```
+
+**Soubory k vytvoření:**
+- `src/services/archiveService.js` - archivace a restore
+- `src/services/exportService.js` - export dat
+- `src/components/admin/UserArchivePanel.jsx` - admin UI
+- `src/components/profile/DataExport.jsx` - user export UI
+- `src/utils/exportFormats.js` - JSON, CSV, PDF generátory
+
+**Databáze:**
+- Tabulka `piano_user_archives` pro snapshoty
+- Tabulka `piano_export_logs` pro audit trail
+
+**GDPR Compliance:**
+- ✅ Uživatelé mohou exportovat svá data (právo na přenosnost)
+- ✅ Admin může smazat/archivovat data (právo na výmaz)
+- ✅ Audit trail všech operací s daty
+- ✅ Transparentní správa uživatelských dat
+
+---
+
+### 4. ⏳ Vlastní systém notifikací
 **Status:** Pending
 **Priorita:** 🔴 Kritická
 

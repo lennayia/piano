@@ -611,13 +611,13 @@ export function AnswerStatusChip({ status = 'correct', size = 20, style = {}, ..
       icon: CheckCircle,
       background: 'rgba(16, 185, 129, 0.15)',
       color: '#10b981',
-      border: '2px solid rgba(16, 185, 129, 0.3)'
+      border: 'none'
     },
     incorrect: {
       icon: XCircle,
       background: 'rgba(239, 68, 68, 0.15)',
       color: '#ef4444',
-      border: '2px solid rgba(239, 68, 68, 0.3)'
+      border: 'none'
     }
   };
 
@@ -950,6 +950,69 @@ export function CloseButton({ onClick, size = 20, buttonSize = '36px', style = {
       ) : (
         <Eye size={size} color="var(--color-secondary)" />
       )}
+    </motion.button>
+  );
+}
+
+/**
+ * QuizAnswerButton - Interaktivní button pro odpovědi v kvízech
+ * Použití: ChordQuiz, TheoryQuiz, atd.
+ *
+ * @param {string} text - Text odpovědi
+ * @param {boolean} isSelected - Je tato odpověď vybrána?
+ * @param {boolean} showResult - Zobrazit výsledek (disable interakce)?
+ * @param {boolean} showCorrect - Zobrazit zelenou fajfku (správná odpověď)?
+ * @param {boolean} showWrong - Zobrazit červený křížek (špatná odpověď)?
+ * @param {function} onClick - Callback při kliknutí
+ * @param {boolean} disabled - Zakázat button?
+ * @param {boolean} isMobile - Mobilní rozměry?
+ * @param {string} background - Pozadí buttonu (default: 'var(--glass-bg)')
+ * @param {object} style - Dodatečné styly
+ */
+export function QuizAnswerButton({
+  text,
+  isSelected = false,
+  showResult = false,
+  showCorrect = false,
+  showWrong = false,
+  onClick,
+  disabled = false,
+  isMobile = false,
+  background = 'var(--glass-bg)',
+  style = {},
+  ...props
+}) {
+  return (
+    <motion.button
+      whileHover={!showResult ? { scale: 1.02, y: -2 } : {}}
+      whileTap={!showResult ? { scale: 0.98 } : {}}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        padding: isMobile ? '0.875rem' : '1.25rem',
+        borderRadius: RADIUS.lg,
+        border: BORDER.none,
+        boxShadow: isSelected
+          ? SHADOW.selected
+          : SHADOW.subtle,
+        background,
+        cursor: showResult ? 'not-allowed' : 'pointer',
+        fontWeight: 600,
+        color: 'var(--text-primary)',
+        transition: 'all 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '0.5rem',
+        minHeight: isMobile ? '3rem' : '3.5rem',
+        ...(isMobile ? {} : { fontSize: '1rem' }),
+        ...style
+      }}
+      {...props}
+    >
+      <span>{text}</span>
+      {showCorrect && <AnswerStatusChip status="correct" size={isMobile ? 16 : 20} />}
+      {showWrong && <AnswerStatusChip status="incorrect" size={isMobile ? 16 : 20} />}
     </motion.button>
   );
 }

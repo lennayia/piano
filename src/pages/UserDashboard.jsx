@@ -336,7 +336,7 @@ function UserDashboard() {
           Vítejte, {toVocative(currentUser.first_name)}!
         </h1>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          Těšíte se na svoje další pokroky? Pojďme na to!
+          Těšíte se na svoje další pokroky? Pojďme se do toho hned pustit!
         </p>
 
         <UserStatsGrid

@@ -5,7 +5,7 @@ import Confetti from '../common/Confetti';
 import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
-import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
+import { IconButton, BackButton, AnswerStatusChip, QuizAnswerButton } from '../ui/ButtonComponents';
 import audioEngine from '../../utils/audio';
 import QuizResultsPanel from './QuizResultsPanel';
 import { calculateXP } from '../../utils/quizUtils';
@@ -26,6 +26,7 @@ function UniversalTheoryQuiz({
   icon: Icon = Music
 }) {
   const [score, setScore] = useState(0);
+  const [incorrectAnswers, setIncorrectAnswers] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -199,16 +200,22 @@ function UniversalTheoryQuiz({
       // 2. Vypočítat XP a uložit celkové výsledky kvízu
       const xpEarned = calculateXP(finalScore, questions.length);
 
+      // Zjistit, jestli je kvíz bezchybný
+      const isPerfect = finalScore === questions.length;
+
       // Uložit celkové výsledky do piano_quiz_scores a piano_user_stats
+      // isPerfect = true → celebrate s XP a odměnami
+      // isPerfect = false → jen historie bez XP
       const result = await saveQuizResults(
         `theory_${quizType}`,
         finalScore,
         questions.length,
         bestStreak,
-        xpEarned
+        xpEarned,
+        isPerfect
       );
 
-      if (result.success) {
+      if (result.success && isPerfect) {
         // Aktualizovat zobrazené XP (použít skutečné XP z celebration service)
         const actualXP = result.data?.xpEarned || xpEarned;
         setTotalXpEarned(prev => prev + actualXP);
@@ -228,7 +235,7 @@ function UniversalTheoryQuiz({
             );
           }, 1000);
         }
-      } else {
+      } else if (!result.success) {
         console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
 
@@ -240,6 +247,7 @@ function UniversalTheoryQuiz({
   const startGame = () => {
     setGameStarted(true);
     setScore(0);
+    setIncorrectAnswers(0);
     setCurrentQuestion(0);
     setSelectedAnswer(null);
     setShowResult(false);
@@ -262,16 +270,20 @@ function UniversalTheoryQuiz({
         setBestStreak(streak + 1);
       }
     } else {
+      setIncorrectAnswers(incorrectAnswers + 1);
       setStreak(0);
     }
 
     // Pokud je to poslední otázka, uložíme výsledek
     if (currentQuestion === questions.length - 1) {
       const finalScore = isCorrect ? score + 1 : score;
+      const finalIncorrect = isCorrect ? incorrectAnswers : incorrectAnswers + 1;
+      const isPerfect = finalIncorrect === 0;
+
       saveQuizCompletion(finalScore, answer);
 
-      // Pokud perfektní skóre, zobrazíme konfety a zahrajeme fanfáru
-      if (finalScore === questions.length) {
+      // Oslava JEN pro bezchybné dokončení
+      if (isPerfect) {
         setShowCelebration(true);
         audioEngine.playFanfare();
         setTimeout(() => {
@@ -628,35 +640,18 @@ function UniversalTheoryQuiz({
               const showWrong = showResult && isSelected && !option.isCorrect;
 
               return (
-                <motion.button
+                <QuizAnswerButton
                   key={index}
-                  whileHover={!showResult ? { scale: 1.02, y: -2 } : {}}
-                  whileTap={!showResult ? { scale: 0.98 } : {}}
+                  text={option.text}
+                  isSelected={isSelected}
+                  showResult={showResult}
+                  showCorrect={showCorrect}
+                  showWrong={showWrong}
                   onClick={() => handleAnswer(option.text)}
                   disabled={showResult}
-                  style={{
-                    padding: isMobile ? '0.875rem' : '1.25rem',
-                    borderRadius: RADIUS.lg,
-                    border: BORDER.none,
-                    boxShadow: isSelected
-                      ? SHADOW.selected
-                      : SHADOW.subtle,
-                    background: 'rgba(255, 255, 255, 0.7)',
-                    cursor: showResult ? 'not-allowed' : 'pointer',
-                    fontSize: isMobile ? '0.875rem' : '1rem',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <span>{option.text}</span>
-                  {showCorrect && <AnswerStatusChip status="correct" size={isMobile ? 16 : 20} />}
-                  {showWrong && <AnswerStatusChip status="incorrect" size={isMobile ? 16 : 20} />}
-                </motion.button>
+                  isMobile={isMobile}
+                  background="rgba(255, 255, 255, 0.7)"
+                />
               );
             })}
           </div>

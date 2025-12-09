@@ -40,7 +40,7 @@ export const celebrate = async ({ type, userId, itemId, itemTitle, metadata = {}
     await saveCompletion(type, userId, itemId, itemTitle, xpEarned, metadata);
 
     // 4. Aktualizovat user stats (pouze pokud ještě nebylo dokončeno)
-    const updatedStats = await updateUserStats(userId, xpEarned, type);
+    const updatedStats = await updateUserStats(userId, xpEarned, type, metadata);
 
     // 4a. Pokud došlo k level-upu, zapsat do historie
     if (updatedStats.leveledUp) {
@@ -217,6 +217,58 @@ async function saveCompletion(type, userId, itemId, itemTitle, xpEarned, metadat
       });
 
     if (error) throw error;
+
+    // Pokud je kvíz bezchybný, zkontrolovat perfect streak a přidat bonus za milníky (5, 10, 15...)
+    if (score === totalQuestions) {
+      try {
+        // Načíst historii kvízů pro tento typ
+        const { data: history, error: historyError } = await supabase
+          .from('piano_quiz_scores')
+          .select('score, total_questions')
+          .eq('user_id', userId)
+          .eq('quiz_type', itemId)
+          .order('completed_at', { ascending: false })
+          .limit(20); // Načíst dostatek pro detekci streaku
+
+        if (!historyError && history) {
+          // Spočítat perfect streak (bezchybné za sebou od konce)
+          let perfectStreak = 0;
+          for (const item of history) {
+            if (item.score === item.total_questions) {
+              perfectStreak++;
+            } else {
+              break;
+            }
+          }
+
+          // Bonus za milníky: každých 5 bezchybných za sebou = +50 XP
+          if (perfectStreak > 0 && perfectStreak % 5 === 0) {
+            const bonusXP = 50;
+            console.log(`🎉 Perfect Streak Bonus! ${perfectStreak} bezchybných kvízů za sebou = +${bonusXP} XP`);
+
+            // Přidat bonus XP k user stats
+            const { data: currentStats } = await supabase
+              .from('user_stats')
+              .select('total_xp')
+              .eq('id', userId)
+              .single();
+
+            if (currentStats) {
+              await supabase
+                .from('user_stats')
+                .update({
+                  total_xp: currentStats.total_xp + bonusXP,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', userId);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Chyba při kontrole perfect streak bonusu:', error);
+        // Pokračovat i při chybě - bonus není kritický
+      }
+    }
   }
 
   if (type === 'chord_practice') {
@@ -255,7 +307,7 @@ async function saveCompletion(type, userId, itemId, itemTitle, xpEarned, metadat
 /**
  * Aktualizuje user stats
  */
-async function updateUserStats(userId, xpEarned, type) {
+async function updateUserStats(userId, xpEarned, type, metadata = {}) {
   const { data: existingStats, error: fetchError } = await supabase
     .from('piano_user_stats')
     .select('*')
@@ -303,6 +355,9 @@ async function updateUserStats(userId, xpEarned, type) {
       if (metadata?.mode === 'challenge') {
         updates.songs_perfect_score = (existingStats.songs_perfect_score || 0) + 1;
       }
+    } else if (type === 'quiz') {
+      // Kvízy se počítají jen bezchybné (celebrate se volá jen pro isPerfect=true)
+      updates.quizzes_completed = (existingStats.quizzes_completed || 0) + 1;
     } else if (type === 'chord_practice') {
       const { chordsCompleted = 0 } = metadata;
       updates.chords_completed = (existingStats.chords_completed || 0) + chordsCompleted;
@@ -454,7 +509,7 @@ async function checkAndUnlockAchievements(userId, type, itemId, stats) {
 
         // Přidat XP za achievement
         if (achievement.xp_reward > 0) {
-          await updateUserStats(userId, achievement.xp_reward, 'achievement');
+          await updateUserStats(userId, achievement.xp_reward, 'achievement', {});
         }
       }
     }

@@ -62,7 +62,7 @@ export const getRecentActivities = async (userId, limit = 5) => {
           type: 'quiz',
           title: quizTypeLabels[quiz.quiz_type] || 'Kvíz',
           date: new Date(quiz.completed_at),
-          xp: quiz.score * 5, // Odhadovaná hodnota
+          xp: quiz.quiz_type === 'chord_practice' ? quiz.score * 10 : quiz.score * 5,
           icon: 'Gamepad2'
         });
       });
@@ -177,7 +177,7 @@ export const getAllUserActivities = async (userId) => {
           type: quiz.quiz_type === 'chord_practice' ? 'chord_practice' : 'quiz',
           title: quizTypeLabels[quiz.quiz_type] || 'Kvíz',
           date: new Date(quiz.completed_at),
-          xp: quiz.score * 5,
+          xp: quiz.quiz_type === 'chord_practice' ? quiz.score * 10 : quiz.score * 5,
           score: quiz.score,
           totalQuestions: quiz.total_questions,
           icon: quiz.quiz_type === 'chord_practice' ? 'Music' : 'Gamepad2'
@@ -312,7 +312,7 @@ export const getActivitiesForAchievement = async (userId, requirementType, requi
           data.forEach(item => activities.push({
             title: `Kvíz: ${item.quiz_type}`,
             date: new Date(item.completed_at),
-            xp: item.score * 5
+            xp: item.quiz_type === 'chord_practice' ? item.score * 10 : item.score * 5
           }));
         }
         break;
@@ -390,7 +390,7 @@ export const getActivitiesForAchievement = async (userId, requirementType, requi
           quizData.forEach(item => allActivities.push({
             title: `Kvíz: ${item.quiz_type}`,
             date: new Date(item.completed_at),
-            xp: item.score * 5
+            xp: item.quiz_type === 'chord_practice' ? item.score * 10 : item.score * 5
           }));
         }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, Music, CheckCircle, XCircle, Award, Star, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Play, RotateCcw, Trophy, Zap, Target, Sparkles, Flame, Music, Award, Star, ChevronRight, ChevronLeft, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import audioEngine from '../../utils/audio';
 import Confetti from '../common/Confetti';
@@ -7,7 +7,8 @@ import { supabase } from '../../lib/supabase';
 import useUserStore from '../../store/useUserStore';
 import { sortNotesByKeyboard, shuffleArray } from '../../utils/noteUtils';
 import { RADIUS, SHADOW, BORDER } from '../../utils/styleConstants';
-import { IconButton, BackButton, AnswerStatusChip } from '../ui/ButtonComponents';
+import { IconButton, BackButton, AnswerStatusChip, PlayButton, QuizAnswerButton } from '../ui/ButtonComponents';
+import { Card, ProgressBar } from '../ui/CardComponents';
 import QuizResultsPanel from './QuizResultsPanel';
 import QuizStatCard from './QuizStatCard';
 import QuizStartScreen from './QuizStartScreen';
@@ -20,12 +21,15 @@ import { usePiano } from '../../contexts/PianoContext';
 
 function ChordQuiz() {
   const [score, setScore] = useState(0);
+  const [incorrectAnswers, setIncorrectAnswers] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [perfectTotal, setPerfectTotal] = useState(0); // Celkový počet bezchybných dokončení
+  const [perfectStreak, setPerfectStreak] = useState(0); // Bezchybné za sebou
   const [showCelebration, setShowCelebration] = useState(false);
   const [chords, setChords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +44,46 @@ function ChordQuiz() {
 
   // Piano Context - global piano initialization
   const { pianoReady, isLoading: pianoLoading, initPiano } = usePiano();
+
+  // Načtení perfect stats (série celkem a streak za sebou)
+  const fetchPerfectStats = useCallback(async () => {
+    if (!currentUser?.id) return;
+
+    try {
+      // Načíst všechny výsledky chord_quiz pro aktuálního uživatele
+      const { data, error } = await supabase
+        .from('piano_quiz_scores')
+        .select('score, total_questions, completed_at')
+        .eq('user_id', currentUser.id)
+        .eq('quiz_type', 'chord_quiz')
+        .order('completed_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        setPerfectTotal(0);
+        setPerfectStreak(0);
+        return;
+      }
+
+      // Celková série = počet všech bezchybných dokončení
+      const perfectCompletions = data.filter(item => item.score === item.total_questions);
+      setPerfectTotal(perfectCompletions.length);
+
+      // Aktuální streak = kolik bezchybných za sebou od konce
+      let currentStreak = 0;
+      for (const item of data) {
+        if (item.score === item.total_questions) {
+          currentStreak++;
+        } else {
+          break; // První chyba = konec streaku
+        }
+      }
+      setPerfectStreak(currentStreak);
+    } catch (error) {
+      console.error('Chyba při načítání perfect stats:', error);
+    }
+  }, [currentUser]);
 
   const fetchChords = useCallback(async () => {
     try {
@@ -81,10 +125,10 @@ function ChordQuiz() {
         // Spojíme správnou a špatné odpovědi a zamícháme
         const allOptions = shuffleArray([correctAnswer, ...wrongAnswers]);
 
-        // Střídat barvy mezi primary a secondary
+        // Stejná barva pro všechny karty
         const colors = [
-          'rgba(45, 91, 120, 0.05)', // secondary
-          'rgba(181, 31, 101, 0.05)', // primary
+          'var(--color-secondary-transparent)', // secondary (0.1 opacity)
+          'var(--color-secondary-transparent)', // secondary (0.1 opacity)
         ];
 
         return {
@@ -110,6 +154,11 @@ function ChordQuiz() {
     fetchChords();
   }, [fetchChords]);
 
+  // Načtení perfect stats při startu kvízu
+  useEffect(() => {
+    fetchPerfectStats();
+  }, [fetchPerfectStats]);
+
   const playChord = useCallback(async (notes) => {
     audioEngine.playClick();
     // Seřadit noty podle pořadí na klaviatuře (odleva doprava)
@@ -119,21 +168,24 @@ function ChordQuiz() {
     }
   }, []);
 
-  const saveQuizCompletion = useCallback(async (finalScore) => {
+  const saveQuizCompletion = useCallback(async (finalScore, isPerfect) => {
     try {
       // Vypočítat získané XP
       const xpEarned = calculateXP(finalScore, chords.length);
 
-      // Uložit výsledky do databáze pomocí utility funkce
+      // Uložit výsledky do databáze
+      // isPerfect = true → celebrate s XP a odměnami
+      // isPerfect = false → jen historie bez XP
       const result = await saveQuizResults(
         'chord_quiz',
         finalScore,
         chords.length,
         bestStreak,
-        xpEarned
+        xpEarned,
+        isPerfect
       );
 
-      if (result.success) {
+      if (result.success && isPerfect) {
         // Aktualizovat zobrazené XP (použít skutečné XP z celebration service)
         const actualXP = result.data?.xpEarned || xpEarned;
         setTotalXpEarned(prev => prev + actualXP);
@@ -153,7 +205,7 @@ function ChordQuiz() {
             );
           }, 1000);
         }
-      } else {
+      } else if (!result.success) {
         console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
 
@@ -165,6 +217,7 @@ function ChordQuiz() {
   const startGame = useCallback(() => {
     setGameStarted(true);
     setScore(0);
+    setIncorrectAnswers(0);
     setCurrentQuestion(0);
     setStreak(0);
     setSelectedAnswer(null);
@@ -187,16 +240,24 @@ function ChordQuiz() {
         setBestStreak(streak + 1);
       }
     } else {
+      setIncorrectAnswers(incorrectAnswers + 1);
       setStreak(0);
     }
 
     // Pokud je to poslední otázka, uložíme výsledek
     if (currentQuestion === chords.length - 1) {
       const finalScore = isCorrect ? score + 1 : score;
-      saveQuizCompletion(finalScore);
+      const finalIncorrect = isCorrect ? incorrectAnswers : incorrectAnswers + 1;
+      const isPerfect = finalIncorrect === 0;
 
-      // Pokud perfektní skóre, zobrazíme konfety a zahrajeme fanfáru
-      if (finalScore === chords.length) {
+      // Uložit výsledek (s odměnami pokud bezchybný, jen historie pokud ne)
+      saveQuizCompletion(finalScore, isPerfect).then(() => {
+        // Po uložení znovu načíst perfect stats (série a streak se aktualizují)
+        fetchPerfectStats();
+      });
+
+      // Oslava JEN pro bezchybné dokončení
+      if (isPerfect) {
         setShowCelebration(true);
         audioEngine.playFanfare();
         setTimeout(() => {
@@ -205,7 +266,7 @@ function ChordQuiz() {
         setTimeout(() => setShowCelebration(false), 3000);
       }
     }
-  }, [showResult, chords, currentQuestion, score, streak, bestStreak, saveQuizCompletion]);
+  }, [showResult, chords, currentQuestion, score, incorrectAnswers, streak, bestStreak, saveQuizCompletion, fetchPerfectStats]);
 
   const nextQuestion = useCallback(() => {
     if (currentQuestion < chords.length - 1) {
@@ -224,6 +285,7 @@ function ChordQuiz() {
       // Pokud jsme na první otázce, vrátíme se na start
       setGameStarted(false);
       setScore(0);
+      setIncorrectAnswers(0);
       setCurrentQuestion(0);
       setSelectedAnswer(null);
       setShowResult(false);
@@ -235,6 +297,7 @@ function ChordQuiz() {
   const resetGame = useCallback(() => {
     setGameStarted(false);
     setScore(0);
+    setIncorrectAnswers(0);
     setCurrentQuestion(0);
     setSelectedAnswer(null);
     setShowResult(false);
@@ -264,19 +327,19 @@ function ChordQuiz() {
         borderRadius: RADIUS.lg,
         border: '2px solid rgba(239, 68, 68, 0.3)'
       }}>
-        <XCircle size={48} color="#ef4444" style={{ margin: '0 auto 1rem' }} />
-        <p style={{ color: '#ef4444', fontWeight: 600 }}>{error}</p>
+        <AnswerStatusChip status="incorrect" size={48} />
+        <p style={{ color: 'var(--color-danger)' }}>{error}</p>
         <button
           onClick={fetchChords}
           style={{
             background: 'var(--color-primary)',
-            color: '#fff',
+            color: '#ffffff',
             border: 'none',
             borderRadius: RADIUS.md,
             padding: '12px 24px',
             cursor: 'pointer',
             fontSize: '1rem',
-            fontWeight: '600',
+            fontWeight: 600,
             marginTop: '1rem'
           }}
         >
@@ -302,35 +365,6 @@ function ChordQuiz() {
     <div>
       {/* Confetti při dokončení kvízu */}
       <Confetti show={showCelebration} onComplete={() => setShowCelebration(false)} />
-
-      <h2 className="card-title" style={{
-        marginBottom: '1.5rem',
-        color: '#1e293b',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem'
-      }}>
-        <div style={{
-          width: '48px',
-          height: '48px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '2px solid rgba(181, 31, 101, 0.2)',
-          boxShadow: '0 4px 15px rgba(181, 31, 101, 0.2)'
-        }}>
-          <Target size={24} color="var(--color-primary)" />
-        </div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          Poznáte akord?
-          <Music size={24} color="var(--color-primary)" />
-        </span>
-      </h2>
-      <p style={{ marginBottom: '2rem', color: '#64748b', fontSize: '1rem' }}>
-        Zahrajte akord a zkuste uhodnout, který to je. Zábavný způsob, jak se naučit rozpoznávat akordy!
-      </p>
 
       <AnimatePresence mode="wait">
         {!gameStarted ? (
@@ -361,45 +395,66 @@ function ChordQuiz() {
               marginBottom: isMobile ? '1rem' : '1.5rem'
             }}>
               <QuizStatCard
-                value={`${score}/${chords.length}`}
-                label="Skóre"
-                variant="secondary"
+                value={score}
+                icon={CheckCircle}
+                iconColor="rgb(16, 185, 129)"
+                variant="success"
                 size="compact"
                 isMobile={isMobile}
               />
 
               <QuizStatCard
-                value={streak}
-                label="Série"
-                variant="secondary"
+                value={incorrectAnswers}
+                icon={XCircle}
+                iconColor="rgb(239, 68, 68)"
+                variant="danger"
                 size="compact"
                 isMobile={isMobile}
               />
 
               <QuizStatCard
-                value={`${currentQuestion + 1}/${chords.length}`}
-                label="Otázka"
+                value={perfectTotal}
+                icon={Trophy}
+                iconColor="var(--color-primary)"
+                variant="primary"
+                size="compact"
+                isMobile={isMobile}
+                title="Celkový počet bezchybných dokončení"
+              />
+
+              <QuizStatCard
+                value={perfectStreak}
+                icon={Zap}
+                iconColor="var(--color-secondary)"
                 variant="secondary"
                 size="compact"
                 isMobile={isMobile}
+                title="Bezchybné kvízy za sebou"
               />
             </div>
 
+            {/* Progress Bar */}
+            <ProgressBar
+              current={currentQuestion + 1}
+              total={chords.length}
+              title="Otázka"
+              titleColor="var(--color-text-secondary)"
+            />
+
             {/* Question Card */}
-            <motion.div
+            <Card
+              as={motion.div}
+              blur="20px"
+              radius="xl"
+              shadow="default"
               key={currentQuestion}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
               style={{
                 background: currentChord.color,
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderRadius: RADIUS.xl,
                 padding: isMobile ? '1rem' : '2rem',
-                marginBottom: isMobile ? '1rem' : '2rem',
-                border: BORDER.default,
-                boxShadow: SHADOW.default
+                marginBottom: isMobile ? '1rem' : '2rem'
               }}
             >
               <div style={{
@@ -416,27 +471,9 @@ function ChordQuiz() {
                 </h3>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => playChord(currentChord.notes)}
-                style={{
-                  width: '96px',
-                  height: '96px',
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)',
-                  border: 'none',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 32px rgba(181, 31, 101, 0.4)',
-                  margin: '0 auto 2rem',
-                  transition: 'all 0.3s'
-                }}
-              >
-                <Play size={40} color="#ffffff" style={{ marginLeft: '4px' }} />
-              </motion.button>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+                <PlayButton onClick={() => playChord(currentChord.notes)} />
+              </div>
 
               {/* Options */}
               <div style={{
@@ -451,40 +488,21 @@ function ChordQuiz() {
                   const showWrong = showResult && isSelected && !isCorrect;
 
                   return (
-                    <motion.button
+                    <QuizAnswerButton
                       key={index}
-                      whileHover={!showResult ? { scale: 1.02, y: -2 } : {}}
-                      whileTap={!showResult ? { scale: 0.98 } : {}}
+                      text={option}
+                      isSelected={isSelected}
+                      showResult={showResult}
+                      showCorrect={showCorrect}
+                      showWrong={showWrong}
                       onClick={() => handleAnswer(option)}
                       disabled={showResult}
-                      style={{
-                        padding: isMobile ? '0.875rem' : '1.25rem',
-                        borderRadius: RADIUS.lg,
-                        border: BORDER.none,
-                        boxShadow: isSelected
-                          ? SHADOW.selected
-                          : SHADOW.subtle,
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        cursor: showResult ? 'not-allowed' : 'pointer',
-                        fontSize: isMobile ? '0.875rem' : '1rem',
-                        fontWeight: 600,
-                        color: 'var(--text-primary)',
-                        transition: 'all 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '0.5rem',
-                        minHeight: isMobile ? '3rem' : '3.5rem'
-                      }}
-                    >
-                      <span>{option}</span>
-                      {showCorrect && <AnswerStatusChip status="correct" size={isMobile ? 16 : 20} />}
-                      {showWrong && <AnswerStatusChip status="incorrect" size={isMobile ? 16 : 20} />}
-                    </motion.button>
+                      isMobile={isMobile}
+                    />
                   );
                 })}
               </div>
-            </motion.div>
+            </Card>
 
             {/* Navigation buttons */}
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -519,12 +537,12 @@ function ChordQuiz() {
                   onClick={resetGame}
                   className="btn btn-primary"
                   style={{
-                    fontSize: isMobile ? '0.875rem' : '1rem',
                     padding: isMobile ? '0.5rem 1rem' : '0.625rem 1.5rem',
                     borderRadius: RADIUS.md,
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    ...(isMobile ? {} : { fontSize: '1rem' })
                   }}
                 >
                   <RotateCcw size={isMobile ? 16 : 18} />

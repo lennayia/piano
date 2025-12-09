@@ -154,7 +154,7 @@ function Cviceni() {
       },
       quiz: {
         title: 'Poznáte akord?',
-        description: 'Kvíz pro trénink sluchové analýzy. Přehrajte si akord a hádejte, který to je. Skvělé pro rozvoj hudebního sluchu.'
+        description: 'Kvíz pro trénink sluchové analýzy. Přehrajte si akord a hádejte, který to je. Naučte se rozpoznávat akordy zábavným způsobem!'
       },
       songs: {
         title: 'Písničky',

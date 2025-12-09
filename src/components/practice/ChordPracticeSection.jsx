@@ -125,7 +125,7 @@ function ChordPracticeSection({
             if (result.success) {
               const updateUserStats = useUserStore.getState().updateUserStats;
               if (updateUserStats) {
-                updateUserStats();
+                await updateUserStats();
               }
 
               if (result.data?.leveledUp && result.data?.levelUpConfig) {
@@ -142,14 +142,12 @@ function ChordPracticeSection({
                   );
                 }, 3500);
               }
+            } else {
+              console.error('Chyba při ukládání dokončení akordů:', result.error);
             }
           } catch (error) {
             console.error('Chyba při ukládání dokončení akordů:', error);
           }
-        } else {
-          setTimeout(() => {
-            alert(`✅ Dokončili jste všechny akordy v obtížnosti!\n\nℹ️ Pro odměny, XP a statistiky dokončete "Všechny akordy" v režimu Výzva.`);
-          }, 1000);
         }
       }, 500);
     }

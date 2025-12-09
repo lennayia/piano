@@ -188,7 +188,7 @@ function Lekce() {
         maxWidth="lg"
         icon={BookOpen}
         title="Lekce"
-        description="Procházejte své lekce a pokračujte v učení"
+        description="Procházejte si lekce a pokračujte v učení."
         mainTabs={MAIN_TABS}
         subTabs={SUB_TABS_CONFIG}
         activeMainTab={mainTab}

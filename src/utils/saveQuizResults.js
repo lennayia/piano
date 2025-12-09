@@ -8,9 +8,10 @@ import { celebrate } from '../services/celebrationService';
  * @param {number} totalQuestions - Celkový počet otázek
  * @param {number} bestStreak - Nejlepší série správných odpovědí
  * @param {number} xpEarned - Získané XP body (DEPRECATED - již se nepoužívá, XP počítá celebrationService)
+ * @param {boolean} isPerfect - Je kvíz bezchybný? (true = celebrate s odměnami, false = jen historie)
  * @returns {Promise<{success: boolean, error?: string, data?: Object}>}
  */
-export const saveQuizResults = async (quizType, score, totalQuestions, bestStreak, xpEarned) => {
+export const saveQuizResults = async (quizType, score, totalQuestions, bestStreak, xpEarned, isPerfect = true) => {
   try {
     // Získat aktuálního uživatele
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -20,7 +21,28 @@ export const saveQuizResults = async (quizType, score, totalQuestions, bestStrea
       return { success: false, error: 'Uživatel není přihlášen' };
     }
 
-    // Použít centralizovaný celebration service
+    // Pokud NENÍ bezchybný kvíz, uložit JEN do historie (bez XP a odměn)
+    if (!isPerfect) {
+      const { error } = await supabase
+        .from('piano_quiz_scores')
+        .insert({
+          user_id: user.id,
+          quiz_type: quizType,
+          score,
+          total_questions: totalQuestions,
+          streak: bestStreak,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Chyba při ukládání do historie:', error);
+        return { success: false, error: 'Chyba při ukládání do historie' };
+      }
+
+      return { success: true, data: { historyOnly: true } };
+    }
+
+    // BEZCHYBNÝ kvíz: použít celebration service s odměnami
     const result = await celebrate({
       type: 'quiz',
       userId: user.id,
