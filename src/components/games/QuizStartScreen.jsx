@@ -51,7 +51,6 @@ function QuizStartScreen({
       }}>
         <Icon size={isMobile ? 28 : 32} color="var(--color-primary)" />
         <h2 style={{
-          fontSize: isMobile ? '1.5rem' : '1.75rem',
           margin: 0,
           color: 'var(--text-primary)'
         }}>
@@ -61,7 +60,6 @@ function QuizStartScreen({
 
       {/* Description */}
       <p style={{
-        fontSize: isMobile ? '0.875rem' : '1rem',
         color: 'var(--text-secondary)',
         marginBottom: '2rem',
         maxWidth: '500px',
@@ -109,7 +107,6 @@ function QuizStartScreen({
         onClick={onStart}
         className="btn btn-primary"
         style={{
-          fontSize: isMobile ? '0.875rem' : '1rem',
           padding: isMobile ? '0.625rem 1.25rem' : '0.625rem 1.5rem',
           borderRadius: RADIUS.md,
           display: 'inline-flex',
