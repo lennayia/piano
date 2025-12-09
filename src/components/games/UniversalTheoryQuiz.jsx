@@ -38,6 +38,8 @@ function UniversalTheoryQuiz({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalXpEarned, setTotalXpEarned] = useState(0);
+  const [perfectTotal, setPerfectTotal] = useState(0);
+  const [perfectStreak, setPerfectStreak] = useState(0);
 
   const currentUser = useUserStore((state) => state.currentUser);
   const updateUserStats = useUserStore((state) => state.updateUserStats);
@@ -50,6 +52,54 @@ function UniversalTheoryQuiz({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Načtení perfect stats (série celkem a streak za sebou)
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const fetchPerfectStats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('piano_quiz_scores')
+          .select('score, total_questions, completed_at, best_streak')
+          .eq('user_id', currentUser.id)
+          .eq('quiz_type', `theory_${quizType}`)
+          .order('completed_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          setPerfectTotal(0);
+          setPerfectStreak(0);
+          setBestStreak(0);
+          return;
+        }
+
+        // Celková série = počet všech bezchybných dokončení
+        const perfectCompletions = data.filter(item => item.score === item.total_questions);
+        setPerfectTotal(perfectCompletions.length);
+
+        // Aktuální streak = kolik bezchybných za sebou od konce
+        let currentStreak = 0;
+        for (const item of data) {
+          if (item.score === item.total_questions) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        }
+        setPerfectStreak(currentStreak);
+
+        // Nejlepší série = maximum ze všech best_streak hodnot
+        const maxBestStreak = Math.max(...data.map(item => item.best_streak || 0));
+        setBestStreak(maxBestStreak);
+      } catch (error) {
+        // Tiché zpracování chyby
+      }
+    };
+
+    fetchPerfectStats();
+  }, [currentUser, quizType]);
 
   // Mapování tabulek podle typu kvízu
   const getTableNames = () => {
@@ -152,26 +202,19 @@ function UniversalTheoryQuiz({
       setQuestions(transformedQuestions);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching questions:', err);
       setError('Nepodařilo se načíst otázky: ' + err.message);
       setLoading(false);
     }
   };
 
   const saveQuizCompletion = async (finalScore, answer) => {
-    console.log('🎯 saveQuizCompletion called:', { finalScore, currentQuestion, answer });
-
     const tables = getTableNames();
-    console.log('📋 Tables:', tables);
 
     try {
       // 1. Uložit dokončení aktuální otázky (zachováváme původní logiku)
       if (currentUser) {
         const currentQuestionData = questions[currentQuestion];
         const selectedOption = currentQuestionData.options.find(opt => opt.text === answer);
-
-        console.log('🔍 Current question:', currentQuestionData);
-        console.log('🔍 Selected option:', selectedOption);
 
         if (selectedOption) {
           const completionData = {
@@ -182,17 +225,13 @@ function UniversalTheoryQuiz({
             completed_at: new Date().toISOString()
           };
 
-          console.log('💾 Saving quiz completion:', tables.completionsTable, completionData);
-
-          const { data, error } = await supabase
+          const { error } = await supabase
             .from(tables.completionsTable)
             .insert(completionData)
             .select();
 
           if (error) {
-            console.error('❌ Error saving completion:', error);
-          } else {
-            console.log('✅ Completion saved:', data);
+            // Tiché zpracování chyby
           }
         }
       }
@@ -235,12 +274,10 @@ function UniversalTheoryQuiz({
             );
           }, 1000);
         }
-      } else if (!result.success) {
-        console.error('Chyba při ukládání výsledků kvízu:', result.error);
       }
 
     } catch (error) {
-      console.error('Chyba při ukládání kvízu:', error);
+      // Tiché zpracování chyby
     }
   };
 

@@ -53,7 +53,7 @@ function ChordQuiz() {
       // Načíst všechny výsledky chord_quiz pro aktuálního uživatele
       const { data, error } = await supabase
         .from('piano_quiz_scores')
-        .select('score, total_questions, completed_at')
+        .select('score, total_questions, completed_at, best_streak')
         .eq('user_id', currentUser.id)
         .eq('quiz_type', 'chord_quiz')
         .order('completed_at', { ascending: false });
@@ -63,6 +63,7 @@ function ChordQuiz() {
       if (!data || data.length === 0) {
         setPerfectTotal(0);
         setPerfectStreak(0);
+        setBestStreak(0);
         return;
       }
 
@@ -80,6 +81,10 @@ function ChordQuiz() {
         }
       }
       setPerfectStreak(currentStreak);
+
+      // Nejlepší série = maximum ze všech best_streak hodnot
+      const maxBestStreak = Math.max(...data.map(item => item.best_streak || 0));
+      setBestStreak(maxBestStreak);
     } catch (error) {
       // Tiché zpracování chyby
     }
