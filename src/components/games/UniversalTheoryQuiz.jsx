@@ -61,7 +61,7 @@ function UniversalTheoryQuiz({
       try {
         const { data, error } = await supabase
           .from('piano_quiz_scores')
-          .select('score, total_questions, completed_at, best_streak')
+          .select('score, total_questions, completed_at, streak')
           .eq('user_id', currentUser.id)
           .eq('quiz_type', `theory_${quizType}`)
           .order('completed_at', { ascending: false });
@@ -90,8 +90,8 @@ function UniversalTheoryQuiz({
         }
         setPerfectStreak(currentStreak);
 
-        // Nejlepší série = maximum ze všech best_streak hodnot
-        const maxBestStreak = Math.max(...data.map(item => item.best_streak || 0));
+        // Nejlepší série = maximum ze všech streak hodnot pro tento typ kvízu
+        const maxBestStreak = Math.max(...data.map(item => item.streak || 0));
         setBestStreak(maxBestStreak);
       } catch (error) {
         // Tiché zpracování chyby
