@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, ChevronRight, ChevronLeft, Volume2, CheckCircle, Piano } from 'lucide-react';
 import useUserStore from '../../store/useUserStore';
@@ -13,6 +13,7 @@ import useProgressTracking from '../../hooks/useProgressTracking';
 import PracticeCelebration from './PracticeCelebration';
 import { celebrate, triggerCelebration } from '../../services/celebrationService';
 import { usePiano } from '../../contexts/PianoContext';
+import { useResponsive } from '../../hooks/useResponsive';
 
 /**
  * ChordPracticeSection - Samostatná komponenta pro procvičování akordů
@@ -43,10 +44,24 @@ function ChordPracticeSection({
   const [practiceErrors, setPracticeErrors] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPracticeCompletionModal, setShowPracticeCompletionModal] = useState(false);
+  const [practiceCompletionData, setPracticeCompletionData] = useState(null);
   const celebrationTriggeredRef = useRef(false);
 
   // Piano Context - global piano initialization
   const { pianoReady, isLoading, initPiano } = usePiano();
+
+  // Responzivní breakpointy
+  const { width: windowWidth } = useResponsive();
+
+  // Responzivní hodnoty
+  const responsive = useMemo(() => ({
+    titleFontSize: windowWidth < 400 ? '1.5rem' : windowWidth < 640 ? '1.75rem' : '2rem',
+    buttonPadding: windowWidth < 400 ? '0.4rem 0.75rem' : '0.5rem 1rem',
+    buttonFontSize: windowWidth < 400 ? '0.75rem' : '0.875rem',
+    cardPadding: windowWidth < 400 ? '1rem 1rem 0.5rem' : '1.25rem 1.25rem 0.75rem',
+    gap: windowWidth < 400 ? '0.75rem' : '1rem'
+  }), [windowWidth]);
 
   // Hook pro sledování pokroku (dokončených akordů)
   const { completedCount, incrementCompleted, resetProgress } = useProgressTracking();
@@ -75,6 +90,8 @@ function ChordPracticeSection({
   useEffect(() => {
     if (practicingMode && chords.length > 0 && practiceCompletedChordIds.size === chords.length) {
       setTimeout(() => {
+        audioEngine.playSuccess();
+
         // Odměny a statistiky JEN při dokončení "Všechny akordy"
         if (selectedDifficulty === 'all') {
           // Zvýšit denní cíl
@@ -82,15 +99,22 @@ function ChordPracticeSection({
             onDailyGoalComplete();
           }
 
-          audioEngine.playSuccess();
-          alert(`🎉 Série dokončena!\n\nZahráli jste všechny akordy (${chords.length} akordů).\n\nDenní cíl: +1 série procvičování\n✅ Uloženo do statistik`);
+          setPracticeCompletionData({
+            title: '🎉 Série dokončena!',
+            message: `Zahráli jste všechny akordy (${chords.length} akordů).\n\nDenní cíl: +1 série procvičování\n✅ Uloženo do statistik`,
+            icon: 'Music',
+            iconColor: 'var(--color-primary)'
+          });
         } else {
-          audioEngine.playSuccess();
-          alert(`✅ Dokončili jste všechny akordy v obtížnosti (${chords.length} akordů).\n\nℹ️ Pro odměny a statistiky procvičujte "Všechny akordy".`);
+          setPracticeCompletionData({
+            title: '✅ Dokončeno!',
+            message: `Dokončili jste všechny akordy v obtížnosti (${chords.length} akordů).\n\nℹ️ Pro odměny a statistiky procvičujte "Všechny akordy".`,
+            icon: 'CheckCircle',
+            iconColor: 'var(--color-secondary)'
+          });
         }
 
-        // Reset pro novou sérii
-        setPracticeCompletedChordIds(new Set());
+        setShowPracticeCompletionModal(true);
       }, 500);
     }
   }, [practiceCompletedChordIds, chords.length, practicingMode, selectedDifficulty, onDailyGoalComplete]);
@@ -153,8 +177,9 @@ function ChordPracticeSection({
     }
   }, [challengeMode, completedCount, chords.length, currentUser, selectedDifficulty, isShuffled]);
 
-  const currentChord = chords[currentChordIndex];
-  const chordNotesWithOctaves = currentChord?.notes || [];
+  // Memoizace current chord pro prevenci zbytečných re-renders
+  const currentChord = useMemo(() => chords[currentChordIndex], [chords, currentChordIndex]);
+  const chordNotesWithOctaves = useMemo(() => currentChord?.notes || [], [currentChord]);
 
   // Přehrát celý akord najednou
   const playFullChord = useCallback(() => {
@@ -289,7 +314,7 @@ function ChordPracticeSection({
     <>
       {/* Progress bar - jen pro challenge mode */}
       {challengeMode && (
-        <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', padding: '0 1rem' }}>
+        <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
           <ProgressBar
             current={completedCount}
             total={chords.length}
@@ -300,16 +325,16 @@ function ChordPracticeSection({
       )}
 
       {/* Hlavní karta cvičení */}
-      <div className="container" style={{ maxWidth: '1024px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
         <PageCard
           as={motion.div}
           key={currentChordIndex}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          style={{ marginBottom: '2rem', padding: '1.25rem 1.25rem 0.75rem' }}
+          style={{ marginBottom: '2rem', padding: responsive.cardPadding }}
         >
           {/* Název akordu s navigací */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: responsive.gap, marginBottom: responsive.gap }}>
             <IconButton
               icon={ChevronLeft}
               onClick={prevChord}
@@ -323,7 +348,7 @@ function ChordPracticeSection({
               animate={{ scale: 1 }}
               transition={{ type: 'spring', delay: 0.1 }}
               style={{
-                fontSize: '2rem',
+                fontSize: responsive.titleFontSize,
                 fontWeight: 700,
                 color: 'var(--color-primary)',
                 margin: 0
@@ -346,8 +371,8 @@ function ChordPracticeSection({
             <div style={{
               display: 'flex',
               justifyContent: 'center',
-              gap: '1rem',
-              marginBottom: '1rem',
+              gap: responsive.gap,
+              marginBottom: responsive.gap,
               flexWrap: 'wrap',
               padding: '0.5rem'
             }}>
@@ -442,8 +467,8 @@ function ChordPracticeSection({
               onClick={playArpeggio}
               className="btn"
               style={{
-                padding: '0.5rem 1rem',
-                fontSize: '0.875rem',
+                padding: responsive.buttonPadding,
+                fontSize: responsive.buttonFontSize,
                 background: 'rgba(45, 91, 120, 0.1)',
                 color: 'var(--color-secondary)',
                 border: 'none',
@@ -466,8 +491,8 @@ function ChordPracticeSection({
               onClick={playFullChord}
               className="btn"
               style={{
-                padding: '0.5rem 1rem',
-                fontSize: '0.875rem',
+                padding: responsive.buttonPadding,
+                fontSize: responsive.buttonFontSize,
                 background: 'rgba(45, 91, 120, 0.1)',
                 color: 'var(--color-secondary)',
                 border: 'none',
@@ -486,7 +511,7 @@ function ChordPracticeSection({
 
       {/* Klaviatura - stejná šířka jako hlavní karta */}
       {(practicingMode || challengeMode) && (
-        <div className="container" style={{ maxWidth: '1024px', margin: '2rem auto' }}>
+        <div style={{ maxWidth: '1024px', margin: '2rem auto' }}>
           <PianoKeyboard
             highlightedNotes={
               challengeMode
@@ -500,7 +525,7 @@ function ChordPracticeSection({
 
       {/* Stav zahraných not - pod klaviaturou */}
       {(practicingMode || challengeMode) && playedNotes.length > 0 && !showSuccess && (
-        <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', padding: '0 1rem' }}>
+        <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -523,7 +548,7 @@ function ChordPracticeSection({
       {/* Úspěch! - VÝZVA */}
       <AnimatePresence>
         {showSuccess && challengeMode && (
-          <div className="container" style={{ maxWidth: '1024px', margin: '0 auto', padding: '0 1rem' }}>
+          <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -559,7 +584,24 @@ function ChordPracticeSection({
         )}
       </AnimatePresence>
 
-      {/* Oslava po dokončení všech akordů */}
+      {/* Practice mode completion modal (bez XP, bez confetti) */}
+      {practiceCompletionData && (
+        <PracticeCelebration
+          showCelebration={false}
+          showSuccessModal={showPracticeCompletionModal}
+          icon={practiceCompletionData.icon}
+          iconColor={practiceCompletionData.iconColor}
+          title={practiceCompletionData.title}
+          message={practiceCompletionData.message}
+          showXP={false}
+          onClose={() => {
+            setShowPracticeCompletionModal(false);
+            setPracticeCompletedChordIds(new Set());
+          }}
+        />
+      )}
+
+      {/* Challenge mode completion - oslava s XP a confetti */}
       <PracticeCelebration
         showCelebration={showCelebration}
         showSuccessModal={showSuccessModal}

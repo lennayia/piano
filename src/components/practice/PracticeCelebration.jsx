@@ -1,4 +1,4 @@
-import { Trophy, Music, Target, BookOpen, Star, Award, Zap } from 'lucide-react';
+import { Trophy, Music, Target, BookOpen, Star, Award, Zap, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Confetti from '../common/Confetti';
 import Modal from '../ui/Modal';
@@ -12,6 +12,8 @@ import Modal from '../ui/Modal';
  * @param {string} iconColor - Barva ikony
  * @param {string} title - Hlavní nadpis
  * @param {string} subtitle - Podnadpis
+ * @param {string} message - Doplňující zpráva (místo subtitle)
+ * @param {boolean} showXP - Zobrazit XP panel (default: true)
  * @param {number} xpAwarded - Počet XP
  * @param {string} xpLabel - Popisek k XP
  * @param {Function} onClose - Callback po zavření
@@ -24,11 +26,13 @@ function PracticeCelebration({
   title = 'Skvěle, naprosto bez chyb!',
   subtitle = '',
   completedItemTitle = '',
+  message = '',
+  showXP = true,
   xpAwarded = 100,
   xpLabel = 'Odměna za perfektní zahrání',
   onClose
 }) {
-  const iconMap = { Trophy, Music, Target, BookOpen, Star, Award, Zap };
+  const iconMap = { Trophy, Music, Target, BookOpen, Star, Award, Zap, CheckCircle };
   const Icon = iconMap[icon] || Trophy;
 
   return (
@@ -94,8 +98,8 @@ function PracticeCelebration({
             {title}
           </motion.h1>
 
-          {/* Subtitle */}
-          {(subtitle || completedItemTitle) && (
+          {/* Subtitle nebo Message */}
+          {(subtitle || completedItemTitle) && !message && (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -107,50 +111,67 @@ function PracticeCelebration({
             </motion.p>
           )}
 
-          {/* XP Panel */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, type: 'spring' }}
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 240, 245, 0.9) 0%, rgba(255, 245, 250, 0.7) 100%)',
-              borderRadius: '24px',
-              padding: '2rem',
-              marginBottom: '2rem',
-              border: 'none',
-              boxShadow: '0 8px 24px rgba(181, 31, 101, 0.12), inset 0 0 40px rgba(181, 31, 101, 0.05)'
-            }}>
-            <div className="text-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-                style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-primary)' }}
-              >
-                +{xpAwarded} XP
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="text-secondary"
-                style={{ fontSize: '1rem', marginTop: '0.5rem' }}
-              >
-                {xpLabel}
-              </motion.div>
-            </div>
-          </motion.div>
+          {/* Custom message (pro practice mode) */}
+          {message && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-secondary mb-4"
+              style={{ fontSize: '1rem', whiteSpace: 'pre-line', lineHeight: 1.6 }}
+            >
+              {message}
+            </motion.p>
+          )}
 
-          {/* Info */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="text-secondary mb-4"
-            style={{ fontSize: '1rem' }}
-          >
-            Své statistiky a odměny najdete na <strong>Dashboardu</strong>
-          </motion.p>
+          {/* XP Panel - pouze pokud showXP=true */}
+          {showXP && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4, type: 'spring' }}
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 240, 245, 0.9) 0%, rgba(255, 245, 250, 0.7) 100%)',
+                borderRadius: '24px',
+                padding: '2rem',
+                marginBottom: '2rem',
+                border: 'none',
+                boxShadow: '0 8px 24px rgba(181, 31, 101, 0.12), inset 0 0 40px rgba(181, 31, 101, 0.05)'
+              }}>
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
+                  style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-primary)' }}
+                >
+                  +{xpAwarded} XP
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="text-secondary"
+                  style={{ fontSize: '1rem', marginTop: '0.5rem' }}
+                >
+                  {xpLabel}
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Info - pouze pokud showXP=true */}
+          {showXP && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-secondary mb-4"
+              style={{ fontSize: '1rem' }}
+            >
+              Své statistiky a odměny najdete na <strong>Dashboardu</strong>
+            </motion.p>
+          )}
 
           {/* Button */}
           <motion.button

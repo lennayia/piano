@@ -205,7 +205,7 @@ function Cviceni() {
     setChords(filtered);
   }, [selectedDifficulty, allChords, isShuffled]);
 
-  // Callb pro reset progress z ChordPracticeSection
+  // Callback pro reset progress z ChordPracticeSection
   const handleResetProgress = useCallback(() => {
     // Callback volaný při změně obtížnosti nebo míchání v ChordPracticeSection
     // Můžeme sem přidat další logiku, pokud je potřeba

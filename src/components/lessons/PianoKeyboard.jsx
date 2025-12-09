@@ -13,7 +13,8 @@ const calculatePianoKeyWidth = (windowWidth, whiteKeyCount = 12, gap = 2) => {
   const containerMaxWidth = 1024;
   const effectiveWidth = Math.min(windowWidth, containerMaxWidth);
 
-  const horizontalPadding = 8; // Padding na každé straně
+  // Pouze PianoKeyboard vnitřní padding (8px na každé straně)
+  const horizontalPadding = 8;
 
   // Bezpečnostní rezerva podle breakpointů
   let safetyMargin;
